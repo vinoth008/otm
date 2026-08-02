@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Users — SecureSOT Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <link rel="stylesheet" href="../assets/css/dashboard.css"/>
+</head>
+<body>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="brand-text"><h3>SecureSOT</h3><span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a class="nav-link-custom" href="dashboard.html"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <a class="nav-link-custom active" href="users.html"><i class="fa-solid fa-users"></i> Users</a>
+      <a class="nav-link-custom" href="transactions.html"><i class="fa-solid fa-arrow-right-arrow-left"></i> Transactions</a>
+      <a class="nav-link-custom" href="expenses.html"><i class="fa-solid fa-wallet"></i> Expenses</a>
+      <span class="nav-section-label">Reports</span>
+      <a class="nav-link-custom" href="reports.html"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+      <a class="nav-link-custom" href="complaints.html"><i class="fa-solid fa-comment-dots"></i> Complaints</a>
+      <a class="nav-link-custom" href="notifications.html"><i class="fa-solid fa-bell"></i> Notifications</a>
+      <span class="nav-section-label">System</span>
+      <a class="nav-link-custom" href="audit-logs.html"><i class="fa-solid fa-clipboard-list"></i> Audit Logs</a>
+      <a class="nav-link-custom" href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="avatar" data-user-avatar>AU</div><div class="user-info"><div class="user-name" data-user-name>Admin</div><span class="user-role">Administrator</span></div></div>
+      <button class="btn-logout" data-logout><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+        <div><div style="font-weight:700">User Management</div><div style="font-size:0.75rem;color:var(--text-muted)">Manage all system users</div></div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn"><i class="fa-solid fa-bell"></i><span class="notif-dot"></span></button>
+        <div class="topbar-profile"><div class="avatar" data-user-avatar>AU</div></div>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <div class="page-header">
+        <div><h1 class="page-title">Users</h1><p class="page-subtitle">1,248 total users registered</p></div>
+        <div class="page-actions">
+          <div class="search-bar"><i class="fa-solid fa-search"></i><input class="form-control-custom" id="userSearch" placeholder="Search users..." oninput="filterUsers(this.value)"/></div>
+          <select class="form-control-custom" style="width:auto" id="roleFilter" onchange="filterUsers()">
+            <option value="">All Roles</option><option>Admin</option><option>Staff</option><option>Receptionist</option><option>Customer</option>
+          </select>
+          <button class="btn-primary-custom" onclick="openAddUser()"><i class="fa-solid fa-plus"></i> Add User</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <table class="table-custom" id="usersTable">
+          <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="users-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade modal-custom" id="addUserModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title"><i class="fa-solid fa-user-plus"></i> Add New User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label-custom">Full Name</label><input class="form-control-custom" id="new-name" placeholder="Enter full name" /></div>
+      <div class="form-group"><label class="form-label-custom">Email</label><input class="form-control-custom" id="new-email" type="email" placeholder="user@email.com" /></div>
+      <div class="form-group"><label class="form-label-custom">Role</label>
+        <select class="form-control-custom" id="new-role"><option>Customer</option><option>Staff</option><option>Receptionist</option><option>Admin</option></select>
+      </div>
+      <div class="form-group"><label class="form-label-custom">Phone</label><input class="form-control-custom" id="new-phone" placeholder="+91 XXXXX XXXXX" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn-primary-custom" onclick="addUser()"><i class="fa-solid fa-check"></i> Create User</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade modal-custom" id="editUserModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title"><i class="fa-solid fa-user-pen"></i> Edit User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id" />
+      <div class="form-group"><label class="form-label-custom">Full Name</label><input class="form-control-custom" id="edit-name" placeholder="Enter full name" /></div>
+      <div class="form-group"><label class="form-label-custom">Email</label><input class="form-control-custom" id="edit-email" type="email" placeholder="user@email.com" /></div>
+      <div class="form-group"><label class="form-label-custom">Role</label>
+        <select class="form-control-custom" id="edit-role"><option>Customer</option><option>Staff</option><option>Receptionist</option><option>Admin</option></select>
+      </div>
+      <div class="form-group"><label class="form-label-custom">Status</label>
+        <select class="form-control-custom" id="edit-status"><option>active</option><option>inactive</option><option>suspended</option></select>
+      </div>
+      <div class="form-group"><label class="form-label-custom">Phone</label><input class="form-control-custom" id="edit-phone" placeholder="+91 XXXXX XXXXX" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn-primary-custom" onclick="saveUser()"><i class="fa-solid fa-check"></i> Save Changes</button>
+    </div>
+  </div></div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/app.js"></script>
+<script>
+let allUsers = [];
+
+const roleMap = {admin:'Admin', staff:'Staff', user:'Customer'};
+const statusMap = {active:'Active', suspended:'Inactive', inactive:'Inactive'};
+
+function renderUsers(list) {
+  const tb = document.getElementById('users-body');
+  const roleColors = {Admin:'badge-purple',Staff:'badge-info',Receptionist:'badge-success',Customer:'badge-warning'};
+  const statusColors = {Active:'badge-success',Inactive:'badge-danger',Pending:'badge-warning'};
+  tb.innerHTML = list.map(u => {
+    const name = `${u.first_name} ${u.last_name||''}`.trim();
+    const role = roleMap[u.role] || 'Customer';
+    const status = statusMap[u.status] || 'Active';
+    return `<tr>
+    <td><div class="flex items-center gap-2"><div class="avatar" style="width:34px;height:34px;font-size:0.75rem">${name.slice(0,2).toUpperCase()}</div><b style="color:var(--text-primary)">${name}</b></div></td>
+    <td>${u.email}</td>
+    <td><span class="badge-custom ${roleColors[role]||'badge-info'}">${role}</span></td>
+    <td><span class="badge-custom ${statusColors[status]||'badge-info'}">${status}</span></td>
+    <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+    <td>
+      <button class="btn-success-custom" style="margin-right:6px" onclick="editUser('${u._id}')"><i class="fa-solid fa-pen"></i></button>
+      <button class="btn-danger-custom" onclick="deleteUser('${u._id}','${name}')"><i class="fa-solid fa-trash"></i></button>
+    </td>
+  </tr>`;
+  }).join('');
+}
+
+function filterUsers(val) {
+  const q = (val || document.getElementById('userSearch').value || '').toLowerCase();
+  const role = document.getElementById('roleFilter').value;
+  let list = allUsers;
+  if (q) list = list.filter(u => `${u.first_name} ${u.last_name||''}`.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+  if (role) {
+    const roleKey = role === 'Customer' ? 'user' : role.toLowerCase();
+    list = list.filter(u => u.role === roleKey);
+  }
+  renderUsers(list);
+}
+
+async function deleteUser(id, name) {
+  if(confirm(`Delete user "${name}"?`)) {
+    try {
+      await apiPost('?module=users&action=delete', {id});
+      allUsers = allUsers.filter(u => u._id !== id);
+      renderUsers(allUsers);
+      showToast(`User "${name}" deleted`,'warning');
+    } catch (err) {
+      showToast(err.message || 'Failed to delete user','error');
+    }
+  }
+}
+
+function openAddUser() { new bootstrap.Modal(document.getElementById('addUserModal')).show(); }
+
+function editUser(id) {
+  const u = allUsers.find(x => x._id === id);
+  if (!u) { showToast('User not found','error'); return; }
+  document.getElementById('edit-id').value = u._id;
+  document.getElementById('edit-name').value = `${u.first_name} ${u.last_name||''}`.trim();
+  document.getElementById('edit-email').value = u.email;
+  document.getElementById('edit-role').value = (roleMap[u.role] || 'Customer');
+  document.getElementById('edit-status').value = u.status || 'active';
+  document.getElementById('edit-phone').value = u.phone || '';
+  new bootstrap.Modal(document.getElementById('editUserModal')).show();
+}
+
+async function saveUser() {
+  const id = document.getElementById('edit-id').value;
+  const name = document.getElementById('edit-name').value.trim();
+  const email = document.getElementById('edit-email').value.trim();
+  const role = document.getElementById('edit-role').value;
+  const status = document.getElementById('edit-status').value;
+  const phone = document.getElementById('edit-phone').value.trim();
+  if (!name || !email) { showToast('Name and email required','error'); return; }
+  const parts = name.split(' ');
+  try {
+    await apiPost('?module=users&action=update', {
+      id,
+      first_name: parts[0] || name,
+      last_name: parts.slice(1).join(' '),
+      email,
+      phone,
+      role: role.toLowerCase(),
+      status
+    });
+    bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+    showToast('User updated successfully','success');
+    loadUsers();
+  } catch (err) {
+    showToast(err.message || 'Failed to update user','error');
+  }
+}
+
+async function addUser() {
+  const name = document.getElementById('new-name').value.trim();
+  const email = document.getElementById('new-email').value.trim();
+  const role  = document.getElementById('new-role').value;
+  const phone = document.getElementById('new-phone').value.trim();
+  if(!name||!email){ showToast('Name and email required','error'); return; }
+  const parts = name.split(' ');
+  try {
+    await apiPost('?module=users&action=create', {
+      first_name: parts[0] || name,
+      last_name: parts.slice(1).join(' '),
+      email,
+      phone,
+      role: role.toLowerCase(),
+      password: 'Temp@1234'
+    });
+    bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+    document.getElementById('new-name').value = '';
+    document.getElementById('new-email').value = '';
+    document.getElementById('new-phone').value = '';
+    showToast(`User "${name}" added successfully`,'success');
+    loadUsers();
+  } catch (err) {
+    showToast(err.message || 'Failed to add user','error');
+  }
+}
+
+async function loadUsers() {
+  try {
+    const res = await apiGet('?module=users&action=get_all&limit=100');
+    allUsers = res.data.users || [];
+    document.querySelector('.page-subtitle').textContent = `${allUsers.length} total users registered`;
+    renderUsers(allUsers);
+  } catch (err) {
+    showToast('Failed to load users','error');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  Auth.requireRole(['admin']);
+  loadUsers();
+});
+</script>
+</body>
+</html>

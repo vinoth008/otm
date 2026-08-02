@@ -1,0 +1,452 @@
+<!-- frontend/html/dashboard.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Smart Transaction Control</title>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/animations.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/mini_theme.css">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="fas fa-wallet"></i>
+                    <span>STC</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="dashboard.html" class="sidebar-menu-item active">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="transactions.html" class="sidebar-menu-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transactions</span>
+                </a>
+                <a href="analytics.html" class="sidebar-menu-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="budget.html" class="sidebar-menu-item">
+                    <i class="fas fa-piggy-bank"></i>
+                    <span>Budget</span>
+                </a>
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">Banking</div>
+                <a href="wallet.html" class="sidebar-menu-item">
+                    <i class="fas fa-wallet"></i>
+                    <span>Wallet</span>
+                </a>
+                <a href="transfers.html" class="sidebar-menu-item">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Transfers</span>
+                </a>
+                <a href="beneficiaries.html" class="sidebar-menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>Beneficiaries</span>
+                </a>
+                <a href="receipts.html" class="sidebar-menu-item">
+                    <i class="fas fa-receipt"></i>
+                    <span>Receipts</span>
+                </a>
+                <a href="appointments.html" class="sidebar-menu-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">Personal</div>
+                <a href="notes.html" class="sidebar-menu-item">
+                    <i class="fas fa-sticky-note"></i>
+                    <span>Notes</span>
+                </a>
+                <a href="complaints.html" class="sidebar-menu-item">
+                    <i class="fas fa-headset"></i>
+                    <span>Support</span>
+                </a>
+                <a href="profile.html" class="sidebar-menu-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="goals.html" class="sidebar-menu-item">
+                    <i class="fas fa-bullseye"></i>
+                    <span>Goals</span>
+                </a>
+                <a href="settings.html" class="sidebar-menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">Support</div>
+                <a href="help.html" class="sidebar-menu-item">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help & FAQ</span>
+                </a>
+                <a href="#" class="sidebar-menu-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="card" style="background: linear-gradient(135deg, #4f46e5, #06b6d4); color: white; padding: 16px;">
+                    <div style="font-weight: 600; margin-bottom: 8px;">
+                        <i class="fas fa-crown"></i> Upgrade to Pro
+                    </div>
+                    <p style="font-size: 0.75rem; margin-bottom: 12px; opacity: 0.9;">
+                        Get advanced analytics, unlimited goals, and more!
+                    </p>
+                    <button class="btn btn-sm" style="background: white; color: #4f46e5; border: none;">
+                        Upgrade Now
+                    </button>
+                </div>
+            </div>
+        </aside>
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay" id="mobileOverlay"></div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navigation -->
+            <div class="top-nav">
+                <div class="top-nav-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Dashboard</h1>
+                        <div class="breadcrumb">
+                            <a href="#">Home</a>
+                            <i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i>
+                            <span>Dashboard</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="top-nav-right">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search transactions..." id="globalSearch">
+                    </div>
+                    <div class="nav-actions">
+                        <button class="nav-icon-btn" id="themeToggle" title="Toggle Theme">
+                            <i class="fas fa-moon"></i>
+                            <i class="fas fa-sun" style="display: none;"></i>
+                        </button>
+                        <button class="nav-icon-btn" id="notificationsBtn" title="Notifications">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge badge-danger" style="position: absolute; top: -5px; right: -5px;">3</span>
+                        </button>
+                        <div class="user-menu" id="userMenu">
+                            <img src="https://ui-avatars.com/api/svg?name=User&color=4f46e5&background=e0e7ff&size=40" id="userAvatar" alt="User">
+                            <div class="user-info">
+                                <span class="user-name" id="userName">Loading...</span>
+                                <span class="user-role">User</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div id="dashboardContent">
+                <!-- Loading State -->
+                <div id="dashboardLoading" class="loading-overlay">
+                    <div class="spinner spinner-lg"></div>
+                </div>
+                <!-- Dashboard Grid -->
+                <div id="dashboardGrid" style="display: none;">
+                    <!-- Stats Cards -->
+                    <div class="dashboard-grid">
+                        <div class="stat-card income">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Total Income</div>
+                                    <div class="stat-card-value" id="totalIncome">₹0</div>
+                                </div>
+                                <div class="stat-card-icon">
+                                    <i class="fas fa-arrow-down"></i>
+                                </div>
+                            </div>
+                            <div class="stat-card-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="incomeChange">+0% this month</span>
+                            </div>
+                        </div>
+                        <div class="stat-card expense">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Total Expenses</div>
+                                    <div class="stat-card-value" id="totalExpense">₹0</div>
+                                </div>
+                                <div class="stat-card-icon">
+                                    <i class="fas fa-arrow-up"></i>
+                                </div>
+                            </div>
+                            <div class="stat-card-change negative">
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="expenseChange">+0% this month</span>
+                            </div>
+                        </div>
+                        <div class="stat-card savings">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Savings</div>
+                                    <div class="stat-card-value" id="totalSavings">₹0</div>
+                                </div>
+                                <div class="stat-card-icon">
+                                    <i class="fas fa-piggy-bank"></i>
+                                </div>
+                            </div>
+                            <div class="stat-card-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="savingsRate">0% savings rate</span>
+                            </div>
+                        </div>
+                        <div class="stat-card balance">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Current Balance</div>
+                                    <div class="stat-card-value" id="currentBalance"></div>
+                                </div>
+                                <div class="stat-card-icon">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                            </div>
+                            <div class="stat-card-change">
+                                <span id="balanceStatus">Updated just now</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Charts -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Expense Breakdown</h3>
+                                <div class="chart-actions">
+                                    <button class="btn btn-sm btn-outline" onclick="changeChartPeriod('week')">Week</button>
+                                    <button class="btn btn-sm btn-primary" onclick="changeChartPeriod('month')">Month</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="expensePieChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Daily Spending Trend</h3>
+                                <div class="chart-actions">
+                                    <button class="btn btn-sm btn-outline" id="exportChartBtn">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="dailyTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Recent Transactions -->
+                    <div class="transactions-card">
+                        <div class="table-header">
+                            <h3 class="table-title">Recent Transactions</h3>
+                            <div class="table-actions">
+                                <button class="btn btn-sm btn-outline" onclick="window.location.href='transactions.html'">
+                                    View All
+                                </button>
+                                <button class="btn btn-sm btn-primary" onclick="openAddTransactionModal()">
+                                    <i class="fas fa-plus"></i>
+                                    Add Transaction
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Category</th>
+                                        <th>Description</th>
+                                        <th>Payment Method</th>
+                                        <th>Amount</th>
+                                        <th>Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentTransactionsTable">
+                                    <tr>
+                                        <td colspan="6" class="text-center" style="padding: 40px; text-align: center;">
+                                            <div class="spinner"></div>
+                                            <p style="margin-top: 16px;">Loading transactions...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Quick Actions -->
+                    <div class="dashboard-grid" style="grid-template-columns: repeat(4, 1fr); gap: 16px;">
+                        <div class="card" style="text-align: center; cursor: pointer;" onclick="openAddTransactionModal()">
+                            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-plus" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                            </div>
+                            <h4 style="margin-bottom: 8px;">Add Transaction</h4>
+                            <p style="font-size: 0.875rem;">Quick add income or expenses</p>
+                        </div>
+                        <div class="card" style="text-align: center; cursor: pointer;" onclick="window.location.href='budget.html'">
+                            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-bullseye" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                            </div>
+                            <h4 style="margin-bottom: 8px;">Set Budget</h4>
+                            <p style="font-size: 0.875rem;">Manage your spending limits</p>
+                        </div>
+                        <div class="card" style="text-align: center; cursor: pointer;" onclick="window.location.href='analytics.html'">
+                            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-chart-line" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                            </div>
+                            <h4 style="margin-bottom: 8px;">View Analytics</h4>
+                            <p style="font-size: 0.875rem;">Insights and reports</p>
+                        </div>
+                        <div class="card" style="text-align: center; cursor: pointer;" onclick="window.location.href='goals.html'">
+                            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-flag" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                            </div>
+                            <h4 style="margin-bottom: 8px;">Create Goal</h4>
+                            <p style="font-size: 0.875rem;">Save for your dreams</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- Quick Add Button (Mobile) -->
+    <button class="quick-add-btn" onclick="openAddTransactionModal()" title="Add Transaction">
+        <i class="fas fa-plus"></i>
+    </button>
+    <!-- Add Transaction Modal -->
+    <div class="modal" id="addTransactionModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Transaction</h3>
+                <button class="modal-close" onclick="closeAddTransactionModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addTransactionForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transType">
+                                <i class="fas fa-exchange-alt"></i>
+                                Type
+                            </label>
+                            <select id="transType" name="type" required>
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                                <option value="transfer">Transfer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="transAmount">
+                                <i class="fas fa-rupee-sign"></i>
+                                Amount
+                            </label>
+                            <input type="number" id="transAmount" name="amount" placeholder="Enter amount" required min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="transCategory">
+                            <i class="fas fa-tag"></i>
+                            Category
+                        </label>
+                        <select id="transCategory" name="category" required>
+                            <option value="">Select category</option>
+                            <option value="Food">Food</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Bills & Utilities">Bills & Utilities</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Medical">Medical</option>
+                            <option value="Education">Education</option>
+                            <option value="Salary">Salary (Income)</option>
+                            <option value="Bonus">Bonus (Income)</option>
+                            <option value="Other Income">Other Income</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transDescription">
+                            <i class="fas fa-align-left"></i>
+                            Description
+                        </label>
+                        <input type="text" id="transDescription" name="description" placeholder="Enter description">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transDate">
+                                <i class="fas fa-calendar"></i>
+                                Date
+                            </label>
+                            <input type="date" id="transDate" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transPaymentMethod">
+                                <i class="fas fa-credit-card"></i>
+                                Payment Method
+                            </label>
+                            <select id="transPaymentMethod" name="payment_method" required>
+                                <option value="cash">Cash</option>
+                                <option value="card">Card</option>
+                                <option value="upi">UPI</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="wallet">Wallet</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="transNotes">
+                            <i class="fas fa-sticky-note"></i>
+                            Notes (Optional)
+                        </label>
+                        <textarea id="transNotes" name="notes" placeholder="Add any additional details"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="transReceipt">
+                            <i class="fas fa-paperclip"></i>
+                            Upload Receipt (Optional)
+                        </label>
+                        <input type="file" id="transReceipt" name="receipt" accept="image/*,.pdf">
+                    </div>
+                    <div id="addTransactionError" class="alert alert-danger" style="display: none;"></div>
+                    <div id="addTransactionSuccess" class="alert alert-success" style="display: none;"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddTransactionModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitTransaction()">
+                    <i class="fas fa-save"></i>
+                    Save Transaction
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Scripts -->
+    <script src="../js/utils.js"></script>
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>

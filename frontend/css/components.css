@@ -1,0 +1,425 @@
+/* frontend/css/components.css */
+/**
+ * Reusable UI Components
+ */
+/* ============================================
+   TOAST NOTIFICATIONS
+   ============================================ */
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease;
+    min-width: 250px;
+}
+.toast i {
+    font-size: 1.125rem;
+}
+.toast-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+.toast-error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+.toast-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.toast-info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+.toast.hiding {
+    animation: slideOut 0.3s ease;
+}
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+/* ============================================
+   AUTH PAGES
+   ============================================ */
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+}
+.auth-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 1100px;
+    width: 100%;
+    background: var(--bg-primary);
+    border-radius: 24px;
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+}
+.auth-branding {
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    padding: 60px 48px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.auth-branding .logo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.auth-branding .logo i {
+    font-size: 3rem;
+}
+.auth-branding .logo h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+}
+.auth-branding .tagline {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    margin-bottom: 40px;
+}
+.features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1rem;
+}
+.feature-item i {
+    font-size: 1.25rem;
+    width: 24px;
+}
+.auth-form-container {
+    padding: 60px 48px;
+    display: flex;
+    flex-direction: column;
+}
+.auth-form-wrapper {
+    max-width: 400px;
+    margin: 0 auto;
+    width: 100%;
+}
+.theme-toggle {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    width: 48px;
+    height: 24px;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    transition: all 0.3s;
+}
+.toggle-switch {
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    transition: transform 0.3s;
+}
+[data-theme="dark"] .toggle-switch {
+    transform: translateX(24px);
+}
+.auth-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    background: var(--bg-tertiary);
+    padding: 4px;
+    border-radius: 12px;
+}
+.auth-tab {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+.auth-tab.active {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+}
+.auth-form {
+    display: none;
+}
+.auth-form.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.auth-form h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+.form-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+}
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+.forgot-link {
+    font-size: 0.875rem;
+    color: var(--primary-color);
+}
+.password-input-wrapper {
+    position: relative;
+}
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.toggle-password:hover {
+    color: var(--text-primary);
+}
+.password-strength {
+    margin-top: 8px;
+}
+.strength-bar {
+    height: 4px;
+    width: 0%;
+    background: #ef4444;
+    border-radius: 2px;
+    transition: all 0.3s;
+}
+.strength-text {
+    font-size: 0.75rem;
+    margin-top: 4px;
+    display: block;
+}
+.otp-input {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 8px;
+}
+.resend-otp {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+.auth-footer {
+    margin-top: auto;
+    padding-top: 24px;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+}
+.error-message,
+.success-message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-top: 16px;
+    font-size: 0.875rem;
+    display: none;
+}
+.error-message {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid #ef4444;
+}
+.success-message {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid #10b981;
+}
+.error-message.show,
+.success-message.show {
+    display: block;
+    animation: shake 0.5s;
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+/* Responsive */
+@media (max-width: 768px) {
+    .auth-container {
+        grid-template-columns: 1fr;
+    }
+    .auth-branding {
+        display: none;
+    }
+    .auth-form-container {
+        padding: 40px 24px;
+    }
+}
+/* ============================================
+   TRANSACTION CARDS (Grid View)
+   ============================================ */
+.transaction-card {
+    transition: all 0.2s;
+}
+.transaction-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+/* ============================================
+   PAGINATION
+   ============================================ */
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.pagination-info {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+.pagination-controls {
+    display: flex;
+    gap: 8px;
+}
+.pagination-pages {
+    display: flex;
+    gap: 4px;
+}
+.page-link {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.page-link:hover {
+    background: var(--primary-color);
+    color: white;
+}
+.page-link.active {
+    background: var(--primary-color);
+    color: white;
+}
+/* ============================================
+   LOADING STATES
+   ============================================ */
+.loading-placeholder {
+    background: linear-gradient(90deg,
+        var(--bg-tertiary) 25%,
+        var(--bg-secondary) 50%,
+        var(--bg-tertiary) 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 8px;
+}
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+.empty-state i {
+    font-size: 4rem;
+    color: var(--text-tertiary);
+    margin-bottom: 16px;
+}
+.empty-state h3 {
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+/* ============================================
+   PROGRESS BARS
+   ============================================ */
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+/* ============================================
+   BADGES
+   ============================================ */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.badge i {
+    font-size: 0.625rem;
+}

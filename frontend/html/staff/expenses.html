@@ -1,0 +1,103 @@
+<!-- frontend/html/staff/expenses.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses - Staff | Smart Transaction Control</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/components.css">
+    <link rel="stylesheet" href="../../css/animations.css">
+    <link rel="stylesheet" href="../../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px;">
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <div class="table-header">
+                        <div>
+                            <h3 class="table-title">Branch Expenses</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary);">Record operational expenses for admin approval.</p>
+                        </div>
+                        <button class="btn btn-sm btn-primary" id="openAddExpenseBtn"><i class="fas fa-plus"></i> Record Expense</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Recorded</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffExpenseTableBody">
+                                <tr><td colspan="6" class="text-center"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal" id="addExpenseModal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Record Expense</h3>
+                <button class="modal-close" onclick="closeModal('addExpenseModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="addExpenseForm">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="seCategory" class="form-control">
+                            <option value="Rent">Rent</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Salaries">Salaries</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Office Supplies">Office Supplies</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="seDescription" class="form-control" placeholder="e.g. Electricity bill">
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" id="seAmount" class="form-control" placeholder="0.00" min="0.01" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Expense Date</label>
+                        <input type="date" id="seDate" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addExpenseModal')">Cancel</button>
+                <button class="btn btn-primary" id="saveExpenseBtn"><i class="fas fa-save"></i> Save Expense</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script src="../js/staff.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ roles: ['staff'], title: 'Expenses', page: 'expenses.html', init: initStaffExpenses });
+        });
+    </script>
+</body>
+</html>

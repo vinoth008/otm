@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — SecureSOT</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/dashboard.css" />
+</head>
+<body>
+<div class="app-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="brand-text"><h3>SecureSOT</h3><span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a class="nav-link-custom active" href="dashboard.html"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <a class="nav-link-custom" href="users.html"><i class="fa-solid fa-users"></i> Users <span class="nav-badge">12</span></a>
+      <a class="nav-link-custom" href="transactions.html"><i class="fa-solid fa-arrow-right-arrow-left"></i> Transactions</a>
+      <a class="nav-link-custom" href="expenses.html"><i class="fa-solid fa-wallet"></i> Expenses</a>
+      <span class="nav-section-label">Reports</span>
+      <a class="nav-link-custom" href="reports.html"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+      <a class="nav-link-custom" href="complaints.html"><i class="fa-solid fa-comment-dots"></i> Complaints <span class="nav-badge">3</span></a>
+      <a class="nav-link-custom" href="notifications.html"><i class="fa-solid fa-bell"></i> Notifications</a>
+      <span class="nav-section-label">System</span>
+      <a class="nav-link-custom" href="audit-logs.html"><i class="fa-solid fa-clipboard-list"></i> Audit Logs</a>
+      <a class="nav-link-custom" href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" data-user-avatar>AU</div>
+        <div class="user-info">
+          <div class="user-name" data-user-name>Admin User</div>
+          <span class="user-role">Administrator</span>
+        </div>
+      </div>
+      <button class="btn-logout" data-logout><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+        <div>
+          <div id="greeting" style="font-weight:700;font-size:1rem">Good morning! 👋</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)" data-current-date></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn" onclick="showToast('No new messages','info')"><i class="fa-solid fa-envelope"></i></button>
+        <button class="topbar-btn" onclick="window.location.href='notifications.html'">
+          <i class="fa-solid fa-bell"></i><span class="notif-dot"></span>
+        </button>
+        <div class="topbar-profile" onclick="window.location.href='settings.html'">
+          <div class="avatar" data-user-avatar>AU</div>
+          <div>
+            <div class="profile-name" data-user-name>Admin User</div>
+            <div class="profile-role">Administrator</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <!-- Stats Grid -->
+      <div class="grid-4 mb-4">
+        <div class="stat-card">
+          <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" data-count="0" data-prefix="">0</div>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> +8.2% this month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon cyan"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" data-count="0" data-prefix="">0</div>
+            <div class="stat-label">Transactions</div>
+            <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> +12.5% this month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" data-count="0" data-prefix="₹" data-suffix="K" data-decimals="0">₹0</div>
+            <div class="stat-label">Revenue</div>
+            <div class="stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> +18.3% this month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" data-count="0" data-prefix="">0</div>
+            <div class="stat-label">Fraud Alerts</div>
+            <div class="stat-change down"><i class="fa-solid fa-arrow-trend-down"></i> -2 from last week</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid-2 mb-4" style="grid-template-columns:2fr 1fr;">
+        <div class="card">
+          <div class="card-header-custom">
+            <span class="card-title">Revenue vs Expenses</span>
+            <select class="form-control-custom" style="width:auto;padding:6px 10px;font-size:0.78rem">
+              <option>This Year</option><option>Last Year</option>
+            </select>
+          </div>
+          <div style="height:260px"><canvas id="revenueChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header-custom">
+            <span class="card-title">Transaction Types</span>
+          </div>
+          <div style="height:260px"><canvas id="txTypeChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Bottom Row -->
+      <div class="grid-2">
+        <!-- Recent Transactions -->
+        <div class="card">
+          <div class="card-header-custom">
+            <span class="card-title">Recent Transactions</span>
+            <a href="transactions.html" style="font-size:0.8rem;color:var(--primary-light)">View all</a>
+          </div>
+          <table class="table-custom">
+            <thead><tr><th>User</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <!-- Weekly Chart + Quick Stats -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div class="card">
+            <div class="card-header-custom">
+              <span class="card-title">Weekly Transactions</span>
+            </div>
+            <div style="height:160px"><canvas id="weeklyChart"></canvas></div>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="card-header-custom"><span class="card-title">System Overview</span></div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-muted">Active Sessions</span>
+                <span class="badge-custom badge-success">142 online</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-muted">Pending KYC</span>
+                <span class="badge-custom badge-warning">28 users</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-muted">Open Complaints</span>
+                <span class="badge-custom badge-danger">3 critical</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-muted">System Uptime</span>
+                <span style="color:var(--success);font-weight:600;font-size:0.875rem">99.98%</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-muted">Security Score</span>
+                <span style="color:var(--primary-light);font-weight:600;font-size:0.875rem">A+</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-body -->
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/dashboard.js"></script>
+<script>
+  // Guard: admin only
+  document.addEventListener('DOMContentLoaded', () => {
+    Auth.requireRole(['admin']);
+  });
+</script>
+</body>
+</html>

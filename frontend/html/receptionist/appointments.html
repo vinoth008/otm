@@ -1,0 +1,111 @@
+<!-- frontend/html/receptionist/appointments.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments - Receptionist | Smart Transaction Control</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/components.css">
+    <link rel="stylesheet" href="../../css/animations.css">
+    <link rel="stylesheet" href="../../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px;">
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <div class="table-header" style="flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h3 class="table-title">Appointments</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary);">Confirm, complete or cancel customer appointments.</p>
+                        </div>
+                        <div class="table-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <select id="appointmentStatusFilter" class="form-control" style="width: auto;">
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <button class="btn btn-sm btn-outline" id="applyAppointmentFilters">Apply</button>
+                            <button class="btn btn-sm btn-primary" onclick="openModal('receptionistAppointmentModal')"><i class="fas fa-plus"></i> Book Appointment</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Customer</th>
+                                    <th>Purpose</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recAppointmentTableBody">
+                                <tr><td colspan="6" class="text-center"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Book Appointment Modal -->
+    <div class="modal" id="receptionistAppointmentModal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Book Appointment</h3>
+                <button class="modal-close" onclick="closeModal('receptionistAppointmentModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="receptionistAppointmentForm">
+                    <div class="form-group">
+                        <label>Customer ID</label>
+                        <input type="text" id="raUserId" class="form-control" placeholder="Paste customer ID">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="raDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Time</label>
+                            <input type="time" id="raTime" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Branch</label>
+                        <select id="raBranch" class="form-control"><option value="">Select branch</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Purpose</label>
+                        <input type="text" id="raPurpose" class="form-control" placeholder="e.g. Account opening">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('receptionistAppointmentModal')">Cancel</button>
+                <button class="btn btn-primary" id="saveAppointmentBtn"><i class="fas fa-check"></i> Book Appointment</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script src="../js/receptionist.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ roles: ['receptionist'], title: 'Appointments', page: 'appointments.html', init: initReceptionistAppointments });
+        });
+    </script>
+</body>
+</html>

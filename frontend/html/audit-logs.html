@@ -1,0 +1,137 @@
+<!-- frontend/html/audit-logs.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs - Smart Transaction Control</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/animations.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px;">
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <div class="table-header">
+                        <h3 class="table-title"><i class="fas fa-search" style="color: var(--primary-color);"></i> Filter Audit Logs</h3>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 12px; align-items: end;">
+                        <div class="form-group">
+                            <label>Action</label>
+                            <select id="actionFilter">
+                                <option value="">All Actions</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>From</label>
+                            <input type="date" id="fromDate">
+                        </div>
+                        <div class="form-group">
+                            <label>To</label>
+                            <input type="date" id="toDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Search</label>
+                            <input type="search" id="logSearch" placeholder="Search details...">
+                        </div>
+                        <button class="btn btn-primary" onclick="loadLogs()"><i class="fas fa-sync"></i> Filter</button>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 20px;">
+                    <div class="table-header">
+                        <h3 class="table-title">Audit Trail</h3>
+                        <span class="badge badge-info" id="logCount">0 logs</span>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Action</th>
+                                    <th>User ID</th>
+                                    <th>Details</th>
+                                    <th>IP Address</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logBody">
+                                <tr><td colspan="5" class="text-center"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const today = new Date();
+            const first = new Date(today.getFullYear(), today.getMonth(), 1);
+            document.getElementById('fromDate').value = first.toISOString().split('T')[0];
+            document.getElementById('toDate').value = today.toISOString().split('T')[0];
+            STC.boot({ roles: ['admin', 'auditor'], title: 'Audit Logs', page: 'audit-logs.html', init: initLogs });
+        });
+
+        async function initLogs() {
+            try {
+                const data = await STC.get('audit_crud.php', 'get_actions');
+                const select = document.getElementById('actionFilter');
+                (data.actions || []).forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a;
+                    opt.textContent = a.replace(/_/g, ' ');
+                    select.appendChild(opt);
+                });
+            } catch (e) { /* actions are optional */ }
+            loadLogs();
+        }
+
+        async function loadLogs() {
+            const tbody = document.getElementById('logBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center"><div class="spinner"></div></td></tr>';
+            const params = {
+                from_date: document.getElementById('fromDate').value,
+                to_date: document.getElementById('toDate').value
+            };
+            const action = document.getElementById('actionFilter').value;
+            if (action) params.action = action;
+            try {
+                const data = await STC.get('audit_crud.php', 'get_logs', params);
+                const logs = data.logs || [];
+                document.getElementById('logCount').textContent = logs.length + ' logs';
+                const search = document.getElementById('logSearch').value.toLowerCase();
+                const filtered = search ? logs.filter(l => {
+                    const details = JSON.stringify(l.details || '').toLowerCase();
+                    return (l.action || '').toLowerCase().includes(search) || details.includes(search);
+                }) : logs;
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No audit logs found</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = filtered.map(l => `
+                    <tr>
+                        <td style="white-space: nowrap;">${STC.esc(l.timestamp)}</td>
+                        <td>${STC.badge(l.action)}</td>
+                        <td style="font-family: monospace; font-size: 0.75rem;">${STC.esc(l.user_id ? l.user_id.slice(-6) : '—')}</td>
+                        <td style="max-width: 320px;">
+                            <code style="font-size: 0.72rem; color: var(--text-secondary);">${STC.esc(JSON.stringify(l.details || ''))}</code>
+                        </td>
+                        <td style="font-family: monospace; font-size: 0.75rem;">${STC.esc(l.ip_address || '—')}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">' + STC.esc(err.message) + '</td></tr>';
+            }
+        }
+    </script>
+</body>
+</html>

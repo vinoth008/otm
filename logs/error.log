@@ -1,0 +1,221 @@
+[01-Aug-2026 15:44:33 Asia/Kolkata] PHP Warning:  session_name(): Session name cannot be changed after headers have already been sent in D:\MPWT\config.php on line 34
+[01-Aug-2026 15:44:33 Asia/Kolkata] PHP Warning:  Undefined array key "HTTP_HOST" in D:\MPWT\config.php on line 38
+[01-Aug-2026 15:44:33 Asia/Kolkata] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed after headers have already been sent in D:\MPWT\config.php on line 35
+[01-Aug-2026 15:44:33 Asia/Kolkata] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in D:\MPWT\config.php on line 43
+[01-Aug-2026 15:44:33 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Class "MongoDB\Client" not found in D:\MPWT\config.php:49
+Stack trace:
+#0 C:\Users\vinov\AppData\Local\Temp\opencode\mongotest.php(4): getMongoDB()
+#1 {main}
+  thrown in D:\MPWT\config.php on line 49
+[01-Aug-2026 15:44:37 Asia/Kolkata] PHP Warning:  session_name(): Session name cannot be changed after headers have already been sent in D:\MPWT\config.php on line 34
+[01-Aug-2026 15:44:37 Asia/Kolkata] PHP Warning:  Undefined array key "HTTP_HOST" in D:\MPWT\config.php on line 38
+[01-Aug-2026 15:44:37 Asia/Kolkata] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed after headers have already been sent in D:\MPWT\config.php on line 35
+[01-Aug-2026 15:44:37 Asia/Kolkata] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in D:\MPWT\config.php on line 43
+[01-Aug-2026 15:44:37 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Class "MongoDB\Client" not found in D:\MPWT\config.php:49
+Stack trace:
+#0 C:\Users\vinov\AppData\Local\Temp\opencode\mongotest.php(4): getMongoDB()
+#1 {main}
+  thrown in D:\MPWT\config.php on line 49
+[01-Aug-2026 15:44:42 Asia/Kolkata] PHP Warning:  session_name(): Session name cannot be changed after headers have already been sent in D:\MPWT\config.php on line 34
+[01-Aug-2026 15:44:42 Asia/Kolkata] PHP Warning:  Undefined array key "HTTP_HOST" in D:\MPWT\config.php on line 38
+[01-Aug-2026 15:44:42 Asia/Kolkata] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed after headers have already been sent in D:\MPWT\config.php on line 35
+[01-Aug-2026 15:44:42 Asia/Kolkata] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in D:\MPWT\config.php on line 43
+[01-Aug-2026 15:44:42 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Class "MongoDB\Client" not found in D:\MPWT\config.php:49
+Stack trace:
+#0 C:\Users\vinov\AppData\Local\Temp\opencode\mongotest.php(4): getMongoDB()
+#1 {main}
+  thrown in D:\MPWT\config.php on line 49
+[01-Aug-2026 15:46:37 Asia/Kolkata] PHP Warning:  session_name(): Session name cannot be changed after headers have already been sent in D:\MPWT\config.php on line 36
+[01-Aug-2026 15:46:37 Asia/Kolkata] PHP Warning:  Undefined array key "HTTP_HOST" in D:\MPWT\config.php on line 40
+[01-Aug-2026 15:46:37 Asia/Kolkata] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed after headers have already been sent in D:\MPWT\config.php on line 37
+[01-Aug-2026 15:46:37 Asia/Kolkata] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in D:\MPWT\config.php on line 45
+[01-Aug-2026 15:47:27 Asia/Kolkata] PHP Warning:  Undefined array key "HTTP_HOST" in D:\MPWT\config.php on line 40
+[01-Aug-2026 15:48:11 Asia/Kolkata] PHP Warning:  session_name(): Session name cannot be changed after headers have already been sent in D:\MPWT\config.php on line 36
+[01-Aug-2026 15:48:11 Asia/Kolkata] PHP Warning:  Undefined array key "HTTP_HOST" in D:\MPWT\config.php on line 40
+[01-Aug-2026 15:48:11 Asia/Kolkata] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed after headers have already been sent in D:\MPWT\config.php on line 37
+[01-Aug-2026 15:48:11 Asia/Kolkata] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in D:\MPWT\config.php on line 45
+[01-Aug-2026 15:48:11 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\Users\vinov\AppData\Local\Temp\opencode\e2e_login.php:1) in D:\MPWT\backend\php\security.php on line 390
+[01-Aug-2026 15:48:11 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\Users\vinov\AppData\Local\Temp\opencode\e2e_login.php:1) in D:\MPWT\backend\php\security.php on line 391
+[01-Aug-2026 15:48:11 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\Users\vinov\AppData\Local\Temp\opencode\e2e_login.php:1) in D:\MPWT\backend\php\security.php on line 392
+[01-Aug-2026 15:48:11 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\Users\vinov\AppData\Local\Temp\opencode\e2e_login.php:1) in D:\MPWT\backend\php\security.php on line 393
+[01-Aug-2026 15:48:11 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\Users\vinov\AppData\Local\Temp\opencode\e2e_login.php:1) in D:\MPWT\backend\php\security.php on line 394
+[01-Aug-2026 15:49:40 Asia/Kolkata] PHP Fatal error:  Uncaught MongoDB\Driver\Exception\CommandException: An object representing an expression must have exactly one field: { $toLong: "$date", 0: 1000 } in D:\MPWT\vendor\mongodb\mongodb\src\Operation\Aggregate.php:338
+Stack trace:
+#0 D:\MPWT\vendor\mongodb\mongodb\src\Operation\Aggregate.php(338): MongoDB\Driver\Server->executeReadCommand('smart_transacti...', Object(MongoDB\Driver\Command), Array)
+#1 D:\MPWT\vendor\mongodb\mongodb\src\Operation\Aggregate.php(239): MongoDB\Operation\Aggregate->executeCommand(Object(MongoDB\Driver\Server), Object(MongoDB\Driver\Command))
+#2 D:\MPWT\vendor\mongodb\mongodb\src\Collection.php(251): MongoDB\Operation\Aggregate->execute(Object(MongoDB\Driver\Server))
+#3 D:\MPWT\backend\php\transaction_crud.php(579): MongoDB\Collection->aggregate(Array)
+#4 D:\MPWT\backend\php\transaction_crud.php(852): getTransactionsSummary()
+#5 {main}
+  thrown in D:\MPWT\vendor\mongodb\mongodb\src\Operation\Aggregate.php on line 338
+[01-Aug-2026 15:51:31 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function calculateDateRange() in D:\MPWT\backend\php\analytics.php:152
+Stack trace:
+#0 D:\MPWT\backend\php\analytics.php(126): getCategoryTrends(Object(MongoDB\BSON\ObjectId))
+#1 D:\MPWT\backend\php\analytics.php(281): getAnalyticsOverview()
+#2 {main}
+  thrown in D:\MPWT\backend\php\analytics.php on line 152
+[01-Aug-2026 15:53:35 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function calculateDateRange() in D:\MPWT\backend\php\analytics.php:152
+Stack trace:
+#0 D:\MPWT\backend\php\analytics.php(126): getCategoryTrends(Object(MongoDB\BSON\ObjectId))
+#1 D:\MPWT\backend\php\analytics.php(281): getAnalyticsOverview()
+#2 {main}
+  thrown in D:\MPWT\backend\php\analytics.php on line 152
+[01-Aug-2026 17:01:21 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined method MongoDB\Database::startSession() in D:\MPWT\backend\php\wallet_crud.php:190
+Stack trace:
+#0 D:\MPWT\backend\php\wallet_crud.php(247): transferFromWallet()
+#1 {main}
+  thrown in D:\MPWT\backend\php\wallet_crud.php on line 190
+[01-Aug-2026 17:01:24 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function getTimestamp() on string in D:\MPWT\backend\php\security.php:315
+Stack trace:
+#0 D:\MPWT\backend\php\appointment_crud.php(88): phpDateToMongo('2026-08-04 00:0...')
+#1 D:\MPWT\backend\php\appointment_crud.php(197): createAppointment()
+#2 {main}
+  thrown in D:\MPWT\backend\php\security.php on line 315
+[01-Aug-2026 17:01:26 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function getTimestamp() on string in D:\MPWT\backend\php\security.php:315
+Stack trace:
+#0 D:\MPWT\backend\php\expense_crud.php(75): phpDateToMongo('2026-08-01 00:0...')
+#1 D:\MPWT\backend\php\expense_crud.php(139): createExpense()
+#2 {main}
+  thrown in D:\MPWT\backend\php\security.php on line 315
+[01-Aug-2026 17:01:28 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function getTimestamp() on string in D:\MPWT\backend\php\security.php:315
+Stack trace:
+#0 D:\MPWT\backend\php\report_crud.php(33): phpDateToMongo('2026-07-02 00:0...')
+#1 D:\MPWT\backend\php\report_crud.php(174): getTransactionReport()
+#2 {main}
+  thrown in D:\MPWT\backend\php\security.php on line 315
+[01-Aug-2026 17:01:28 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function getTimestamp() on string in D:\MPWT\backend\php\security.php:315
+Stack trace:
+#0 D:\MPWT\backend\php\report_crud.php(99): phpDateToMongo('2026-08-01 00:0...')
+#1 D:\MPWT\backend\php\report_crud.php(177): getTransferReport()
+#2 {main}
+  thrown in D:\MPWT\backend\php\security.php on line 315
+[01-Aug-2026 17:01:28 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function getTimestamp() on string in D:\MPWT\backend\php\security.php:315
+Stack trace:
+#0 D:\MPWT\backend\php\report_crud.php(143): phpDateToMongo('2026-08-01 00:0...')
+#1 D:\MPWT\backend\php\report_crud.php(180): getComplaintReport()
+#2 {main}
+  thrown in D:\MPWT\backend\php\security.php on line 315
+[01-Aug-2026 17:01:53 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined method MongoDB\Database::startSession() in D:\MPWT\backend\php\wallet_crud.php:190
+Stack trace:
+#0 D:\MPWT\backend\php\wallet_crud.php(247): transferFromWallet()
+#1 {main}
+  thrown in D:\MPWT\backend\php\wallet_crud.php on line 190
+[01-Aug-2026 17:01:53 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function getTimestamp() on string in D:\MPWT\backend\php\security.php:315
+Stack trace:
+#0 D:\MPWT\backend\php\appointment_crud.php(88): phpDateToMongo('2026-08-04 00:0...')
+#1 D:\MPWT\backend\php\appointment_crud.php(197): createAppointment()
+#2 {main}
+  thrown in D:\MPWT\backend\php\security.php on line 315
+[01-Aug-2026 17:01:54 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function getTimestamp() on string in D:\MPWT\backend\php\security.php:315
+Stack trace:
+#0 D:\MPWT\backend\php\expense_crud.php(75): phpDateToMongo('2026-08-01 00:0...')
+#1 D:\MPWT\backend\php\expense_crud.php(139): createExpense()
+#2 {main}
+  thrown in D:\MPWT\backend\php\security.php on line 315
+[01-Aug-2026 17:01:55 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function getTimestamp() on string in D:\MPWT\backend\php\security.php:315
+Stack trace:
+#0 D:\MPWT\backend\php\report_crud.php(33): phpDateToMongo('2026-01-01 00:0...')
+#1 D:\MPWT\backend\php\report_crud.php(174): getTransactionReport()
+#2 {main}
+  thrown in D:\MPWT\backend\php\security.php on line 315
+[01-Aug-2026 17:01:55 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function getTimestamp() on string in D:\MPWT\backend\php\security.php:315
+Stack trace:
+#0 D:\MPWT\backend\php\report_crud.php(99): phpDateToMongo('2026-08-01 00:0...')
+#1 D:\MPWT\backend\php\report_crud.php(177): getTransferReport()
+#2 {main}
+  thrown in D:\MPWT\backend\php\security.php on line 315
+[01-Aug-2026 17:01:55 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function getTimestamp() on string in D:\MPWT\backend\php\security.php:315
+Stack trace:
+#0 D:\MPWT\backend\php\report_crud.php(143): phpDateToMongo('2026-08-01 00:0...')
+#1 D:\MPWT\backend\php\report_crud.php(180): getComplaintReport()
+#2 {main}
+  thrown in D:\MPWT\backend\php\security.php on line 315
+[01-Aug-2026 17:04:01 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined method MongoDB\Database::startSession() in D:\MPWT\backend\php\wallet_crud.php:190
+Stack trace:
+#0 D:\MPWT\backend\php\wallet_crud.php(247): transferFromWallet()
+#1 {main}
+  thrown in D:\MPWT\backend\php\wallet_crud.php on line 190
+[01-Aug-2026 17:04:18 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined method MongoDB\Database::startSession() in D:\MPWT\backend\php\wallet_crud.php:190
+Stack trace:
+#0 D:\MPWT\backend\php\wallet_crud.php(247): transferFromWallet()
+#1 {main}
+  thrown in D:\MPWT\backend\php\wallet_crud.php on line 190
+[02-Aug-2026 09:07:52 Asia/Kolkata] PHP Warning:  session_name(): Session name cannot be changed after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 45
+[02-Aug-2026 09:07:52 Asia/Kolkata] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 50
+[02-Aug-2026 09:07:52 Asia/Kolkata] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 58
+[02-Aug-2026 09:07:52 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 422
+[02-Aug-2026 09:07:52 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 423
+[02-Aug-2026 09:07:52 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 424
+[02-Aug-2026 09:07:52 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 425
+[02-Aug-2026 09:07:52 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 426
+[02-Aug-2026 09:08:12 Asia/Kolkata] PHP Warning:  session_name(): Session name cannot be changed after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 45
+[02-Aug-2026 09:08:12 Asia/Kolkata] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 50
+[02-Aug-2026 09:08:12 Asia/Kolkata] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 58
+[02-Aug-2026 09:08:12 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 422
+[02-Aug-2026 09:08:12 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 423
+[02-Aug-2026 09:08:12 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 424
+[02-Aug-2026 09:08:12 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 425
+[02-Aug-2026 09:08:12 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 426
+[02-Aug-2026 09:08:28 Asia/Kolkata] PHP Warning:  session_name(): Session name cannot be changed after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 45
+[02-Aug-2026 09:08:28 Asia/Kolkata] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 50
+[02-Aug-2026 09:08:28 Asia/Kolkata] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 58
+[02-Aug-2026 09:08:28 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 422
+[02-Aug-2026 09:08:28 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 423
+[02-Aug-2026 09:08:28 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 424
+[02-Aug-2026 09:08:28 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 425
+[02-Aug-2026 09:08:28 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 426
+[02-Aug-2026 09:16:22 Asia/Kolkata] PHP Fatal error:  Uncaught MongoDB\Driver\Exception\CommandException: $in needs an array in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php:263
+Stack trace:
+#0 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php(263): MongoDB\Driver\Server->executeQuery('smart_transacti...', Object(MongoDB\Driver\Query), Array)
+#1 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Collection.php(648): MongoDB\Operation\Find->execute(Object(MongoDB\Driver\Server))
+#2 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(114): MongoDB\Collection->find(Array, Array)
+#3 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(636): getExpenses()
+#4 {main}
+  thrown in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php on line 263
+[02-Aug-2026 09:16:30 Asia/Kolkata] PHP Fatal error:  Uncaught MongoDB\Driver\Exception\CommandException: $in needs an array in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php:263
+Stack trace:
+#0 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php(263): MongoDB\Driver\Server->executeQuery('smart_transacti...', Object(MongoDB\Driver\Query), Array)
+#1 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Collection.php(648): MongoDB\Operation\Find->execute(Object(MongoDB\Driver\Server))
+#2 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(114): MongoDB\Collection->find(Array, Array)
+#3 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(636): getExpenses()
+#4 {main}
+  thrown in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php on line 263
+[02-Aug-2026 09:16:48 Asia/Kolkata] PHP Fatal error:  Uncaught MongoDB\Driver\Exception\CommandException: $in needs an array in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php:263
+Stack trace:
+#0 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php(263): MongoDB\Driver\Server->executeQuery('smart_transacti...', Object(MongoDB\Driver\Query), Array)
+#1 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Collection.php(648): MongoDB\Operation\Find->execute(Object(MongoDB\Driver\Server))
+#2 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(114): MongoDB\Collection->find(Array, Array)
+#3 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(636): getExpenses()
+#4 {main}
+  thrown in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php on line 263
+[02-Aug-2026 09:16:53 Asia/Kolkata] PHP Fatal error:  Uncaught MongoDB\Driver\Exception\CommandException: $in needs an array in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php:263
+Stack trace:
+#0 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php(263): MongoDB\Driver\Server->executeQuery('smart_transacti...', Object(MongoDB\Driver\Query), Array)
+#1 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Collection.php(648): MongoDB\Operation\Find->execute(Object(MongoDB\Driver\Server))
+#2 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(114): MongoDB\Collection->find(Array, Array)
+#3 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(636): getExpenses()
+#4 {main}
+  thrown in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php on line 263
+[02-Aug-2026 09:18:55 Asia/Kolkata] PHP Fatal error:  Uncaught MongoDB\Driver\Exception\CommandException: $in needs an array in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php:263
+Stack trace:
+#0 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php(263): MongoDB\Driver\Server->executeQuery('smart_transacti...', Object(MongoDB\Driver\Query), Array)
+#1 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Collection.php(648): MongoDB\Operation\Find->execute(Object(MongoDB\Driver\Server))
+#2 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(114): MongoDB\Collection->find(Array, Array)
+#3 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(636): getExpenses()
+#4 {main}
+  thrown in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\Find.php on line 263
+[02-Aug-2026 10:41:21 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function calculateDateRange() in C:\xampp\htdocs\MPWT\backend\php\expense_crud.php:496
+Stack trace:
+#0 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(654): getExpenseStats()
+#1 {main}
+  thrown in C:\xampp\htdocs\MPWT\backend\php\expense_crud.php on line 496
+[02-Aug-2026 10:42:31 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function calculateDateRange() in C:\xampp\htdocs\MPWT\backend\php\expense_crud.php:496
+Stack trace:
+#0 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(654): getExpenseStats()
+#1 {main}
+  thrown in C:\xampp\htdocs\MPWT\backend\php\expense_crud.php on line 496
+[02-Aug-2026 10:43:11 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to undefined function calculateDateRange() in C:\xampp\htdocs\MPWT\backend\php\expense_crud.php:496
+Stack trace:
+#0 C:\xampp\htdocs\MPWT\backend\php\expense_crud.php(654): getExpenseStats()
+#1 {main}
+  thrown in C:\xampp\htdocs\MPWT\backend\php\expense_crud.php on line 496

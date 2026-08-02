@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes | Secure Transaction System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <link href="../assets/css/auth.css" rel="stylesheet">
+  <style>
+    .dash-body { background: linear-gradient(135deg, #0f172a, #111827); min-height: 100vh; color: #fff; }
+    .glass { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(16px); border-radius: 20px; }
+    .note-card { transition: transform .2s ease; }
+    .note-card:hover { transform: translateY(-4px); }
+    .form-control, .form-select { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; }
+    .form-control:focus, .form-select:focus { background: rgba(255,255,255,0.12); color: #fff; border-color: #f59e0b; box-shadow: none; }
+    .form-control::placeholder { color: #94a3b8; }
+    .form-select option { background: #1e293b; color: #fff; }
+  </style>
+</head>
+<body class="dash-body">
+  <nav class="navbar navbar-dark border-bottom border-light border-opacity-10 px-4">
+    <a class="navbar-brand fw-bold" href="dashboard.html"><i class="fa-solid fa-note-sticky me-2"></i>Notes</a>
+    <div class="ms-auto d-flex gap-2">
+      <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#noteModal" onclick="openNewNote()">
+        <i class="fa-solid fa-plus me-1"></i>New Note
+      </button>
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm">Back</a>
+    </div>
+  </nav>
+
+  <main class="container-fluid p-4">
+    <div class="row g-4 mb-4">
+      <div class="col-md-3"><div class="glass p-3"><div class="text-secondary">Total Notes</div><h3 class="mb-0" id="statTotal">0</h3></div></div>
+      <div class="col-md-3"><div class="glass p-3"><div class="text-secondary">Pinned</div><h3 class="mb-0" id="statPinned">0</h3></div></div>
+      <div class="col-md-3"><div class="glass p-3"><div class="text-secondary">Private</div><h3 class="mb-0" id="statPrivate">0</h3></div></div>
+      <div class="col-md-3"><div class="glass p-3"><div class="text-secondary">Shared</div><h3 class="mb-0" id="statShared">0</h3></div></div>
+    </div>
+
+    <div class="glass p-4 mb-4">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-8">
+          <input type="text" class="form-control" id="searchInput" placeholder="Search notes by title or content...">
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" id="visibilityFilter">
+            <option value="">All</option>
+            <option value="PINNED">Pinned</option>
+            <option value="PRIVATE">Private</option>
+            <option value="SHARED">Shared</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-light w-100" onclick="loadNotes()">Search</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4" id="notesGrid">
+      <div class="col-12 text-center text-secondary py-5">Loading notes...</div>
+    </div>
+  </main>
+
+  <div class="modal fade" id="noteModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border border-secondary">
+        <div class="modal-header">
+          <h5 class="modal-title" id="noteModalTitle">New Note</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="noteForm" class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label">Title</label>
+              <input type="text" class="form-control" id="note_title" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Visibility</label>
+              <select class="form-select" id="visibility">
+                <option value="PRIVATE">Private</option>
+                <option value="SHARED">Shared</option>
+                <option value="PINNED">Pinned</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Content</label>
+              <textarea class="form-control" id="note_content" rows="6" required></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Tags</label>
+              <input type="text" class="form-control" id="tags" placeholder="finance, reminders, bills">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Reminder Date</label>
+              <input type="date" class="form-control" id="reminder_date">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-success" id="saveNoteBtn">Save Note</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="../assets/js/api.js"></script>
+  <script>
+    let editingNoteId = null;
+
+    function badgeFor(vis) {
+      if (vis === 'PINNED') return '<span class="badge text-bg-warning">Pinned</span>';
+      if (vis === 'SHARED') return '<span class="badge text-bg-success">Shared</span>';
+      return '<span class="badge text-bg-info">Private</span>';
+    }
+
+    async function loadNotes() {
+      const search = document.getElementById('searchInput').value.trim();
+      const vis = document.getElementById('visibilityFilter').value;
+      const params = new URLSearchParams({ module: 'notes', action: 'get_all', limit: 50 });
+      if (search) params.set('search', search);
+      if (vis) params.set('visibility', vis);
+      try {
+        const res = await apiGet('?' + params.toString());
+        const notes = res.data.notes || [];
+        const grid = document.getElementById('notesGrid');
+        if (!notes.length) {
+          grid.innerHTML = '<div class="col-12 text-center text-secondary py-5">No notes found</div>';
+        } else {
+          grid.innerHTML = notes.map(n => `
+            <div class="col-md-6 col-xl-4">
+              <div class="glass p-4 note-card h-100">
+                <div class="d-flex justify-content-between mb-2">
+                  ${badgeFor(n.visibility)}
+                  <small class="text-secondary">${n.created_at ? n.created_at.split(' ')[0] : ''}</small>
+                </div>
+                <h5>${n.title}</h5>
+                <p class="text-secondary">${n.content}</p>
+                ${n.tags ? `<small class="text-info">${n.tags}</small>` : ''}
+                <div class="d-flex gap-2 mt-3">
+                  <button class="btn btn-sm btn-outline-light" onclick="editNote('${n._id}')">Edit</button>
+                  <button class="btn btn-sm btn-outline-danger" onclick="deleteNote('${n._id}')">Delete</button>
+                </div>
+              </div>
+            </div>`).join('');
+        }
+        loadSummary();
+      } catch (err) {
+        document.getElementById('notesGrid').innerHTML = '<div class="col-12 text-center text-secondary py-5">Failed to load notes</div>';
+      }
+    }
+
+    async function loadSummary() {
+      try {
+        const res = await apiGet('?module=notes&action=summary');
+        const s = res.data;
+        document.getElementById('statTotal').textContent = s.total || 0;
+        document.getElementById('statPinned').textContent = s.pinned || 0;
+        document.getElementById('statPrivate').textContent = s.private || 0;
+        document.getElementById('statShared').textContent = s.shared || 0;
+      } catch (e) { /* optional */ }
+    }
+
+    function openNewNote() {
+      editingNoteId = null;
+      document.getElementById('noteModalTitle').textContent = 'New Note';
+      document.getElementById('noteForm').reset();
+    }
+
+    async function editNote(id) {
+      try {
+        const res = await apiGet('?module=notes&action=get&id=' + id);
+        const n = res.data;
+        editingNoteId = id;
+        document.getElementById('noteModalTitle').textContent = 'Edit Note';
+        document.getElementById('note_title').value = n.title;
+        document.getElementById('note_content').value = n.content;
+        document.getElementById('visibility').value = n.visibility;
+        document.getElementById('tags').value = n.tags || '';
+        document.getElementById('reminder_date').value = n.reminder_date || '';
+        new bootstrap.Modal(document.getElementById('noteModal')).show();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Failed to load note' });
+      }
+    }
+
+    async function deleteNote(id) {
+      const result = await Swal.fire({
+        icon: 'warning',
+        title: 'Delete note?',
+        text: 'Delete this note permanently?',
+        showCancelButton: true,
+        confirmButtonText: 'Delete'
+      });
+      if (!result.isConfirmed) return;
+      try {
+        await apiPost('?module=notes&action=delete', { id });
+        Swal.fire({ icon: 'success', title: 'Deleted', text: 'Note deleted successfully.' });
+        loadNotes();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Failed to delete note' });
+      }
+    }
+
+    document.getElementById('saveNoteBtn').addEventListener('click', async () => {
+      const title = document.getElementById('note_title').value.trim();
+      const content = document.getElementById('note_content').value.trim();
+      if (!title || !content) {
+        Swal.fire({ icon: 'warning', title: 'Validation', text: 'Title and content are required.' });
+        return;
+      }
+      const payload = {
+        title,
+        content,
+        visibility: document.getElementById('visibility').value,
+        tags: document.getElementById('tags').value.trim(),
+        reminder_date: document.getElementById('reminder_date').value
+      };
+      try {
+        if (editingNoteId) {
+          payload.id = editingNoteId;
+          await apiPost('?module=notes&action=update', payload);
+        } else {
+          await apiPost('?module=notes&action=create', payload);
+        }
+        bootstrap.Modal.getInstance(document.getElementById('noteModal')).hide();
+        Swal.fire({ icon: 'success', title: 'Saved', text: 'Note saved successfully.' });
+        loadNotes();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Failed to save note' });
+      }
+    });
+
+    document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') loadNotes(); });
+    document.getElementById('visibilityFilter').addEventListener('change', loadNotes);
+
+    loadNotes();
+  </script>
+</body>
+</html>

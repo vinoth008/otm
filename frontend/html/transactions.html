@@ -1,0 +1,508 @@
+<!-- frontend/html/transactions.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - Smart Transaction Control</title>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/animations.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Flatpickr (Date Picker) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/material_blue.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="transactions-page" style="padding: 24px;">
+                <!-- Filters Bar -->
+                <div class="filters-bar card" style="margin-bottom: 24px; padding: 20px;">
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label>
+                                <i class="fas fa-filter"></i>
+                                Filter By
+                            </label>
+                            <select id="filterType" class="filter-select">
+                                <option value="">All Types</option>
+                                <option value="income">Income</option>
+                                <option value="expense">Expense</option>
+                                <option value="transfer">Transfer</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>
+                                <i class="fas fa-tag"></i>
+                                Category
+                            </label>
+                            <select id="filterCategory" class="filter-select">
+                                <option value="">All Categories</option>
+                                <option value="Food">Food</option>
+                                <option value="Travel">Travel</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Bills & Utilities">Bills & Utilities</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Medical">Medical</option>
+                                <option value="Education">Education</option>
+                                <option value="Salary">Salary</option>
+                                <option value="Bonus">Bonus</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>
+                                <i class="fas fa-calendar-alt"></i>
+                                Date Range
+                            </label>
+                            <input type="text" id="dateRangePicker" class="filter-select" placeholder="Select date range">
+                        </div>
+                        <div class="filter-group">
+                            <label>
+                                <i class="fas fa-rupee-sign"></i>
+                                Min Amount
+                            </label>
+                            <input type="number" id="filterMinAmount" class="filter-select" placeholder="Min">
+                        </div>
+                        <div class="filter-group">
+                            <label>
+                                <i class="fas fa-rupee-sign"></i>
+                                Max Amount
+                            </label>
+                            <input type="number" id="filterMaxAmount" class="filter-select" placeholder="Max">
+                        </div>
+                        <div class="filter-group">
+                            <label>
+                                <i class="fas fa-sort"></i>
+                                Sort By
+                            </label>
+                            <select id="filterSort" class="filter-select">
+                                <option value="date_desc">Newest First</option>
+                                <option value="date_asc">Oldest First</option>
+                                <option value="amount_desc">Highest Amount</option>
+                                <option value="amount_asc">Lowest Amount</option>
+                                <option value="category">Category</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filters-actions" style="margin-top: 16px; display: flex; gap: 8px;">
+                        <button class="btn btn-primary" onclick="applyFilters()">
+                            <i class="fas fa-search"></i>
+                            Apply Filters
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearFilters()">
+                            <i class="fas fa-times"></i>
+                            Clear
+                        </button>
+                        <button class="btn btn-outline" onclick="exportTransactions()">
+                            <i class="fas fa-download"></i>
+                            Export
+                        </button>
+                    </div>
+                </div>
+                <!-- Summary Cards -->
+                <div class="dashboard-grid" style="margin-bottom: 24px;">
+                    <div class="stat-card income">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Total Income</div>
+                                <div class="stat-card-value" id="filterTotalIncome">₹0</div>
+                            </div>
+                            <div class="stat-card-icon">
+                                <i class="fas fa-arrow-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card expense">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Total Expenses</div>
+                                <div class="stat-card-value" id="filterTotalExpense">₹0</div>
+                            </div>
+                            <div class="stat-card-icon">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card balance">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Net Balance</div>
+                                <div class="stat-card-value" id="filterNetBalance">₹0</div>
+                            </div>
+                            <div class="stat-card-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card savings">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Transactions</div>
+                                <div class="stat-card-value" id="filterTotalCount">0</div>
+                            </div>
+                            <div class="stat-card-icon">
+                                <i class="fas fa-list"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Transactions Table -->
+                <div class="card" style="padding: 20px;">
+                    <div class="table-header">
+                        <h3 class="table-title">All Transactions</h3>
+                        <div class="table-actions">
+                            <button class="btn btn-sm btn-outline" id="toggleView" onclick="toggleView()">
+                                <i class="fas fa-th"></i>
+                                Grid View
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="openAddTransactionModal()">
+                                <i class="fas fa-plus"></i>
+                                Add Transaction
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Loading State -->
+                    <div id="transactionsLoading" class="text-center" style="padding: 60px 20px;">
+                        <div class="spinner spinner-lg"></div>
+                        <p style="margin-top: 16px;">Loading transactions...</p>
+                    </div>
+                    <!-- Table View -->
+                    <div id="tableView" class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                    </th>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Payment Method</th>
+                                    <th>Tags</th>
+                                    <th>Amount</th>
+                                    <th>Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsTableBody">
+                                <!-- Transactions will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Grid View -->
+                    <div id="gridView" class="transactions-grid" style="display: none;">
+                        <!-- Transaction cards will be loaded here -->
+                    </div>
+                    <!-- Pagination -->
+                    <div class="pagination" id="pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                        <div class="pagination-info">
+                            Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalEntries">0</span>
+                        </div>
+                        <div class="pagination-controls" style="display: flex; gap: 8px; align-items: center;">
+                            <button class="btn btn-sm btn-outline" id="prevPage" onclick="changePage(-1)">
+                                <i class="fas fa-chevron-left"></i>
+                                Previous
+                            </button>
+                            <span class="pagination-pages" id="currentPage" style="padding: 0 8px;">
+                                Page 1
+                            </span>
+                            <button class="btn btn-sm btn-outline" id="nextPage" onclick="changePage(1)">
+                                Next
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Quick Add Button (except for read-only auditor) -->
+    <button class="quick-add-btn" id="quickAddBtn" onclick="openAddTransactionModal()" title="Add Transaction">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Add/Edit Transaction Modal -->
+    <div class="modal" id="transactionModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Add New Transaction</h3>
+                <button class="modal-close" onclick="closeTransactionModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="transactionForm">
+                    <input type="hidden" id="transId" name="id">
+                    <input type="hidden" id="csrfToken" name="csrf_token" value="">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transType">
+                                <i class="fas fa-exchange-alt"></i>
+                                Type *
+                            </label>
+                            <select id="transType" name="type" required onchange="updateCategories()">
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                                <option value="transfer">Transfer</option>
+                                <option value="loan">Loan</option>
+                                <option value="borrow">Borrow</option>
+                                <option value="lend">Lend</option>
+                                <option value="investment">Investment</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="transAmount">
+                                <i class="fas fa-rupee-sign"></i>
+                                Amount *
+                            </label>
+                            <input type="number" id="transAmount" name="amount" placeholder="Enter amount" required min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transCategory">
+                                <i class="fas fa-tag"></i>
+                                Category *
+                            </label>
+                            <select id="transCategory" name="category" required>
+                                <option value="">Select category</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="transSubcategory">
+                                <i class="fas fa-tags"></i>
+                                Subcategory
+                            </label>
+                            <input type="text" id="transSubcategory" name="subcategory" placeholder="Enter subcategory">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="transDescription">
+                            <i class="fas fa-align-left"></i>
+                            Description
+                        </label>
+                        <input type="text" id="transDescription" name="description" placeholder="Enter description">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transDate">
+                                <i class="fas fa-calendar"></i>
+                                Date *
+                            </label>
+                            <input type="date" id="transDate" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transPaymentMethod">
+                                <i class="fas fa-credit-card"></i>
+                                Payment Method *
+                            </label>
+                            <select id="transPaymentMethod" name="payment_method" required>
+                                <option value="">Select method</option>
+                                <option value="cash">Cash</option>
+                                <option value="card">Card</option>
+                                <option value="upi">UPI</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="wallet">Wallet</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transRecipient">
+                                <i class="fas fa-user"></i>
+                                Recipient/Payer
+                            </label>
+                            <input type="text" id="transRecipient" name="recipient_payer" placeholder="Enter recipient or payer">
+                        </div>
+                        <div class="form-group">
+                            <label for="transTags">
+                                <i class="fas fa-bookmark"></i>
+                                Tags
+                            </label>
+                            <input type="text" id="transTags" name="tags" placeholder="Enter tags (comma separated)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="transNotes">
+                            <i class="fas fa-sticky-note"></i>
+                            Notes
+                        </label>
+                        <textarea id="transNotes" name="notes" placeholder="Add any additional notes"></textarea>
+                    </div>
+                    <!-- Advanced Options -->
+                    <div class="card" style="background: var(--bg-secondary, #f8fafc); margin-top: 16px; padding: 16px;">
+                        <h4 style="margin-bottom: 16px; font-size: 0.875rem;">
+                            <i class="fas fa-cog"></i>
+                            Advanced Options
+                        </h4>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="transIsRecurring" name="is_recurring" onchange="toggleRecurringOptions()">
+                                <span>Recurring Transaction</span>
+                            </label>
+                        </div>
+                        <div id="recurringOptions" style="display: none; margin-bottom: 12px;">
+                            <div class="form-group">
+                                <label>Recurring Frequency</label>
+                                <select id="transRecurringFrequency" name="recurring_frequency">
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="transIsInstallment" name="is_installment" onchange="toggleInstallmentOptions()">
+                                <span>Installment Payment</span>
+                            </label>
+                        </div>
+                        <div id="installmentOptions" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Total Installments</label>
+                                    <input type="number" id="transInstallmentTotal" name="installment_total" min="1" max="120">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Paid Installments</label>
+                                    <input type="number" id="transInstallmentPaid" name="installment_paid" min="0">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="transIsSplit" name="is_split" onchange="toggleSplitOptions()">
+                                <span>Split Expense</span>
+                            </label>
+                        </div>
+                        <div id="splitOptions" style="display: none; margin-top: 12px;">
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label>Split With (emails, comma separated)</label>
+                                <input type="text" id="transSplitWith" name="split_with" placeholder="Enter email addresses">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Your Share Amount</label>
+                                <input type="number" id="transSplitAmount" name="split_amount">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="transReceipt">
+                            <i class="fas fa-paperclip"></i>
+                            Upload Receipt
+                        </label>
+                        <input type="file" id="transReceipt" name="receipt" accept="image/*,.pdf">
+                        <p style="font-size: 0.75rem; color: var(--text-tertiary, #94a3b8); margin-top: 8px;">
+                            Max size: 5MB. Allowed: JPG, PNG, PDF
+                        </p>
+                        <div id="existingReceipt" style="display: none; margin-top: 8px;">
+                            <a href="#" target="_blank" id="existingReceiptLink">
+                                <i class="fas fa-file-pdf"></i> View existing receipt
+                            </a>
+                        </div>
+                    </div>
+                    <div id="transactionError" class="alert alert-danger" style="display: none;"></div>
+                    <div id="transactionSuccess" class="alert alert-success" style="display: none;"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeTransactionModal()">Cancel</button>
+                <button class="btn btn-danger" id="deleteBtn" onclick="deleteTransaction()" style="display: none;">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                </button>
+                <button class="btn btn-primary" onclick="submitTransaction()">
+                    <i class="fas fa-save"></i>
+                    <span id="saveBtnText">Save Transaction</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- View Transaction Modal -->
+    <div class="modal" id="viewTransactionModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Transaction Details</h3>
+                <button class="modal-close" onclick="closeViewTransactionModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="viewTransactionContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeViewTransactionModal()">Close</button>
+                <button class="btn btn-primary" onclick="editTransactionFromView()">
+                    <i class="fas fa-edit"></i>
+                    Edit
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Bulk Actions Modal -->
+    <div class="modal" id="bulkActionsModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Bulk Actions</h3>
+                <button class="modal-close" onclick="closeBulkActionsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 16px;">
+                    Selected <strong id="selectedCount">0</strong> transactions. What would you like to do?
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="btn btn-outline" onclick="bulkExport()" style="justify-content: center;">
+                        <i class="fas fa-download"></i>
+                        Export Selected
+                    </button>
+                    <button class="btn btn-danger" onclick="bulkDelete()" style="justify-content: center;">
+                        <i class="fas fa-trash"></i>
+                        Delete Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/plugins/rangePlugin.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script src="../js/transactions.js"></script>
+    <script>
+        // Hide add/edit controls for read-only auditor role
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ title: 'Transactions', page: 'transactions.html', init: function (s) {
+                if (s.user_role === 'auditor') {
+                    const hidden = ['quickAddBtn', 'deleteBtn'];
+                    hidden.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+                    const addBtn = document.querySelector('.table-actions .btn-primary');
+                    if (addBtn) addBtn.style.display = 'none';
+                }
+                // transactions.js already inits on DOMContentLoaded; ensure page-level init runs after shell
+                if (typeof window.initTransactions === 'function' && !window.__stcTxnInit) {
+                    window.__stcTxnInit = true;
+                    window.initTransactions();
+                }
+            }});
+        });
+    </script>
+</body>
+</html>

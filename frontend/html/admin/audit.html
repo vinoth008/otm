@@ -1,0 +1,65 @@
+<!-- frontend/html/admin/audit.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs - Admin | Smart Transaction Control</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/components.css">
+    <link rel="stylesheet" href="../../css/animations.css">
+    <link rel="stylesheet" href="../../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px;">
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <div class="table-header" style="flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h3 class="table-title">Audit Trail</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary);">Review all system activity and security events.</p>
+                        </div>
+                        <div class="table-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <input type="text" id="auditUserId" class="form-control" placeholder="User ID" style="width: auto;">
+                            <input type="text" id="auditAction" class="form-control" placeholder="Action" style="width: auto;">
+                            <input type="date" id="auditFrom" class="form-control" style="width: auto;">
+                            <input type="date" id="auditTo" class="form-control" style="width: auto;">
+                            <button class="btn btn-sm btn-primary" id="loadAuditBtn"><i class="fas fa-search"></i> Search</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Details</th>
+                                    <th>IP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditTableBody">
+                                <tr><td colspan="5" class="text-center"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ roles: ['admin'], title: 'Audit Logs', page: 'audit.html', init: initAdminAudit });
+        });
+    </script>
+</body>
+</html>

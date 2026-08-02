@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Notifications — SecureSOT Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <link rel="stylesheet" href="../assets/css/dashboard.css"/>
+</head>
+<body>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="brand-text"><h3>SecureSOT</h3><span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a class="nav-link-custom" href="dashboard.html"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <a class="nav-link-custom" href="users.html"><i class="fa-solid fa-users"></i> Users</a>
+      <a class="nav-link-custom" href="transactions.html"><i class="fa-solid fa-arrow-right-arrow-left"></i> Transactions</a>
+      <a class="nav-link-custom" href="expenses.html"><i class="fa-solid fa-wallet"></i> Expenses</a>
+      <span class="nav-section-label">Reports</span>
+      <a class="nav-link-custom" href="reports.html"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+      <a class="nav-link-custom" href="complaints.html"><i class="fa-solid fa-comment-dots"></i> Complaints</a>
+      <a class="nav-link-custom active" href="notifications.html"><i class="fa-solid fa-bell"></i> Notifications</a>
+      <span class="nav-section-label">System</span>
+      <a class="nav-link-custom" href="audit-logs.html"><i class="fa-solid fa-clipboard-list"></i> Audit Logs</a>
+      <a class="nav-link-custom" href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="avatar" data-user-avatar>AU</div><div class="user-info"><div class="user-name" data-user-name>Admin</div><span class="user-role">Administrator</span></div></div>
+      <button class="btn-logout" data-logout><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+        <div><div style="font-weight:700">Notifications</div><div style="font-size:0.75rem;color:var(--text-muted)">System alerts and messages</div></div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn" onclick="markAllRead()"><i class="fa-solid fa-check-double"></i></button>
+        <div class="topbar-profile"><div class="avatar" data-user-avatar>AU</div></div>
+      </div>
+    </header>
+    <div class="page-body">
+      <div class="page-header">
+        <div><h1 class="page-title">Notifications</h1><p class="page-subtitle" id="unread-count">Loading notifications...</p></div>
+        <button class="btn-secondary-custom" onclick="markAllRead()"><i class="fa-solid fa-check-double"></i> Mark all read</button>
+      </div>
+      <div class="card" id="notif-list">
+        <div style="padding:24px;text-align:center;color:var(--text-muted)">Loading notifications...</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/app.js"></script>
+<script>
+let notifs = [];
+
+function iconForType(type){
+  switch(type){
+    case 'budget_alert': return {icon:'fa-triangle-exclamation', color:'var(--danger)'};
+    case 'transaction_success': return {icon:'fa-check-circle', color:'var(--success)'};
+    case 'transaction_failed': return {icon:'fa-circle-xmark', color:'var(--danger)'};
+    case 'password_update': return {icon:'fa-key', color:'var(--warning)'};
+    case 'profile_update': return {icon:'fa-user-pen', color:'var(--info)'};
+    case 'admin_announcement': return {icon:'fa-bullhorn', color:'var(--primary-light)'};
+    case 'new_user': return {icon:'fa-user-plus', color:'var(--success)'};
+    case 'new_complaint': return {icon:'fa-comment-dots', color:'var(--warning)'};
+    case 'security': return {icon:'fa-shield-halved', color:'var(--info)'};
+    default: return {icon:'fa-bell', color:'var(--text-muted)'};
+  }
+}
+
+function timeAgo(dateStr){
+  const then = new Date(dateStr.replace(' ','T'));
+  const diff = Math.floor((Date.now() - then.getTime()) / 1000);
+  if(diff < 60) return 'just now';
+  if(diff < 3600) return Math.floor(diff/60) + ' min ago';
+  if(diff < 86400) return Math.floor(diff/3600) + ' hour' + (Math.floor(diff/3600)>1?'s':'') + ' ago';
+  if(diff < 604800) return Math.floor(diff/86400) + ' day' + (Math.floor(diff/86400)>1?'s':'') + ' ago';
+  return then.toLocaleDateString();
+}
+
+function renderNotifs(list){
+  document.getElementById('notif-list').innerHTML = list.length === 0
+    ? '<div style="padding:24px;text-align:center;color:var(--text-muted)">No notifications found</div>'
+    : list.map(n=>{
+        const ic = iconForType(n.type);
+        return `
+        <div class="flex items-center gap-4" style="padding:18px 24px;border-bottom:1px solid var(--border);background:${n.is_read?'transparent':'rgba(99,102,241,0.04)'};cursor:pointer;transition:var(--transition)" onmouseenter="this.style.background='var(--bg-hover)'" onmouseleave="this.style.background='${n.is_read?'transparent':'rgba(99,102,241,0.04)'}'" onclick="markRead('${n._id}')">
+          <div style="width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="fa-solid ${ic.icon}" style="color:${ic.color}"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:${n.is_read?500:700};font-size:0.9rem;color:var(--text-primary)">${n.title}</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px">${n.message}</div>
+            ${n.user_name && n.user_name !== 'System' ? '<div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">User: ' + n.user_name + '</div>' : ''}
+          </div>
+          <div style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap">${timeAgo(n.created_at)}</div>
+          ${!n.is_read?'<div style="width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0"></div>':''}
+        </div>`;
+      }).join('');
+  const unread = list.filter(n=>!n.is_read).length;
+  document.getElementById('unread-count').textContent = unread > 0 ? unread + ' unread notifications' : 'All notifications read';
+}
+
+function loadNotifs(){
+  apiGet('?module=notifications&action=admin_all&limit=50').then(res=>{
+    notifs = res.data.notifications || [];
+    renderNotifs(notifs);
+  }).catch(()=>{
+    document.getElementById('notif-list').innerHTML = '<div style="padding:24px;text-align:center;color:var(--danger)">Failed to load notifications</div>';
+    document.getElementById('unread-count').textContent = '0 unread notifications';
+  });
+}
+
+function markRead(id){
+  const n = notifs.find(x=>x._id === id);
+  if(n && !n.is_read){
+    n.is_read = true;
+    renderNotifs(notifs);
+    apiPost('?module=notifications&action=admin_mark_read', {id}).catch(()=>{});
+  }
+}
+
+function markAllRead(){
+  notifs.forEach(n=>n.is_read = true);
+  renderNotifs(notifs);
+  apiPost('?module=notifications&action=admin_mark_all_read', {}).then(()=>{
+    showToast('All notifications marked as read','success');
+  }).catch(()=>{});
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  Auth.requireRole(['admin']);
+  loadNotifs();
+});
+</script>
+</body>
+</html>

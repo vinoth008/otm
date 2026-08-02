@@ -1,0 +1,103 @@
+<!-- frontend/html/admin/complaints.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaints - Admin | Smart Transaction Control</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/components.css">
+    <link rel="stylesheet" href="../../css/animations.css">
+    <link rel="stylesheet" href="../../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px;">
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <div class="table-header" style="flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h3 class="table-title">Complaints</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary);">Resolve customer complaints and support tickets.</p>
+                        </div>
+                        <div class="table-actions" style="display: flex; gap: 8px;">
+                            <select id="complaintStatusFilter" class="form-control" style="width: auto;">
+                                <option value="">All Statuses</option>
+                                <option value="open">Open</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                            <button class="btn btn-sm btn-outline" id="applyComplaintFilters">Apply</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Created</th>
+                                    <th>Subject</th>
+                                    <th>Category</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminComplaintTableBody">
+                                <tr><td colspan="6" class="text-center"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Complaint Response Modal -->
+    <div class="modal" id="complaintResponseModal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Handle Complaint</h3>
+                <button class="modal-close" onclick="closeModal('complaintResponseModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="card" style="padding: 12px; margin-bottom: 16px; background: var(--bg-tertiary);">
+                    <h4 id="complaintDetailSubject" style="margin-bottom: 8px;">Subject</h4>
+                    <p id="complaintDetailDescription" style="font-size: 0.875rem; color: var(--text-secondary);"></p>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="complaintResponseStatus" class="form-control">
+                        <option value="open">Open</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Response</label>
+                    <textarea id="complaintResponseText" class="form-control" rows="4" placeholder="Reply to the customer..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('complaintResponseModal')">Cancel</button>
+                <button class="btn btn-primary" id="saveComplaintResponseBtn"><i class="fas fa-check"></i> Save Response</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ roles: ['admin'], title: 'Complaints', page: 'complaints.html', init: initAdminComplaints });
+        });
+    </script>
+</body>
+</html>

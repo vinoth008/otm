@@ -1,0 +1,272 @@
+<!-- frontend/html/budget.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget - Smart Transaction Control</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/animations.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="fas fa-wallet"></i>
+                    <span>STC</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="dashboard.html" class="sidebar-menu-item">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="transactions.html" class="sidebar-menu-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transactions</span>
+                </a>
+                <a href="analytics.html" class="sidebar-menu-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="budget.html" class="sidebar-menu-item active">
+                    <i class="fas fa-piggy-bank"></i>
+                    <span>Budget</span>
+                </a>
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">Personal</div>
+                <a href="profile.html" class="sidebar-menu-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="goals.html" class="sidebar-menu-item">
+                    <i class="fas fa-bullseye"></i>
+                    <span>Goals</span>
+                </a>
+                <a href="settings.html" class="sidebar-menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">Support</div>
+                <a href="help.html" class="sidebar-menu-item">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help & FAQ</span>
+                </a>
+                <a href="#" class="sidebar-menu-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="card" style="background: linear-gradient(135deg, #4f46e5, #06b6d4); color: white; padding: 16px;">
+                    <div style="font-weight: 600; margin-bottom: 8px;">
+                        <i class="fas fa-crown"></i> Upgrade to Pro
+                    </div>
+                    <p style="font-size: 0.75rem; margin-bottom: 12px; opacity: 0.9;">
+                        Get advanced analytics, unlimited goals, and more!
+                    </p>
+                    <button class="btn btn-sm" style="background: white; color: #4f46e5; border: none;">
+                        Upgrade Now
+                    </button>
+                </div>
+            </div>
+        </aside>
+        <div class="mobile-overlay" id="mobileOverlay"></div>
+        <main class="main-content">
+            <div class="top-nav">
+                <div class="top-nav-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Budget Management</h1>
+                        <div class="breadcrumb">
+                            <a href="dashboard.html">Home</a>
+                            <i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i>
+                            <span>Budget</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="top-nav-right">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search transactions..." id="globalSearch">
+                    </div>
+                    <div class="nav-actions">
+                        <button class="nav-icon-btn" id="themeToggle" title="Toggle Theme">
+                            <i class="fas fa-moon"></i>
+                            <i class="fas fa-sun" style="display: none;"></i>
+                        </button>
+                        <button class="nav-icon-btn" title="Notifications">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge badge-danger" style="position: absolute; top: -5px; right: -5px;">3</span>
+                        </button>
+                        <div class="user-menu">
+                            <img src="https://ui-avatars.com/api/svg?name=User&color=4f46e5&background=e0e7ff&size=40" alt="User">
+                            <div class="user-info">
+                                <span class="user-name">User</span>
+                                <span class="user-role">User</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Budget Summary -->
+            <div class="dashboard-grid" style="margin-bottom: 24px;">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div>
+                            <div class="stat-card-title">Monthly Budget</div>
+                            <div class="stat-card-value" id="totalBudget">₹0</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: rgba(79, 70, 229, 0.1);">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div>
+                            <div class="stat-card-title">Spent This Month</div>
+                            <div class="stat-card-value" id="totalSpent">₹0</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: rgba(239, 68, 68, 0.1);">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div>
+                            <div class="stat-card-title">Remaining</div>
+                            <div class="stat-card-value" id="remainingBudget">₹0</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: rgba(16, 185, 129, 0.1);">
+                            <i class="fas fa-piggy-bank"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div>
+                            <div class="stat-card-title">Budget Utilization</div>
+                            <div class="stat-card-value" id="budgetUtilization">0%</div>
+                        </div>
+                        <div class="stat-card-icon" style="background: rgba(6, 182, 212, 0.1);">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Budget Categories -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">Category Budgets</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openAddBudgetModal()">
+                        <i class="fas fa-plus"></i> Add Budget
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Monthly Limit</th>
+                                <th>Spent</th>
+                                <th>Remaining</th>
+                                <th>Progress</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="budgetTable">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Budget Alerts -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Budget Alerts</h3>
+                    <button class="btn btn-outline btn-sm" onclick="openAlertSettings()">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                </div>
+                <div id="alertsList">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle alert-icon"></i>
+                        <div>
+                            <strong>Food budget is 80% used!</strong>
+                            <p style="margin: 4px 0 0; font-size: 0.875rem;">You've spent ₹8,000 of ₹10,000 this month.</p>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle alert-icon"></i>
+                        <div>
+                            <strong>Shopping budget exceeded!</strong>
+                            <p style="margin: 4px 0 0; font-size: 0.875rem;">You've spent ₹5,500 of your ₹4,000 limit.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- Add Budget Modal -->
+    <div class="modal" id="addBudgetModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Budget</h3>
+                <button class="modal-close" onclick="closeAddBudgetModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addBudgetForm">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="budgetCategory" required>
+                            <option value="">Select category</option>
+                            <option value="Food">Food</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Bills & Utilities">Bills & Utilities</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Medical">Medical</option>
+                            <option value="Education">Education</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Limit (₹)</label>
+                        <input type="number" id="budgetLimit" placeholder="10000" min="1" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Alert Threshold (%)</label>
+                        <input type="number" id="alertThreshold" placeholder="80" min="1" max="100">
+                        <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 8px;">You'll be notified when you reach this percentage.</p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddBudgetModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveBudget()">
+                    <i class="fas fa-save"></i> Save Budget
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="../js/utils.js"></script>
+    <script src="../js/budget.js"></script>
+</body>
+</html>

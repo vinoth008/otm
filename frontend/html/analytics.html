@@ -1,0 +1,228 @@
+<!-- frontend/html/analytics.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Smart Transaction Control</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/animations.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="analytics-page content-area">
+                <!-- Time Period Selector -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn btn-sm btn-outline" onclick="setPeriod('day')">Day</button>
+                            <button class="btn btn-sm btn-outline" onclick="setPeriod('week')">Week</button>
+                            <button class="btn btn-sm btn-outline active" onclick="setPeriod('month')">Month</button>
+                            <button class="btn btn-sm btn-outline" onclick="setPeriod('quarter')">Quarter</button>
+                            <button class="btn btn-sm btn-outline" onclick="setPeriod('year')">Year</button>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-sm btn-outline" onclick="exportAnalytics()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <button class="btn btn-sm btn-outline" onclick="refreshAnalytics()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Key Metrics -->
+                <div class="dashboard-grid" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Average Daily Spending</div>
+                                <div class="stat-card-value" id="avgDailySpending">₹0</div>
+                            </div>
+                            <div class="stat-card-icon" style="background: rgba(79, 70, 229, 0.1);">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Average Monthly Spending</div>
+                                <div class="stat-card-value" id="avgMonthlySpending"></div>
+                            </div>
+                            <div class="stat-card-icon" style="background: rgba(6, 182, 212, 0.1);">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Highest Spending Day</div>
+                                <div class="stat-card-value" id="highestSpendingDay"></div>
+                            </div>
+                            <div class="stat-card-icon" style="background: rgba(239, 68, 68, 0.1);">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Total Transactions</div>
+                                <div class="stat-card-value" id="totalTransactions">0</div>
+                            </div>
+                            <div class="stat-card-icon" style="background: rgba(16, 185, 129, 0.1);">
+                                <i class="fas fa-list"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Main Charts -->
+                <div class="charts-grid" style="margin-bottom: 24px;">
+                    <!-- Income vs Expense Trend -->
+                    <div class="chart-card" style="grid-column: span 2;">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Income vs Expense Trend</h3>
+                            <div class="chart-actions">
+                                <select class="btn btn-sm btn-outline" id="trendPeriod">
+                                    <option value="month">This Month</option>
+                                    <option value="quarter">Last Quarter</option>
+                                    <option value="year">Last Year</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 350px;">
+                            <canvas id="incomeExpenseTrendChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Category Breakdown -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Expense by Category</h3>
+                        </div>
+                        <div class="chart-container" style="height: 350px;">
+                            <canvas id="categoryBreakdownChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <!-- Secondary Charts -->
+                <div class="charts-grid" style="margin-bottom: 24px;">
+                    <!-- Payment Method Distribution -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Payment Methods</h3>
+                        </div>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="paymentMethodChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Monthly Comparison -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Monthly Comparison</h3>
+                        </div>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="monthlyComparisonChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Weekly Pattern -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Weekly Spending Pattern</h3>
+                        </div>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="weeklyPatternChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Top Categories -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Top 5 Categories</h3>
+                        </div>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="topCategoriesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <!-- Insights Cards -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-lightbulb" style="color: #f59e0b;"></i> Insights</h3>
+                    </div>
+                    <div class="card-body" id="insightsContent">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                            <div style="padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 8px;">
+                                <h4 style="margin-bottom: 8px; color: var(--text-primary);"><i class="fas fa-arrow-trend-up"></i> Positive Trend</h4>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary);">Your spending insights will appear here based on your transaction history.</p>
+                            </div>
+                            <div style="padding: 16px; background: rgba(245, 158, 11, 0.1); border-radius: 8px;">
+                                <h4 style="margin-bottom: 8px; color: var(--text-primary);"><i class="fas fa-exclamation-triangle"></i> Watch Out</h4>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary);">Alerts about unusual spending patterns will be highlighted here.</p>
+                            </div>
+                            <div style="padding: 16px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
+                                <h4 style="margin-bottom: 8px; color: var(--text-primary);"><i class="fas fa-lightbulb"></i> Tip</h4>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary);">Smart saving tips and recommendations will show up here.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Recent Trends Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Category-wise Trends</h3>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>This Month</th>
+                                    <th>Last Month</th>
+                                    <th>Change</th>
+                                    <th>% of Total</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoryTrendsTable">
+                                <!-- Will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script src="../js/analytics.js"></script>
+    <script>
+        // Analytics bootstrap with STC shell
+        function _initAnalytics() {
+            initializeCharts();
+            loadAnalyticsData();
+            var trendSelect = document.getElementById('trendPeriod');
+            if (trendSelect) {
+                trendSelect.addEventListener('change', function () { setPeriod(trendSelect.value); });
+            }
+            document.querySelectorAll('.analytics-page .btn-outline[onclick^="setPeriod"]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    document.querySelectorAll('.analytics-page .btn-outline').forEach(function (b) { if (b.getAttribute('onclick') && b.getAttribute('onclick').indexOf('setPeriod') === 0) b.classList.remove('active'); });
+                    btn.classList.add('active');
+                });
+            });
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ title: 'Analytics', page: 'analytics.html', init: _initAnalytics });
+        });
+    </script>
+</body>
+</html>

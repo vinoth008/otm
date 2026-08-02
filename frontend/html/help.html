@@ -1,0 +1,224 @@
+<!-- frontend/html/help.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & FAQ - Smart Transaction Control</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/animations.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="fas fa-wallet"></i>
+                    <span>STC</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="dashboard.html" class="sidebar-menu-item">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="transactions.html" class="sidebar-menu-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transactions</span>
+                </a>
+                <a href="analytics.html" class="sidebar-menu-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="budget.html" class="sidebar-menu-item">
+                    <i class="fas fa-piggy-bank"></i>
+                    <span>Budget</span>
+                </a>
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">Personal</div>
+                <a href="profile.html" class="sidebar-menu-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="goals.html" class="sidebar-menu-item">
+                    <i class="fas fa-bullseye"></i>
+                    <span>Goals</span>
+                </a>
+                <a href="settings.html" class="sidebar-menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">Support</div>
+                <a href="help.html" class="sidebar-menu-item active">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help & FAQ</span>
+                </a>
+                <a href="#" class="sidebar-menu-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+        <div class="mobile-overlay" id="mobileOverlay"></div>
+        <main class="main-content">
+            <div class="top-nav">
+                <div class="top-nav-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Help & FAQ</h1>
+                        <div class="breadcrumb">
+                            <a href="dashboard.html">Home</a>
+                            <i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i>
+                            <span>Help</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="top-nav-right">
+                    <div class="nav-actions">
+                        <button class="nav-icon-btn" id="themeToggle" title="Toggle Theme">
+                            <i class="fas fa-moon"></i>
+                            <i class="fas fa-sun" style="display: none;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Search -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="text-align: center; padding: 40px 20px;">
+                    <i class="fas fa-question-circle" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 16px;"></i>
+                    <h2 style="margin-bottom: 8px;">How can we help you?</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 24px;">Search for help topics or browse the categories below.</p>
+                    <div style="max-width: 600px; margin: 0 auto;">
+                        <input type="text" placeholder="Search for help..." style="width: 100%; padding: 14px 20px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-secondary); color: var(--text-primary);" oninput="filterFaq(this.value)">
+                    </div>
+                </div>
+            </div>
+            <!-- FAQ Categories -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div class="card" style="text-align: center; cursor: pointer;" onclick="showCategory('getting-started')">
+                    <i class="fas fa-rocket" style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 8px;"></i>
+                    <h3>Getting Started</h3>
+                    <p style="color: var(--text-tertiary); font-size: 0.875rem;">Learn the basics of using STC</p>
+                </div>
+                <div class="card" style="text-align: center; cursor: pointer;" onclick="showCategory('transactions')">
+                    <i class="fas fa-exchange-alt" style="font-size: 2.5rem; color: var(--secondary-color); margin-bottom: 8px;"></i>
+                    <h3>Transactions</h3>
+                    <p style="color: var(--text-tertiary); font-size: 0.875rem;">Manage your income and expenses</p>
+                </div>
+                <div class="card" style="text-align: center; cursor: pointer;" onclick="showCategory('budget-goals')">
+                    <i class="fas fa-piggy-bank" style="font-size: 2.5rem; color: var(--success-color); margin-bottom: 8px;"></i>
+                    <h3>Budget & Goals</h3>
+                    <p style="color: var(--text-tertiary); font-size: 0.875rem;">Plan your spending and savings</p>
+                </div>
+                <div class="card" style="text-align: center; cursor: pointer;" onclick="showCategory('account')">
+                    <i class="fas fa-user-cog" style="font-size: 2.5rem; color: var(--warning-color); margin-bottom: 8px;"></i>
+                    <h3>Account</h3>
+                    <p style="color: var(--text-tertiary); font-size: 0.875rem;">Settles, profile, and security</p>
+                </div>
+            </div>
+            <!-- Common Questions -->
+            <div class="card">
+                <h3 style="margin-bottom: 24px;">Frequently Asked Questions</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="faq-item" style="border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleFaq(this)">
+                            <h4 style="margin: 0;">How do I add a transaction?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer" style="display: none; margin-top: 12px; color: var(--text-secondary);">
+                            Go to the Transactions page and click the "Add Transaction" button. Fill in the amount, category, type, and payment method, then click save.
+                        </div>
+                    </div>
+                    <div class="faq-item" style="border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleFaq(this)">
+                            <h4 style="margin: 0;">How do I set a budget?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer" style="display: none; margin-top: 12px; color: var(--text-secondary);">
+                            Navigate to the Budget page, click "Add Budget", select a category, set your monthly limit and alert threshold, then save.
+                        </div>
+                    </div>
+                    <div class="faq-item" style="border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleFaq(this)">
+                            <h4 style="margin: 0;">Is my data secure?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer" style="display: none; margin-top: 12px; color: var(--text-secondary);">
+                            Yes! We use industry-standard encryption and security practices to protect your data. Passwords are hashed and your session is protected.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Contact Support -->
+            <div class="card" style="margin-top: 24px; background: linear-gradient(135deg, #4f46e5, #06b6d4); color: white; border: none;">
+                <div style="text-align: center; padding: 40px 20px;">
+                    <i class="fas fa-headset" style="font-size: 3rem; margin-bottom: 16px;"></i>
+                    <h2 style="margin-bottom: 8px;">Still need help?</h2>
+                    <p style="opacity: 0.9; margin-bottom: 24px;">Our support team is available 24/7 to assist you.</p>
+                    <button class="btn" style="background: white; color: #4f46e5; border: none;" onclick="contactSupport()">
+                        <i class="fas fa-envelope"></i> Contact Support
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/utils.js"></script>
+    <script>
+        function toggleFaq(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('i');
+            answer.style.display = answer.style.display === 'none' ? 'block' : 'none';
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        }
+        function showCategory(cat) {
+            alert('Showing category: ' + cat);
+        }
+        function filterFaq(query) {
+            const items = document.querySelectorAll('.faq-item');
+            items.forEach(item => {
+                item.style.display = item.textContent.toLowerCase().includes(query.toLowerCase()) ? '' : 'none';
+            });
+        }
+        function contactSupport() {
+            alert('Support: support@smarttransactioncontrol.com');
+        }
+        function logout() {
+            window.utils.logout();
+        }
+        // Sidebar/theme init
+        document.addEventListener('DOMContentLoaded', () => {
+            const s = document.getElementById('sidebar');
+            const t = document.getElementById('sidebarToggle');
+            const c = document.getElementById('sidebarClose');
+            const o = document.getElementById('mobileOverlay');
+            if (t) t.onclick = () => { s.classList.add('open'); o.classList.add('active'); };
+            if (c) c.onclick = () => { s.classList.remove('open'); o.classList.remove('active'); };
+            if (o) o.onclick = () => { s.classList.remove('open'); o.classList.remove('active'); };
+
+            const themeBtn = document.getElementById('themeToggle');
+            const root = document.documentElement;
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            root.setAttribute('data-theme', savedTheme);
+            if (themeBtn) {
+                themeBtn.addEventListener('click', () => {
+                    const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+                    root.setAttribute('data-theme', next);
+                    localStorage.setItem('theme', next);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

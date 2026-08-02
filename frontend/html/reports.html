@@ -1,0 +1,251 @@
+<!-- frontend/html/reports.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Smart Transaction Control</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/animations.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px;">
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <div class="table-header">
+                        <h3 class="table-title"><i class="fas fa-filter" style="color: var(--primary-color);"></i> Report Filters</h3>
+                        <div>
+                            <button class="btn btn-sm btn-primary" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
+                            <button class="btn btn-sm btn-secondary" onclick="window.print()"><i class="fas fa-file-pdf"></i> Export PDF</button>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; align-items: end;">
+                        <div class="form-group">
+                            <label>Report Type</label>
+                            <select id="reportType">
+                                <option value="transactions">Transactions</option>
+                                <option value="transfers">Transfers</option>
+                                <option value="complaints">Complaints</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>From</label>
+                            <input type="date" id="fromDate">
+                        </div>
+                        <div class="form-group">
+                            <label>To</label>
+                            <input type="date" id="toDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="txnType">
+                                <option value="">All</option>
+                                <option value="income">Income</option>
+                                <option value="expense">Expense</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadReport()"><i class="fas fa-sync"></i> Generate</button>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 20px;">
+                    <div class="table-header">
+                        <h3 class="table-title" id="reportTitle">Transaction Report</h3>
+                        <span class="badge badge-info" id="reportPeriod"></span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px;">
+                        <div class="card stat-card" style="background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; border: none;">
+                            <div style="font-size: 0.75rem; opacity: 0.85;">TOTAL AMOUNT</div>
+                            <div style="font-size: 1.6rem; font-weight: 700;" id="statTotal">₹0.00</div>
+                        </div>
+                        <div class="card stat-card" style="background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; border: none;">
+                            <div style="font-size: 0.75rem; opacity: 0.85;">TOTAL TRANSACTIONS</div>
+                            <div style="font-size: 1.6rem; font-weight: 700;" id="statCount">0</div>
+                        </div>
+                        <div class="card stat-card" style="background: linear-gradient(135deg, #10b981, #34d399); color: white; border: none;">
+                            <div style="font-size: 0.75rem; opacity: 0.85;">CATEGORIES</div>
+                            <div style="font-size: 1.6rem; font-weight: 700;" id="statCategories">0</div>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" id="reportTable">
+                            <thead>
+                                <tr id="reportHead">
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Count</th>
+                                    <th>Share</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportBody">
+                                <tr><td colspan="4" class="text-center"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script>
+        let lastReport = { type: '', data: null };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const today = new Date();
+            const first = new Date(today.getFullYear(), today.getMonth(), 1);
+            document.getElementById('fromDate').value = first.toISOString().split('T')[0];
+            document.getElementById('toDate').value = today.toISOString().split('T')[0];
+            STC.boot({ title: 'Reports', page: 'reports.html', init: loadReport });
+        });
+
+        async function loadReport() {
+            const type = document.getElementById('reportType').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const txnType = document.getElementById('txnType').value;
+            const tbody = document.getElementById('reportBody');
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center"><div class="spinner"></div></td></tr>';
+            try {
+                let data;
+                if (type === 'transfers') {
+                    data = await STC.get('report_crud.php', 'transfers', { from_date: fromDate, to_date: toDate });
+                    lastReport = { type: 'transfers', data };
+                    renderTransfers(data);
+                } else if (type === 'complaints') {
+                    data = await STC.get('report_crud.php', 'complaints', { from_date: fromDate, to_date: toDate });
+                    lastReport = { type: 'complaints', data };
+                    renderComplaints(data);
+                } else {
+                    data = await STC.get('report_crud.php', 'transactions', { from_date: fromDate, to_date: toDate, type: txnType });
+                    lastReport = { type: 'transactions', data };
+                    renderTransactions(data);
+                }
+                document.getElementById('reportPeriod').textContent = fromDate + ' → ' + toDate;
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">' + STC.esc(err.message) + '</td></tr>';
+            }
+        }
+
+        function renderTransactions(data) {
+            document.getElementById('reportTitle').textContent = 'Transaction Report';
+            document.getElementById('statTotal').textContent = '₹' + Number(data.totals?.total_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            document.getElementById('statCount').textContent = data.totals?.count || 0;
+            document.getElementById('statCategories').textContent = (data.categories || []).length;
+            document.getElementById('reportHead').innerHTML = '<th>Category</th><th>Amount</th><th>Count</th><th>Share</th>';
+            const cats = data.categories || [];
+            if (cats.length === 0) {
+                document.getElementById('reportBody').innerHTML = '<tr><td colspan="4" class="text-center text-muted">No data for selected range</td></tr>';
+                return;
+            }
+            const total = data.totals?.total_amount || 1;
+            document.getElementById('reportBody').innerHTML = cats.map(c => `
+                <tr>
+                    <td>${STC.esc(c.category)}</td>
+                    <td class="text-bold">₹${Number(c.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td>${c.count}</td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div style="flex:1; height:6px; background:var(--border-color); border-radius:99px; overflow:hidden;">
+                                <div style="width:${Math.min(100, (c.total / total) * 100)}%; height:100%; background:var(--primary-color);"></div>
+                            </div>
+                            <span style="font-size:0.75rem; color:var(--text-tertiary);">${((c.total / total) * 100).toFixed(1)}%</span>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderTransfers(data) {
+            document.getElementById('reportTitle').textContent = 'Transfer Report';
+            const breakdown = data.status_breakdown || [];
+            const total = breakdown.reduce((s, r) => s + r.total, 0);
+            document.getElementById('statTotal').textContent = '₹' + Number(total).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            document.getElementById('statCount').textContent = breakdown.reduce((s, r) => s + r.count, 0);
+            document.getElementById('statCategories').textContent = breakdown.length;
+            document.getElementById('reportHead').innerHTML = '<th>Status</th><th>Amount</th><th>Count</th><th>Share</th>';
+            if (breakdown.length === 0) {
+                document.getElementById('reportBody').innerHTML = '<tr><td colspan="4" class="text-center text-muted">No data for selected range</td></tr>';
+                return;
+            }
+            document.getElementById('reportBody').innerHTML = breakdown.map(r => `
+                <tr>
+                    <td>${STC.badge(r.status)}</td>
+                    <td class="text-bold">₹${Number(r.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td>${r.count}</td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div style="flex:1; height:6px; background:var(--border-color); border-radius:99px; overflow:hidden;">
+                                <div style="width:${Math.min(100, (r.total / total) * 100)}%; height:100%; background:var(--primary-color);"></div>
+                            </div>
+                            <span style="font-size:0.75rem; color:var(--text-tertiary);">${total > 0 ? ((r.total / total) * 100).toFixed(1) : 0}%</span>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderComplaints(data) {
+            document.getElementById('reportTitle').textContent = 'Complaint Report';
+            const breakdown = data.status_breakdown || [];
+            const total = breakdown.reduce((s, r) => s + r.count, 0);
+            document.getElementById('statTotal').textContent = '—';
+            document.getElementById('statCount').textContent = total;
+            document.getElementById('statCategories').textContent = breakdown.length;
+            document.getElementById('reportHead').innerHTML = '<th>Status</th><th>Count</th><th>Share</th>';
+            if (breakdown.length === 0) {
+                document.getElementById('reportBody').innerHTML = '<tr><td colspan="3" class="text-center text-muted">No data for selected range</td></tr>';
+                return;
+            }
+            document.getElementById('reportBody').innerHTML = breakdown.map(r => `
+                <tr>
+                    <td>${STC.badge(r.status)}</td>
+                    <td class="text-bold">${r.count}</td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div style="flex:1; height:6px; background:var(--border-color); border-radius:99px; overflow:hidden;">
+                                <div style="width:${total > 0 ? Math.min(100, (r.count / total) * 100) : 0}%; height:100%; background:var(--primary-color);"></div>
+                            </div>
+                            <span style="font-size:0.75rem; color:var(--text-tertiary);">${total > 0 ? ((r.count / total) * 100).toFixed(1) : 0}%</span>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function exportCSV() {
+            if (!lastReport.data) { STC.showToastError('Generate a report first'); return; }
+            const d = lastReport.data;
+            let rows = [['Report', lastReport.type], ['From', d.from_date], ['To', d.to_date], []];
+            if (lastReport.type === 'transactions') {
+                rows.push(['Category', 'Amount', 'Count']);
+                (d.categories || []).forEach(c => rows.push([c.category, c.total, c.count]));
+            } else if (lastReport.type === 'transfers') {
+                rows.push(['Status', 'Amount', 'Count']);
+                (d.status_breakdown || []).forEach(r => rows.push([r.status, r.total, r.count]));
+            } else {
+                rows.push(['Status', 'Count']);
+                (d.status_breakdown || []).forEach(r => rows.push([r.status, r.count]));
+            }
+            const csv = rows.map(r => r.map(cell => {
+                const s = String(cell == null ? '' : cell);
+                return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+            }).join(',')).join('\n');
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = lastReport.type + '_report_' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
+            STC.showToastSuccess('CSV exported');
+        }
+    </script>
+</body>
+</html>

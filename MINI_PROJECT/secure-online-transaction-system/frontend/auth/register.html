@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — SecureSOT</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/auth.css" />
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card" style="max-width:480px;">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <h2>Create Account</h2>
+      <p>Join SecureSOT — secure transactions simplified</p>
+    </div>
+    <form id="register-form" autocomplete="off">
+      <div class="auth-form-group">
+        <label>Full Name</label>
+        <div class="auth-input-wrap">
+          <i class="fa-solid fa-user icon-left"></i>
+          <input type="text" id="full-name" placeholder="Your full name" required />
+        </div>
+      </div>
+      <div class="auth-form-group">
+        <label>Email Address</label>
+        <div class="auth-input-wrap">
+          <i class="fa-solid fa-envelope icon-left"></i>
+          <input type="email" id="email" placeholder="your@email.com" required />
+        </div>
+      </div>
+      <div class="auth-form-group">
+        <label>Phone Number</label>
+        <div class="auth-input-wrap">
+          <i class="fa-solid fa-phone icon-left"></i>
+          <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX" />
+        </div>
+      </div>
+      <div class="auth-form-group">
+        <label>Password</label>
+        <div class="auth-input-wrap">
+          <i class="fa-solid fa-lock icon-left"></i>
+          <input type="password" id="password" placeholder="Min. 8 characters" required />
+          <button type="button" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
+        </div>
+      </div>
+      <div class="auth-form-group">
+        <label>Confirm Password</label>
+        <div class="auth-input-wrap">
+          <i class="fa-solid fa-lock icon-left"></i>
+          <input type="password" id="confirm-password" placeholder="Repeat password" required />
+          <button type="button" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
+        </div>
+      </div>
+      <div style="margin-bottom:18px;">
+        <label style="display:flex;align-items:flex-start;gap:8px;font-size:0.82rem;color:var(--text-secondary);cursor:pointer;">
+          <input type="checkbox" required style="accent-color:var(--primary);margin-top:2px" />
+          I agree to the <a href="#" style="color:var(--primary-light);">Terms of Service</a> &amp; <a href="#" style="color:var(--primary-light);">Privacy Policy</a>
+        </label>
+      </div>
+      <button type="submit" class="btn-auth">
+        <i class="fa-solid fa-user-plus"></i> Create Account
+      </button>
+    </form>
+    <div class="auth-footer">Already have an account? <a href="login.html">Sign In</a></div>
+  </div>
+</div>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/auth.js"></script>
+</body>
+</html>

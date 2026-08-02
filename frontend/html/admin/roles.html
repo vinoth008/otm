@@ -1,0 +1,98 @@
+<!-- frontend/html/admin/roles.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roles - Admin | Smart Transaction Control</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/components.css">
+    <link rel="stylesheet" href="../../css/animations.css">
+    <link rel="stylesheet" href="../../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px;">
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <div class="table-header">
+                        <div>
+                            <h3 class="table-title">Roles & Permissions</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary);">Define roles and their permission sets.</p>
+                        </div>
+                        <button class="btn btn-sm btn-primary" id="openAddRoleBtn"><i class="fas fa-plus"></i> Add Role</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Role</th>
+                                    <th>Description</th>
+                                    <th>Permissions</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rolesTableBody">
+                                <tr><td colspan="4" class="text-center"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Role Modal -->
+    <div class="modal" id="addRoleModal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Role</h3>
+                <button class="modal-close" onclick="closeModal('addRoleModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="addRoleForm">
+                    <div class="form-group">
+                        <label>Role Name</label>
+                        <input type="text" id="nrName" class="form-control" placeholder="MANAGER">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="nrDescription" class="form-control" placeholder="What this role can do">
+                    </div>
+                    <div class="form-group">
+                        <label>Permissions</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; border: 1px solid var(--border-light); border-radius: var(--radius-md);">
+                            <label class="checkbox-label"><input type="checkbox" class="role-perm" value="transactions:view"> View Transactions</label>
+                            <label class="checkbox-label"><input type="checkbox" class="role-perm" value="transactions:create"> Create Transactions</label>
+                            <label class="checkbox-label"><input type="checkbox" class="role-perm" value="wallet:manage"> Manage Wallets</label>
+                            <label class="checkbox-label"><input type="checkbox" class="role-perm" value="transfers:approve"> Approve Transfers</label>
+                            <label class="checkbox-label"><input type="checkbox" class="role-perm" value="complaints:resolve"> Resolve Complaints</label>
+                            <label class="checkbox-label"><input type="checkbox" class="role-perm" value="users:manage"> Manage Users</label>
+                            <label class="checkbox-label"><input type="checkbox" class="role-perm" value="reports:view"> View Reports</label>
+                            <label class="checkbox-label"><input type="checkbox" class="role-perm" value="settings:manage"> Manage Settings</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addRoleModal')">Cancel</button>
+                <button class="btn btn-primary" id="saveRoleBtn"><i class="fas fa-save"></i> Save Role</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ roles: ['admin'], title: 'Roles & Permissions', page: 'roles.html', init: initAdminRoles });
+        });
+    </script>
+</body>
+</html>

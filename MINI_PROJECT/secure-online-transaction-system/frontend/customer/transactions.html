@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transactions | Secure Transaction System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <link href="../assets/css/auth.css" rel="stylesheet">
+  <style>
+    .dash-body { background: linear-gradient(135deg, #0f172a, #111827); min-height: 100vh; color: #fff; }
+    .glass { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(16px); border-radius: 20px; }
+    .table-darkish { color: #e5e7eb; }
+    .table-darkish td, .table-darkish th { border-color: rgba(255,255,255,0.08) !important; }
+    .form-control, .form-select { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; }
+    .form-control:focus, .form-select:focus { background: rgba(255,255,255,0.12); color: #fff; border-color: #f59e0b; box-shadow: none; }
+    .form-control::placeholder { color: #94a3b8; }
+    .form-select option { background: #1e293b; color: #fff; }
+  </style>
+</head>
+<body class="dash-body">
+  <nav class="navbar navbar-dark border-bottom border-light border-opacity-10 px-4">
+    <a class="navbar-brand fw-bold" href="dashboard.html"><i class="fa-solid fa-arrow-right-arrow-left me-2"></i>Transactions</a>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#txModal">
+        <i class="fa-solid fa-plus me-1"></i>New Transaction
+      </button>
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm">Back to Dashboard</a>
+    </div>
+  </nav>
+
+  <main class="container-fluid p-4">
+    <div class="row g-4 mb-4">
+      <div class="col-md-3">
+        <div class="glass p-3">
+          <div class="text-secondary">Total Income</div>
+          <h3 class="mb-0" id="totalIncome">₹ 0</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="glass p-3">
+          <div class="text-secondary">Total Expense</div>
+          <h3 class="mb-0" id="totalExpense">₹ 0</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="glass p-3">
+          <div class="text-secondary">Net Balance</div>
+          <h3 class="mb-0" id="netBalance">₹ 0</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="glass p-3">
+          <div class="text-secondary">Transactions</div>
+          <h3 class="mb-0" id="txCount">0</h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="glass p-4 h-100">
+          <h5 class="mb-3">Income vs Expense</h5>
+          <canvas id="incomeExpenseChart" height="220"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="glass p-4 h-100">
+          <h5 class="mb-3">Category Breakdown</h5>
+          <canvas id="categoryChart" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-12">
+        <div class="glass p-4">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h5 class="mb-0">Transaction History</h5>
+            <div class="d-flex flex-wrap gap-2">
+              <input type="text" class="form-control form-control-sm" style="max-width:200px;" id="searchInput" placeholder="Search...">
+              <select class="form-select form-select-sm" style="max-width:140px;" id="typeFilter">
+                <option value="">All Types</option>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+                <option value="transfer">Transfer</option>
+              </select>
+              <select class="form-select form-select-sm" style="max-width:150px;" id="sortSelect">
+                <option value="date_desc">Newest</option>
+                <option value="date_asc">Oldest</option>
+                <option value="amount_desc">Amount High</option>
+                <option value="amount_asc">Amount Low</option>
+              </select>
+              <button class="btn btn-sm btn-outline-light" onclick="exportCSV()"><i class="fa-solid fa-download me-1"></i>CSV</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-darkish align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Payment</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="txTableBody">
+                <tr><td colspan="7" class="text-center text-secondary">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="text-secondary small" id="pageInfo">Page 1</span>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-light" id="prevBtn" onclick="changePage(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+              <button class="btn btn-sm btn-outline-light" id="nextBtn" onclick="changePage(1)"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Transaction Modal -->
+  <div class="modal fade" id="txModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content bg-dark text-white border border-secondary">
+        <div class="modal-header">
+          <h5 class="modal-title" id="txModalTitle">New Transaction</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="txForm" class="row g-3">
+            <input type="hidden" id="txId">
+            <div class="col-md-4">
+              <label class="form-label">Type</label>
+              <select class="form-select" id="txType" required>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+                <option value="transfer">Transfer</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Category</label>
+              <select class="form-select" id="txCategory" required>
+                <option value="">Select</option>
+                <option value="Food">Food</option>
+                <option value="Transport">Transport</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Medical">Medical</option>
+                <option value="Education">Education</option>
+                <option value="Bills">Bills</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Fuel">Fuel</option>
+                <option value="Investment">Investment</option>
+                <option value="Salary">Salary</option>
+                <option value="Business">Business</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Amount</label>
+              <input type="number" class="form-control" id="txAmount" min="0.01" step="0.01" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Description</label>
+              <input type="text" class="form-control" id="txDescription" placeholder="e.g. Grocery shopping">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-control" id="txDate" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Payment Method</label>
+              <select class="form-select" id="txPayment">
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="upi">UPI</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="wallet">Wallet</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Recipient / Payer</label>
+              <input type="text" class="form-control" id="txRecipient" placeholder="Optional">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notes</label>
+              <textarea class="form-control" id="txNotes" rows="2"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-warning" id="saveTxBtn">Save Transaction</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="../assets/js/api.js"></script>
+  <script>
+    let currentPage = 1;
+    let totalPages = 1;
+    let incomeExpenseChart, categoryChart;
+
+    const fmtINR = n => '₹ ' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+
+    function getQueryParams() {
+      const params = new URLSearchParams();
+      params.set('module', 'transactions');
+      params.set('action', 'get_all');
+      params.set('page', currentPage);
+      params.set('limit', '10');
+      const search = document.getElementById('searchInput').value.trim();
+      if (search) params.set('search', search);
+      const type = document.getElementById('typeFilter').value;
+      if (type) params.set('type', type);
+      params.set('sort', document.getElementById('sortSelect').value);
+      return params.toString();
+    }
+
+    async function loadTransactions() {
+      try {
+        const res = await apiGet('?' + getQueryParams());
+        const data = res.data;
+        totalPages = data.pagination.total_pages;
+        document.getElementById('pageInfo').textContent = `Page ${data.pagination.current_page} of ${totalPages}`;
+        document.getElementById('prevBtn').disabled = currentPage <= 1;
+        document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+        renderTable(data.transactions);
+        loadSummary();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Failed to load transactions' });
+      }
+    }
+
+    function renderTable(list) {
+      const tb = document.getElementById('txTableBody');
+      if (!list || !list.length) {
+        tb.innerHTML = '<tr><td colspan="7" class="text-center text-secondary">No transactions found</td></tr>';
+        return;
+      }
+      tb.innerHTML = list.map(t => {
+        const typeBadge = t.type === 'income' ? 'text-bg-success' : t.type === 'expense' ? 'text-bg-danger' : 'text-bg-info';
+        const sign = t.type === 'expense' ? '-' : '+';
+        return `<tr>
+          <td>${t.date}</td>
+          <td><span class="badge ${typeBadge}">${t.type.charAt(0).toUpperCase() + t.type.slice(1)}</span></td>
+          <td>${t.category}</td>
+          <td>${t.description || '-'}</td>
+          <td class="${t.type === 'expense' ? 'text-danger' : 'text-success'}">${sign}${fmtINR(t.amount)}</td>
+          <td>${t.payment_method || '-'}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-light me-1" onclick="editTx('${t._id}')"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteTx('${t._id}')"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function loadSummary() {
+      try {
+        const res = await apiGet('?module=transactions&action=summary&period=month');
+        const s = res.data;
+        document.getElementById('totalIncome').textContent = fmtINR(s.total_income);
+        document.getElementById('totalExpense').textContent = fmtINR(s.total_expense);
+        document.getElementById('netBalance').textContent = fmtINR(s.balance);
+        document.getElementById('txCount').textContent = s.income_count + s.expense_count;
+        renderCharts(s);
+      } catch (e) { /* summary is optional */ }
+    }
+
+    function renderCharts(s) {
+      if (incomeExpenseChart) incomeExpenseChart.destroy();
+      incomeExpenseChart = new Chart(document.getElementById('incomeExpenseChart'), {
+        type: 'bar',
+        data: {
+          labels: ['Income', 'Expense'],
+          datasets: [{
+            label: 'Amount',
+            data: [s.total_income, s.total_expense],
+            backgroundColor: ['#22c55e', '#ef4444']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#cbd5e1' }, grid: { display: false } },
+            y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.08)' } }
+          }
+        }
+      });
+
+      const cats = s.category_breakdown || [];
+      const labels = cats.map(c => c.category);
+      const data = cats.map(c => c.total);
+      const palette = ['#f97316','#3b82f6','#ef4444','#ec4899','#22c55e','#a855f7','#14b8a6','#eab308'];
+
+      if (categoryChart) categoryChart.destroy();
+      categoryChart = new Chart(document.getElementById('categoryChart'), {
+        type: 'pie',
+        data: {
+          labels: labels.length ? labels : ['No data'],
+          datasets: [{
+            data: data.length ? data : [1],
+            backgroundColor: labels.map((_, i) => palette[i % palette.length])
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: '#fff' } } }
+        }
+      });
+    }
+
+    function changePage(delta) {
+      const newPage = currentPage + delta;
+      if (newPage < 1 || newPage > totalPages) return;
+      currentPage = newPage;
+      loadTransactions();
+    }
+
+    function resetForm() {
+      document.getElementById('txId').value = '';
+      document.getElementById('txType').value = 'expense';
+      document.getElementById('txCategory').value = '';
+      document.getElementById('txAmount').value = '';
+      document.getElementById('txDescription').value = '';
+      document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('txPayment').value = 'cash';
+      document.getElementById('txRecipient').value = '';
+      document.getElementById('txNotes').value = '';
+      document.getElementById('txModalTitle').textContent = 'New Transaction';
+    }
+
+    async function editTx(id) {
+      try {
+        const res = await apiGet(`?module=transactions&action=get&id=${id}`);
+        const t = res.data;
+        document.getElementById('txId').value = t._id;
+        document.getElementById('txType').value = t.type;
+        document.getElementById('txCategory').value = t.category;
+        document.getElementById('txAmount').value = t.amount;
+        document.getElementById('txDescription').value = t.description || '';
+        document.getElementById('txDate').value = t.date;
+        document.getElementById('txPayment').value = t.payment_method || 'cash';
+        document.getElementById('txRecipient').value = t.recipient_payer || '';
+        document.getElementById('txNotes').value = t.notes || '';
+        document.getElementById('txModalTitle').textContent = 'Edit Transaction';
+        new bootstrap.Modal(document.getElementById('txModal')).show();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Failed to load transaction' });
+      }
+    }
+
+    async function deleteTx(id) {
+      const result = await Swal.fire({
+        icon: 'warning', title: 'Delete transaction?', showCancelButton: true, confirmButtonText: 'Delete', confirmButtonColor: '#dc3545'
+      });
+      if (!result.isConfirmed) return;
+      try {
+        await apiPost('?module=transactions&action=delete', { id });
+        Swal.fire({ icon: 'success', title: 'Deleted', text: 'Transaction deleted successfully.' });
+        loadTransactions();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Failed to delete transaction' });
+      }
+    }
+
+    function exportCSV() {
+      apiGet('?' + getQueryParams()).then(res => {
+        const rows = res.data.transactions;
+        if (!rows.length) { Swal.fire({ icon: 'info', title: 'No data', text: 'No transactions to export.' }); return; }
+        const header = ['Date','Type','Category','Description','Amount','Payment Method'];
+        const csv = [header.join(',')].concat(rows.map(t => [
+          t.date, t.type, `"${t.category}"`, `"${(t.description || '').replace(/"/g, '""')}"`, t.amount, t.payment_method || ''
+        ].join(','))).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }).catch(err => Swal.fire({ icon: 'error', title: 'Error', text: err.message }));
+    }
+
+    document.getElementById('saveTxBtn').addEventListener('click', async () => {
+      const id = document.getElementById('txId').value;
+      const payload = {
+        type: document.getElementById('txType').value,
+        category: document.getElementById('txCategory').value,
+        amount: parseFloat(document.getElementById('txAmount').value),
+        description: document.getElementById('txDescription').value,
+        date: document.getElementById('txDate').value,
+        payment_method: document.getElementById('txPayment').value,
+        recipient_payer: document.getElementById('txRecipient').value,
+        notes: document.getElementById('txNotes').value
+      };
+      if (!payload.category) { Swal.fire({ icon: 'warning', title: 'Category required' }); return; }
+      if (!payload.amount || payload.amount <= 0) { Swal.fire({ icon: 'warning', title: 'Enter valid amount' }); return; }
+      try {
+        if (id) {
+          await apiPost('?module=transactions&action=update', { ...payload, id });
+        } else {
+          await apiPost('?module=transactions&action=create', payload);
+        }
+        Swal.fire({ icon: 'success', title: 'Saved', text: 'Transaction saved successfully.' });
+        bootstrap.Modal.getInstance(document.getElementById('txModal')).hide();
+        resetForm();
+        loadTransactions();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Failed to save transaction' });
+      }
+    });
+
+    document.getElementById('searchInput').addEventListener('input', debounce(() => { currentPage = 1; loadTransactions(); }, 400));
+    document.getElementById('typeFilter').addEventListener('change', () => { currentPage = 1; loadTransactions(); });
+    document.getElementById('sortSelect').addEventListener('change', () => { currentPage = 1; loadTransactions(); });
+
+    function debounce(fn, ms) {
+      let t;
+      return function() { clearTimeout(t); t = setTimeout(fn, ms); };
+    }
+
+    document.getElementById('txModal').addEventListener('show.bs.modal', () => {
+      if (!document.getElementById('txId').value) resetForm();
+    });
+
+    document.addEventListener('DOMContentLoaded', loadTransactions);
+  </script>
+</body>
+</html>

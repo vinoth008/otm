@@ -1,0 +1,142 @@
+<!-- frontend/html/admin/dashboard.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Smart Transaction Control</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/components.css">
+    <link rel="stylesheet" href="../../css/animations.css">
+    <link rel="stylesheet" href="../../css/responsive.css">
+    <link rel="stylesheet" href="../../css/mini_theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div id="dashboardContent">
+                <div id="dashboardLoading" class="loading-overlay">
+                    <div class="spinner spinner-lg"></div>
+                </div>
+                <div id="dashboardGrid" style="display: none;">
+                    <div class="dashboard-grid">
+                        <div class="stat-card income">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Total Users</div>
+                                    <div class="stat-card-value" id="statTotalUsers">0</div>
+                                </div>
+                                <div class="stat-card-icon"><i class="fas fa-users"></i></div>
+                            </div>
+                            <div class="stat-card-change positive"><i class="fas fa-users"></i><span id="statCustomers">0 customers</span></div>
+                        </div>
+                        <div class="stat-card expense">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Total Transactions</div>
+                                    <div class="stat-card-value" id="statTotalTransactions">0</div>
+                                </div>
+                                <div class="stat-card-icon"><i class="fas fa-exchange-alt"></i></div>
+                            </div>
+                            <div class="stat-card-change negative"><i class="fas fa-chart-line"></i><span id="statStaffLine"></span></div>
+                        </div>
+                        <div class="stat-card savings">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Net Income</div>
+                                    <div class="stat-card-value" id="statNetIncome">₹0</div>
+                                </div>
+                                <div class="stat-card-icon"><i class="fas fa-money-bill-wave"></i></div>
+                            </div>
+                            <div class="stat-card-change positive"><i class="fas fa-wallet"></i><span id="statWalletBalance">Wallet ₹0</span></div>
+                        </div>
+                        <div class="stat-card balance">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Open Items</div>
+                                    <div class="stat-card-value" id="statOpenItems">0</div>
+                                </div>
+                                <div class="stat-card-icon"><i class="fas fa-clipboard-list"></i></div>
+                            </div>
+                            <div class="stat-card-change"><span id="statOpenDetails">pending transfers & complaints</span></div>
+                        </div>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">System Health</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="adminHealthChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Recent Activity</h3>
+                            </div>
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Action</th>
+                                            <th>Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminActivityTable">
+                                        <tr><td colspan="3" class="text-center"><div class="spinner"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-grid" style="grid-template-columns: repeat(4, 1fr); gap: 16px;">
+                        <div class="card" style="text-align: center; cursor: pointer;" onclick="window.location.href='users.html'">
+                            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-users" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                            </div>
+                            <h4 style="margin-bottom: 8px;">Manage Users</h4>
+                            <p style="font-size: 0.875rem;">Create & manage accounts</p>
+                        </div>
+                        <div class="card" style="text-align: center; cursor: pointer;" onclick="window.location.href='branches.html'">
+                            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-building" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                            </div>
+                            <h4 style="margin-bottom: 8px;">Branches</h4>
+                            <p style="font-size: 0.875rem;">Manage branch network</p>
+                        </div>
+                        <div class="card" style="text-align: center; cursor: pointer;" onclick="window.location.href='reports.html'">
+                            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-chart-bar" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                            </div>
+                            <h4 style="margin-bottom: 8px;">Reports</h4>
+                            <p style="font-size: 0.875rem;">Generate & export reports</p>
+                        </div>
+                        <div class="card" style="text-align: center; cursor: pointer;" onclick="window.location.href='notifications.html'">
+                            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-bell" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                            </div>
+                            <h4 style="margin-bottom: 8px;">Send Notice</h4>
+                            <p style="font-size: 0.875rem;">Broadcast notifications</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ roles: ['admin'], title: 'Admin Dashboard', page: 'dashboard.html', init: initAdminDashboard });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!-- frontend/html/transfers.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfers - Smart Transaction Control</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/animations.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px;">
+                <div class="dashboard-grid" style="grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;">
+                    <div class="stat-card income">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Pending</div>
+                                <div class="stat-card-value" id="trPending">0</div>
+                            </div>
+                            <div class="stat-card-icon"><i class="fas fa-clock"></i></div>
+                        </div>
+                    </div>
+                    <div class="stat-card expense">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Completed</div>
+                                <div class="stat-card-value" id="trCompleted">0</div>
+                            </div>
+                            <div class="stat-card-icon"><i class="fas fa-check-circle"></i></div>
+                        </div>
+                    </div>
+                    <div class="stat-card savings">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Scheduled</div>
+                                <div class="stat-card-value" id="trScheduled">0</div>
+                            </div>
+                            <div class="stat-card-icon"><i class="fas fa-calendar"></i></div>
+                        </div>
+                    </div>
+                    <div class="stat-card balance">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-card-title">Total Sent</div>
+                                <div class="stat-card-value" id="trTotalSent">₹0</div>
+                            </div>
+                            <div class="stat-card-icon"><i class="fas fa-paper-plane"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <div class="table-header">
+                        <div>
+                            <h3 class="table-title">Transfer Requests</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary);">Create transfer requests that are reviewed and approved by our staff.</p>
+                        </div>
+                        <button class="btn btn-sm btn-primary" id="openTransferBtn"><i class="fas fa-plus"></i> New Transfer</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Direction</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transferListTable">
+                                <tr><td colspan="6" class="text-center"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Transfer Modal -->
+    <div class="modal" id="createTransferModal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3 class="modal-title">New Transfer Request</h3>
+                <button class="modal-close" onclick="closeModal('createTransferModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTransferForm">
+                    <div class="form-group">
+                        <label>Recipient Email</label>
+                        <input type="email" id="trRecipientEmail" class="form-control" placeholder="recipient@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" id="trAmount" class="form-control" placeholder="0.00" min="0.01" step="0.01">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="trType" class="form-control">
+                                <option value="internal">Internal</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="recurring">Recurring</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="trScheduleWrap" style="display: none;">
+                            <label>Schedule Date</label>
+                            <input type="date" id="trScheduleDate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="trDescription" class="form-control" placeholder="What is this transfer for?">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createTransferModal')">Cancel</button>
+                <button class="btn btn-primary" id="saveTransferBtn"><i class="fas fa-paper-plane"></i> Submit for Approval</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/app_common.js"></script>
+    <script src="js/banking.js"></script>
+    <script>
+        document.getElementById('trType').addEventListener('change', function () {
+            document.getElementById('trScheduleWrap').style.display = this.value === 'scheduled' ? 'block' : 'none';
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ roles: ['customer'], title: 'Transfers', page: 'transfers.html', init: initTransfers });
+            const prefill = new URLSearchParams(window.location.search).get('to');
+            if (prefill) document.getElementById('trRecipientEmail').value = prefill;
+        });
+    </script>
+</body>
+</html>

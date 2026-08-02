@@ -1,0 +1,191 @@
+<!-- frontend/html/user/expenses.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Expenses | Smart Transaction Control</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/components.css">
+    <link rel="stylesheet" href="../../css/animations.css">
+    <link rel="stylesheet" href="../../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px;">
+                <!-- Toolbar -->
+                <div class="card" style="padding: 16px 20px; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                        <div class="form-group" style="flex: 1; min-width: 220px; margin: 0;">
+                            <div class="input-with-icon">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchBox" placeholder="Search description, category, amount...">
+                            </div>
+                        </div>
+                        <select id="statusFilter" class="form-control" style="width: auto; padding: 10px 16px;">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                        <select id="categoryFilter" class="form-control" style="width: auto; padding: 10px 16px;">
+                            <option value="">All Categories</option>
+                        </select>
+                        <select id="sortBy" class="form-control" style="width: auto; padding: 10px 16px;">
+                            <option value="date_desc">Newest First</option>
+                            <option value="date_asc">Oldest First</option>
+                            <option value="amount_desc">Amount High-Low</option>
+                            <option value="amount_asc">Amount Low-High</option>
+                        </select>
+                        <a href="add-expense.html" class="btn btn-primary"><i class="fas fa-plus"></i> Add Expense</a>
+                    </div>
+                </div>
+
+                <!-- Expenses Table -->
+                <div class="card" style="padding: 20px;">
+                    <div class="table-header">
+                        <h3 class="table-title">Expense History</h3>
+                        <span class="text-muted" id="totalCount"></span>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Bill</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenseBody">
+                                <tr><td colspan="7" class="text-center"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+                        <span class="text-muted" id="pageInfo"></span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-sm btn-secondary" id="prevBtn" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i> Prev</button>
+                            <button class="btn btn-sm btn-secondary" id="nextBtn" onclick="changePage(1)">Next <i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/app_common.js"></script>
+    <script>
+        let currentPage = 1;
+        const limit = 10;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ roles: ['user'], title: 'My Expenses', page: 'expenses.html', init: initPage });
+        });
+
+        async function initPage(s) {
+            try {
+                const cats = await STC.get('category_crud.php', 'get_all');
+                const list = (cats.categories || []).filter(c => c.type === 'expense');
+                const sel = document.getElementById('categoryFilter');
+                list.forEach(c => {
+                    const o = document.createElement('option');
+                    o.value = c.name;
+                    o.textContent = c.name;
+                    sel.appendChild(o);
+                });
+            } catch (e) { /* categories optional */ }
+            loadExpenses();
+        }
+
+        async function loadExpenses() {
+            const tbody = document.getElementById('expenseBody');
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center"><div class="spinner"></div></td></tr>';
+            try {
+                const params = {
+                    page: currentPage,
+                    limit: limit,
+                    sort: document.getElementById('sortBy').value
+                };
+                const search = document.getElementById('searchBox').value.trim();
+                if (search) params.search = search;
+                const status = document.getElementById('statusFilter').value;
+                if (status) params.status = status;
+                const category = document.getElementById('categoryFilter').value;
+                if (category) params.category = category;
+
+                const data = await STC.get('expense_crud.php', 'get_all', params);
+                const expenses = data.expenses || [];
+                const pag = data.pagination || {};
+
+                document.getElementById('totalCount').textContent = pag.total_count ? '(' + pag.total_count + ' records)' : '';
+                document.getElementById('pageInfo').textContent = 'Page ' + (pag.current_page || 1) + ' of ' + (pag.total_pages || 1);
+                document.getElementById('prevBtn').disabled = currentPage <= 1;
+                document.getElementById('nextBtn').disabled = currentPage >= (pag.total_pages || 1);
+
+                if (expenses.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No expenses found</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = expenses.map(e => `
+                    <tr>
+                        <td>${STC.esc(e.expense_date)}</td>
+                        <td><span class="badge badge-info">${STC.esc(e.category)}</span></td>
+                        <td>${STC.esc(e.description)}</td>
+                        <td class="text-bold">₹${Number(e.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                        <td>${e.receipt_url
+                            ? `<a class="btn btn-sm btn-secondary" href="${STC.esc(e.receipt_url)}" target="_blank" title="View bill"><i class="fas fa-file-download"></i></a>`
+                            : '<span class="text-muted">—</span>'}</td>
+                        <td>${STC.badge(e.status)}</td>
+                        <td style="white-space: nowrap;">
+                            ${e.status === 'pending'
+                                ? `<button class="btn btn-sm btn-secondary" onclick="editExpense('${e.expense_id}')"><i class="fas fa-edit"></i></button>
+                                   <button class="btn btn-sm btn-danger" onclick="deleteExpense('${e.expense_id}')"><i class="fas fa-trash"></i></button>`
+                                : '<span class="text-muted">—</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Failed to load expenses: ' + STC.esc(e.message) + '</td></tr>';
+            }
+        }
+
+        function changePage(delta) {
+            currentPage = Math.max(1, currentPage + delta);
+            loadExpenses();
+        }
+
+        ['searchBox', 'statusFilter', 'categoryFilter', 'sortBy'].forEach(id => {
+            document.addEventListener('DOMContentLoaded', function () {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('change', function () { currentPage = 1; loadExpenses(); });
+                if (el && id === 'searchBox') el.addEventListener('keyup', function (e) { if (e.key === 'Enter') { currentPage = 1; loadExpenses(); } });
+            });
+        });
+
+        async function deleteExpense(id) {
+            if (!confirm('Delete this expense?')) return;
+            try {
+                await STC.post('expense_crud.php', 'delete', { id: id });
+                showToast('Expense deleted', 'success');
+                loadExpenses();
+            } catch (e) {
+                showToast(e.message || 'Failed to delete', 'error');
+            }
+        }
+
+        function editExpense(id) {
+            location.href = 'add-expense.html?id=' + encodeURIComponent(id);
+        }
+    </script>
+</body>
+</html>

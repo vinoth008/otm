@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receptionist Appointments | Secure Transaction System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <link href="../assets/css/auth.css" rel="stylesheet">
+  <style>
+    .dash-body { background: #0f172a; min-height: 100vh; color: #fff; }
+    .glass { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(16px); border-radius: 20px; }
+    .form-control, .form-select { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; }
+    .form-control:focus, .form-select:focus { background: rgba(255,255,255,0.12); color: #fff; border-color: #f59e0b; box-shadow: none; }
+    .form-control::placeholder { color: #94a3b8; }
+    .form-select option { background: #1e293b; color: #fff; }
+  </style>
+</head>
+<body class="dash-body">
+  <main class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="mb-0"><i class="fa-solid fa-calendar-check me-2"></i>Appointments</h3>
+      <div>
+        <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#appointmentModal"><i class="fa-solid fa-plus me-1"></i>Book Appointment</button>
+        <a class="btn btn-outline-light" href="dashboard.html"><i class="fa-solid fa-arrow-left me-2"></i>Back to Dashboard</a>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-md-3"><div class="glass p-3"><div class="text-secondary">Total</div><h3 class="mb-0" id="statTotal">0</h3></div></div>
+      <div class="col-md-2"><div class="glass p-3"><div class="text-secondary">Today</div><h3 class="mb-0" id="statToday">0</h3></div></div>
+      <div class="col-md-2"><div class="glass p-3"><div class="text-secondary">Pending</div><h3 class="mb-0" id="statPending">0</h3></div></div>
+      <div class="col-md-2"><div class="glass p-3"><div class="text-secondary">Confirmed</div><h3 class="mb-0" id="statConfirmed">0</h3></div></div>
+      <div class="col-md-2"><div class="glass p-3"><div class="text-secondary">Completed</div><h3 class="mb-0" id="statCompleted">0</h3></div></div>
+      <div class="col-md-1"><div class="glass p-3"><div class="text-secondary">Cancelled</div><h3 class="mb-0" id="statCancelled">0</h3></div></div>
+    </div>
+
+    <div class="glass p-4 mb-4">
+      <div class="row g-3">
+        <div class="col-md-4"><input class="form-control" id="searchInput" placeholder="Search purpose or notes..."></div>
+        <div class="col-md-3">
+          <select class="form-select" id="statusFilter">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="col-md-2"><button class="btn btn-outline-light w-100" onclick="loadAppointments()">Search</button></div>
+        <div class="col-md-3 text-end"><button class="btn btn-outline-light w-100" data-bs-toggle="modal" data-bs-target="#appointmentModal"><i class="fa-solid fa-user-plus me-1"></i>Book for Customer</button></div>
+      </div>
+    </div>
+
+    <div class="glass p-4">
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0">
+          <thead><tr><th>Customer</th><th>Date</th><th>Time</th><th>Purpose</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="appointmentTableBody">
+            <tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal fade" id="appointmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border border-secondary">
+        <div class="modal-header">
+          <h5 class="modal-title">Book Appointment</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="appointmentForm" class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Customer</label>
+              <select class="form-select" id="appointment_user_id" required>
+                <option value="">Select customer...</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Branch</label>
+              <select class="form-select" id="branch_id" required>
+                <option value="">Select branch...</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-control" id="appointment_date" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Time</label>
+              <input type="time" class="form-control" id="appointment_time" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Purpose</label>
+              <input type="text" class="form-control" id="purpose" placeholder="e.g. Account opening, Loan inquiry" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notes</label>
+              <textarea class="form-control" id="notes" rows="2"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-success" id="saveAppointmentBtn">Book Appointment</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="../assets/js/api.js"></script>
+  <script>
+    function statusBadge(s) {
+      const map = { pending: 'warning', confirmed: 'info', completed: 'success', cancelled: 'danger' };
+      return `<span class="badge text-bg-${map[s] || 'secondary'}">${s || 'pending'}</span>`;
+    }
+
+    async function loadAppointments() {
+      const search = document.getElementById('searchInput').value.trim();
+      const status = document.getElementById('statusFilter').value;
+      const params = new URLSearchParams({ module: 'appointments', action: 'get_all' });
+      if (search) params.set('search', search);
+      if (status) params.set('status', status);
+      try {
+        const res = await apiGet('?' + params.toString());
+        const apps = res.data.appointments || [];
+        const tbody = document.getElementById('appointmentTableBody');
+        tbody.innerHTML = '';
+        if (apps.length) {
+          apps.forEach(a => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${a.user_name || '—'}</td>
+              <td>${a.appointment_date}</td>
+              <td>${a.appointment_time}</td>
+              <td>${a.purpose || '—'}</td>
+              <td>${statusBadge(a.status)}</td>
+              <td>
+                <select class="form-select form-select-sm d-inline-block w-auto" onchange="updateStatus('${a.appointment_id}', this.value)">
+                  <option value="">Update</option>
+                  <option value="confirmed">Confirm</option>
+                  <option value="completed">Complete</option>
+                  <option value="cancelled">Cancel</option>
+                </select>
+              </td>`;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No appointments found</td></tr>';
+        }
+        loadSummary();
+      } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: e.message });
+      }
+    }
+
+    async function loadSummary() {
+      try {
+        const res = await apiGet('?module=appointments&action=summary');
+        const s = res.data;
+        document.getElementById('statTotal').textContent = s.total || 0;
+        document.getElementById('statToday').textContent = s.today || 0;
+        document.getElementById('statPending').textContent = s.pending || 0;
+        document.getElementById('statConfirmed').textContent = s.confirmed || 0;
+        document.getElementById('statCompleted').textContent = s.completed || 0;
+        document.getElementById('statCancelled').textContent = s.cancelled || 0;
+      } catch (e) { /* optional */ }
+    }
+
+    async function loadBranches() {
+      try {
+        const res = await apiGet('?module=appointments&action=branches');
+        const select = document.getElementById('branch_id');
+        select.innerHTML = '<option value="">Select branch...</option>';
+        (res.data.branches || []).forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = b.branch_id;
+          opt.textContent = b.name + (b.city ? ' — ' + b.city : '');
+          select.appendChild(opt);
+        });
+      } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: e.message });
+      }
+    }
+
+    async function loadCustomers() {
+      try {
+        const res = await apiGet('?module=users&action=get_all&role=user&limit=100');
+        const select = document.getElementById('appointment_user_id');
+        select.innerHTML = '<option value="">Select customer...</option>';
+        (res.data.users || []).forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u._id;
+          opt.textContent = (u.first_name || '') + ' ' + (u.last_name || '') + ' (' + u.email + ')';
+          select.appendChild(opt);
+        });
+      } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: e.message });
+      }
+    }
+
+    async function updateStatus(id, status) {
+      if (!status) return;
+      try {
+        await apiPost('?module=appointments&action=update_status', { appointment_id: id, status });
+        Swal.fire({ icon: 'success', title: 'Updated', text: 'Appointment ' + status + ' successfully.' });
+        loadAppointments();
+      } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: e.message });
+      }
+    }
+
+    document.getElementById('saveAppointmentBtn').addEventListener('click', async () => {
+      const userId = document.getElementById('appointment_user_id').value;
+      const branchId = document.getElementById('branch_id').value;
+      const appointmentDate = document.getElementById('appointment_date').value;
+      const appointmentTime = document.getElementById('appointment_time').value;
+      const purpose = document.getElementById('purpose').value.trim();
+      const notes = document.getElementById('notes').value.trim();
+      if (!userId || !branchId || !appointmentDate || !appointmentTime || !purpose) {
+        Swal.fire({ icon: 'warning', title: 'Validation', text: 'All fields are required.' });
+        return;
+      }
+      try {
+        await apiPost('?module=appointments&action=create', {
+          user_id: userId,
+          branch_id: branchId,
+          appointment_date: appointmentDate,
+          appointment_time: appointmentTime,
+          purpose,
+          notes
+        });
+        bootstrap.Modal.getInstance(document.getElementById('appointmentModal')).hide();
+        document.getElementById('appointmentForm').reset();
+        Swal.fire({ icon: 'success', title: 'Booked', text: 'Appointment booked successfully.' });
+        loadAppointments();
+      } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: e.message });
+      }
+    });
+
+    document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') loadAppointments(); });
+    document.getElementById('statusFilter').addEventListener('change', loadAppointments);
+
+    loadBranches();
+    loadCustomers();
+    loadAppointments();
+  </script>
+</body>
+</html>

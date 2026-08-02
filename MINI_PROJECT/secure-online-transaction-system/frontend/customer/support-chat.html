@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support Chat | Secure Transaction System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <link href="../assets/css/auth.css" rel="stylesheet">
+  <style>
+    .dash-body { background: linear-gradient(135deg, #0f172a, #111827); min-height: 100vh; color: #fff; }
+    .glass { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(16px); border-radius: 20px; }
+    .chat-box { height: 440px; overflow-y: auto; }
+    .msg { max-width: 75%; padding: 12px 14px; border-radius: 16px; margin-bottom: 12px; }
+    .msg.me { background: #2563eb; margin-left: auto; }
+    .msg.agent { background: rgba(255,255,255,0.12); }
+    .form-control { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; }
+    .form-control:focus { background: rgba(255,255,255,0.12); color: #fff; border-color: #f59e0b; box-shadow: none; }
+    .form-control::placeholder { color: #94a3b8; }
+  </style>
+</head>
+<body class="dash-body">
+  <nav class="navbar navbar-dark border-bottom border-light border-opacity-10 px-4">
+    <a class="navbar-brand fw-bold" href="dashboard.html"><i class="fa-solid fa-comments me-2"></i>Support Chat</a>
+    <div class="ms-auto"><a href="dashboard.html" class="btn btn-outline-light btn-sm">Back</a></div>
+  </nav>
+
+  <main class="container-fluid p-4">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="glass p-4">
+          <h5 class="mb-3">Support Topics</h5>
+          <div class="list-group">
+            <button class="list-group-item list-group-item-action active" onclick="setTopic('General')">General</button>
+            <button class="list-group-item list-group-item-action" onclick="setTopic('Billing')">Billing</button>
+            <button class="list-group-item list-group-item-action" onclick="setTopic('Transfer')">Transfer</button>
+            <button class="list-group-item list-group-item-action" onclick="setTopic('Technical')">Technical</button>
+          </div>
+          <div class="mt-3">
+            <label class="form-label text-secondary">Priority</label>
+            <select class="form-select" id="prioritySelect" style="background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.15);">
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="glass p-4">
+          <div class="chat-box mb-3 p-2" id="chatBox">
+            <div class="msg agent text-white">Hello! How can we help you today? Select a topic and send your message. Our support team will respond via your ticket.</div>
+          </div>
+
+          <form id="chatForm" class="d-flex gap-2">
+            <input type="text" class="form-control" id="message" placeholder="Type your message...">
+            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="../assets/js/api.js"></script>
+  <script>
+    let currentTopic = 'General';
+
+    function setTopic(topic) {
+      currentTopic = topic;
+      document.querySelectorAll('.list-group-item').forEach(el => el.classList.remove('active'));
+      event.target.classList.add('active');
+      const box = document.getElementById('chatBox');
+      const msg = document.createElement('div');
+      msg.className = 'msg agent text-white';
+      msg.textContent = `You are now chatting about: ${topic}. Please describe your issue.`;
+      box.appendChild(msg);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    document.getElementById('chatForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('message');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const box = document.getElementById('chatBox');
+      const me = document.createElement('div');
+      me.className = 'msg me text-white';
+      me.textContent = text;
+      box.appendChild(me);
+      box.scrollTop = box.scrollHeight;
+      input.value = '';
+
+      try {
+        const res = await apiPost('?module=complaints&action=create', {
+          subject: currentTopic + ' Support',
+          description: text,
+          category: currentTopic,
+          priority: document.getElementById('prioritySelect').value
+        });
+        const agent = document.createElement('div');
+        agent.className = 'msg agent text-white';
+        agent.textContent = `Ticket ${res.data.ticket_no} created. Our team will respond shortly.`;
+        box.appendChild(agent);
+        box.scrollTop = box.scrollHeight;
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Failed to send message' });
+      }
+    });
+  </script>
+</body>
+</html>

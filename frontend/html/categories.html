@@ -1,0 +1,141 @@
+<!-- frontend/html/categories.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories - Smart Transaction Control</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/animations.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px;">
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <div class="table-header">
+                        <h3 class="table-title"><i class="fas fa-plus-circle" style="color: var(--primary-color);"></i> Add New Category</h3>
+                    </div>
+                    <form id="categoryForm" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" id="catName" placeholder="e.g. Travel" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="catType">
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Icon (FontAwesome)</label>
+                            <input type="text" id="catIcon" placeholder="fa-plane" value="fa-tag">
+                        </div>
+                        <div class="form-group">
+                            <label>Color</label>
+                            <input type="color" id="catColor" value="#4f46e5" style="height: 38px;">
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Add</button>
+                    </form>
+                </div>
+
+                <div class="card" style="padding: 20px;">
+                    <div class="table-header">
+                        <h3 class="table-title">Expense Categories</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="search" id="catSearch" class="form-control" placeholder="Search categories..." style="width: 220px;">
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Icon</th>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Transactions</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoryBody">
+                                <tr><td colspan="5" class="text-center"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ title: 'Expense Categories', page: 'categories.html', init: initCategories });
+        });
+
+        async function initCategories() {
+            loadCategories();
+            document.getElementById('categoryForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                try {
+                    await STC.post('category_crud.php', 'create', {
+                        name: document.getElementById('catName').value,
+                        type: document.getElementById('catType').value,
+                        icon: document.getElementById('catIcon').value || 'fa-tag',
+                        color: document.getElementById('catColor').value
+                    });
+                    STC.showToastSuccess('Category added');
+                    this.reset();
+                    loadCategories();
+                } catch (err) { STC.showError(err.message); }
+            });
+            document.getElementById('catSearch').addEventListener('input', loadCategories);
+        }
+
+        async function loadCategories() {
+            const tbody = document.getElementById('categoryBody');
+            const search = document.getElementById('catSearch').value.trim();
+            try {
+                const params = {};
+                if (search) params.search = search;
+                const data = await STC.get('category_crud.php', 'get_all', params);
+                const cats = data.categories || data || [];
+                if (cats.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No categories found</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = cats.filter(c => !search || (c.name || '').toLowerCase().includes(search.toLowerCase()))
+                    .map(c => `
+                        <tr>
+                            <td><i class="fas ${STC.esc(c.icon || 'fa-tag')}" style="color: ${STC.esc(c.color || '#4f46e5')};"></i></td>
+                            <td class="text-bold">${STC.esc(c.name)}</td>
+                            <td>${STC.badge(c.type || 'expense')}</td>
+                            <td>${c.transaction_count ?? 0}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" onclick="deleteCategory('${c.category_id || c._id}')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Failed to load categories</td></tr>';
+            }
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('Delete this category?')) return;
+            try {
+                await STC.post('category_crud.php', 'delete', { category_id: id });
+                STC.showToastSuccess('Category deleted');
+                loadCategories();
+            } catch (err) { STC.showError(err.message); }
+        }
+    </script>
+</body>
+</html>

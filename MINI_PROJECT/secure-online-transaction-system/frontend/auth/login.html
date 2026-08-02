@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — SecureSOT</title>
+  <meta name="description" content="Login to Secure Online Transaction System" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/auth.css" />
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <h2>SecureSOT</h2>
+      <p>Secure Online Transaction System</p>
+    </div>
+
+    <!-- Role Selector -->
+    <div class="role-grid" id="role-grid">
+      <div class="role-card role-admin selected" data-role="admin">
+        <i class="fa-solid fa-user-tie"></i>
+        <span>Admin</span>
+      </div>
+      <div class="role-card role-staff" data-role="staff">
+        <i class="fa-solid fa-user-gear"></i>
+        <span>Staff</span>
+      </div>
+      <div class="role-card role-recept" data-role="receptionist">
+        <i class="fa-solid fa-headset"></i>
+        <span>Receptionist</span>
+      </div>
+      <div class="role-card role-customer" data-role="customer">
+        <i class="fa-solid fa-user"></i>
+        <span>Customer</span>
+      </div>
+    </div>
+
+    <form id="login-form" autocomplete="off">
+      <div class="auth-form-group">
+        <label for="email">Email Address</label>
+        <div class="auth-input-wrap">
+          <i class="fa-solid fa-envelope icon-left"></i>
+          <input type="email" id="email" placeholder="Enter your email" required />
+        </div>
+      </div>
+
+      <div class="auth-form-group">
+        <label for="password">Password</label>
+        <div class="auth-input-wrap">
+          <i class="fa-solid fa-lock icon-left"></i>
+          <input type="password" id="password" placeholder="Enter your password" required />
+          <button type="button" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text-secondary);cursor:pointer;">
+          <input type="checkbox" checked style="accent-color:var(--primary)" /> Remember me
+        </label>
+        <a href="forgot-password.html" style="font-size:0.82rem;color:var(--primary-light);font-weight:600;">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn-auth" id="btn-login">
+        <span class="spinner hidden" id="btn-spinner"></span>
+        <span id="btn-login-text">Sign In</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="register.html">Create Account</a>
+    </div>
+
+  </div>
+</div>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/auth.js"></script>
+</body>
+</html>

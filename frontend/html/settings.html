@@ -1,0 +1,185 @@
+<!-- frontend/html/settings.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Smart Transaction Control</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/animations.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px; max-width: 800px;">
+                <!-- Appearance -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 16px;">
+                        <i class="fas fa-palette" style="margin-right: 8px; color: var(--primary-color);"></i> Appearance
+                    </h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+                        <div>
+                            <div style="font-weight: 500;">Theme</div>
+                            <div style="font-size: 0.75rem; color: var(--text-tertiary);">Choose how the app looks</div>
+                        </div>
+                        <select id="themeSelect" class="btn btn-outline btn-sm">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                            <option value="auto">Auto</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Notifications -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 16px;">
+                        <i class="fas fa-bell" style="margin-right: 8px; color: var(--primary-color);"></i> Notifications
+                    </h3>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 500;">Expense Alerts</div>
+                                <div style="font-size: 0.75rem; color: var(--text-tertiary);">Get notified when an expense is approved or rejected</div>
+                            </div>
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="prefExpenseAlerts" checked>
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 500;">Transaction Alerts</div>
+                                <div style="font-size: 0.75rem; color: var(--text-tertiary);">Get notified on every new transaction</div>
+                            </div>
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="prefTransactionAlerts" checked>
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 500;">Report Ready</div>
+                                <div style="font-size: 0.75rem; color: var(--text-tertiary);">Get notified when a report finishes generating</div>
+                            </div>
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" id="prefReportReady" checked>
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 16px;">
+                        <i class="fas fa-shield-alt" style="margin-right: 8px; color: var(--primary-color);"></i> Security
+                    </h3>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <a href="profile.html" class="btn btn-outline" style="justify-content: flex-start; text-decoration: none;">
+                            <i class="fas fa-key" style="margin-right: 8px;"></i> Change Password
+                        </a>
+                        <button class="btn btn-outline" style="justify-content: flex-start;" onclick="downloadExport()">
+                            <i class="fas fa-download" style="margin-right: 8px;"></i> Download My Data (CSV)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Account -->
+                <div class="card">
+                    <h3 style="margin-bottom: 16px;">
+                        <i class="fas fa-user-cog" style="margin-right: 8px; color: var(--primary-color);"></i> Account
+                    </h3>
+                    <button class="btn btn-danger" style="width: 100%; justify-content: center;" onclick="deleteAccount()">
+                        <i class="fas fa-trash"></i> Delete Account
+                    </button>
+                    <p style="font-size: 0.75rem; color: var(--text-tertiary); margin: 12px 0 0;">
+                        This action is permanent and cannot be undone. All your data will be deleted.
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/app_common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            STC.boot({ title: 'Settings', page: 'settings.html', init: initSettings });
+        });
+
+        function initSettings() {
+            // Theme select
+            const themeSelect = document.getElementById('themeSelect');
+            const current = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            themeSelect.value = current === 'dark' || current === 'light' ? current : 'auto';
+            themeSelect.addEventListener('change', function () {
+                const v = themeSelect.value;
+                if (v === 'auto') {
+                    localStorage.removeItem('theme');
+                    const auto = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                    document.documentElement.setAttribute('data-theme', auto);
+                } else {
+                    localStorage.setItem('theme', v);
+                    document.documentElement.setAttribute('data-theme', v);
+                }
+                STC.showToastSuccess('Theme updated');
+            });
+
+            // Notification preference toggles (stored locally, no reload)
+            ['prefExpenseAlerts', 'prefTransactionAlerts', 'prefReportReady'].forEach(function (id) {
+                const cb = document.getElementById(id);
+                const stored = localStorage.getItem(id);
+                if (stored !== null) cb.checked = stored === 'true';
+                cb.addEventListener('change', function () {
+                    localStorage.setItem(id, cb.checked);
+                    STC.showToastSuccess('Preference saved');
+                });
+            });
+        }
+
+        async function downloadExport() {
+            try {
+                const data = await STC.get('transaction_crud.php', 'get_all', { limit: 1000 });
+                const rows = data.transactions || [];
+                if (rows.length === 0) {
+                    STC.showToastInfo('No transactions to export');
+                    return;
+                }
+                const headers = ['date', 'type', 'category', 'amount', 'status', 'description'];
+                const csv = [headers.join(',')].concat(rows.map(function (t) {
+                    return headers.map(function (h) {
+                        let v = t[h] != null ? String(t[h]) : '';
+                        v = v.replace(/"/g, '""');
+                        return '"' + v + '"';
+                    }).join(',');
+                })).join('\n');
+                const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'my_expense_data.csv';
+                a.click();
+                URL.revokeObjectURL(a.href);
+                STC.showToastSuccess('Export downloaded');
+            } catch (e) {
+                STC.showToastError(e.message);
+            }
+        }
+
+        async function deleteAccount() {
+            if (!confirm('This will permanently delete your account and all data. Continue?')) return;
+            try {
+                await STC.post('user_crud.php', 'delete_account', {});
+                STC.showToastSuccess('Account deleted');
+                setTimeout(function () { window.location.href = STC.ROOT + '/index.php'; }, 1200);
+            } catch (e) {
+                STC.showToastError(e.message);
+            }
+        }
+    </script>
+</body>
+</html>

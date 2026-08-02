@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Dashboard | Secure Transaction System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="../assets/css/auth.css" rel="stylesheet">
+  <style>
+    .dash-body { background: #0f172a; min-height: 100vh; color: #fff; }
+    .sidebar { width: 260px; min-height: 100vh; background: rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.08); }
+    .glass { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(16px); border-radius: 20px; }
+  </style>
+</head>
+<body class="dash-body">
+<div class="d-flex">
+  <aside class="sidebar p-3">
+    <h4 class="mb-4"><i class="fa-solid fa-id-badge me-2"></i>Staff</h4>
+    <div class="nav flex-column gap-2">
+      <a class="btn btn-outline-light text-start" href="dashboard.html"><i class="fa-solid fa-gauge me-2"></i>Dashboard</a>
+      <a class="btn btn-outline-light text-start" href="customers.html"><i class="fa-solid fa-users me-2"></i>Customers</a>
+      <a class="btn btn-outline-light text-start" href="transactions.html"><i class="fa-solid fa-right-left me-2"></i>Transfers</a>
+      <a class="btn btn-outline-light text-start" href="complaints.html"><i class="fa-solid fa-headset me-2"></i>Complaints</a>
+      <a class="btn btn-outline-light text-start" href="notes.html"><i class="fa-solid fa-note-sticky me-2"></i>Notes</a>
+      <a class="btn btn-outline-light text-start" href="receipts.html"><i class="fa-solid fa-receipt me-2"></i>Receipts</a>
+      <a class="btn btn-outline-light text-start" href="settings.html"><i class="fa-solid fa-gear me-2"></i>Settings</a>
+      <a class="btn btn-outline-danger text-start" href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a>
+    </div>
+  </aside>
+
+  <main class="flex-grow-1 p-4">
+    <div class="row g-4 mb-4">
+      <div class="col-md-3"><div class="glass p-3"><div class="text-secondary">Customers</div><h3 class="mb-0" id="totalUsers">0</h3></div></div>
+      <div class="col-md-3"><div class="glass p-3"><div class="text-secondary">Active Users</div><h3 class="mb-0" id="activeUsers">0</h3></div></div>
+      <div class="col-md-3"><div class="glass p-3"><div class="text-secondary">Transactions</div><h3 class="mb-0" id="totalTx">0</h3></div></div>
+      <div class="col-md-3"><div class="glass p-3"><div class="text-secondary">Total Volume</div><h3 class="mb-0" id="totalVolume">₹0</h3></div></div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-7"><div class="glass p-4"><h5 class="mb-3">Customer Activity</h5><canvas id="staffChart" height="120"></canvas></div></div>
+      <div class="col-lg-5"><div class="glass p-4"><h5 class="mb-3">Recent Transactions</h5><ul class="list-group list-group-flush" id="recentTxList">
+        <li class="list-group-item bg-transparent text-white border-secondary">Loading...</li>
+      </ul></div></div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/api.js"></script>
+<script>
+const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let staffChart = null;
+
+function fmtINR(n) {
+  return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+}
+
+async function loadDashboard() {
+  try {
+    const res = await apiGet('?module=dashboard&action=admin_stats');
+    const d = res.data;
+    document.getElementById('totalUsers').textContent = d.total_users || 0;
+    document.getElementById('activeUsers').textContent = d.active_users || 0;
+    document.getElementById('totalTx').textContent = d.total_transactions || 0;
+    document.getElementById('totalVolume').textContent = fmtINR(d.total_volume);
+
+    const list = document.getElementById('recentTxList');
+    list.innerHTML = '';
+    if (d.recent_transactions && d.recent_transactions.length) {
+      d.recent_transactions.forEach(t => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center';
+        li.innerHTML = `<span>${t.user_name || 'Unknown'} — ${t.type}</span><span class="badge bg-${t.type === 'income' ? 'success' : t.type === 'expense' ? 'danger' : 'info'}">${fmtINR(t.amount)}</span>`;
+        list.appendChild(li);
+      });
+    } else {
+      list.innerHTML = '<li class="list-group-item bg-transparent text-muted border-secondary">No transactions yet</li>';
+    }
+
+    const labels = monthNames;
+    const revenue = d.monthly_revenue || [];
+    const expenses = d.monthly_expenses || [];
+    if (staffChart) staffChart.destroy();
+    staffChart = new Chart(document.getElementById('staffChart'), {
+      data: {
+        labels,
+        datasets: [
+          { type: 'bar', label: 'Revenue', data: revenue, backgroundColor: '#f59e0b' },
+          { type: 'line', label: 'Expenses', data: expenses, borderColor: '#60a5fa', tension: .35 }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#fff' } } },
+        scales: {
+          x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.08)' } },
+          y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.08)' } }
+        }
+      }
+    });
+  } catch (e) {
+    console.error('Failed to load dashboard:', e.message);
+  }
+}
+
+function logout() {
+  fetch('../../backend/api/index.php?module=auth&action=logout', { method: 'POST', credentials: 'same-origin' })
+    .then(() => { window.location.href = '../auth/login.html'; })
+    .catch(() => { window.location.href = '../auth/login.html'; });
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

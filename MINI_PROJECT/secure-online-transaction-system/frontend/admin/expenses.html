@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Expenses — SecureSOT Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <link rel="stylesheet" href="../assets/css/dashboard.css"/>
+</head>
+<body>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="brand-text"><h3>SecureSOT</h3><span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a class="nav-link-custom" href="dashboard.html"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <a class="nav-link-custom" href="users.html"><i class="fa-solid fa-users"></i> Users</a>
+      <a class="nav-link-custom" href="transactions.html"><i class="fa-solid fa-arrow-right-arrow-left"></i> Transactions</a>
+      <a class="nav-link-custom active" href="expenses.html"><i class="fa-solid fa-wallet"></i> Expenses</a>
+      <span class="nav-section-label">Reports</span>
+      <a class="nav-link-custom" href="reports.html"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+      <a class="nav-link-custom" href="complaints.html"><i class="fa-solid fa-comment-dots"></i> Complaints</a>
+      <a class="nav-link-custom" href="notifications.html"><i class="fa-solid fa-bell"></i> Notifications</a>
+      <span class="nav-section-label">System</span>
+      <a class="nav-link-custom" href="audit-logs.html"><i class="fa-solid fa-clipboard-list"></i> Audit Logs</a>
+      <a class="nav-link-custom" href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="avatar" data-user-avatar>AU</div><div class="user-info"><div class="user-name" data-user-name>Admin</div><span class="user-role">Administrator</span></div></div>
+      <button class="btn-logout" data-logout><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+        <div><div style="font-weight:700">Expenses</div><div style="font-size:0.75rem;color:var(--text-muted)">Track and manage all expenses</div></div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn"><i class="fa-solid fa-bell"></i><span class="notif-dot"></span></button>
+        <div class="topbar-profile"><div class="avatar" data-user-avatar>AU</div></div>
+      </div>
+    </header>
+    <div class="page-body">
+      <div class="grid-4 mb-4">
+        <div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-indian-rupee-sign"></i></div><div class="stat-info"><div class="stat-value" id="totalExpenses">₹0</div><div class="stat-label">Total Expenses</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-calendar-month"></i></div><div class="stat-info"><div class="stat-value" id="monthExpenses">₹0</div><div class="stat-label">This Month</div></div></div>
+        <div class="stat-card"><div class="stat-icon cyan"><i class="fa-solid fa-list-check"></i></div><div class="stat-info"><div class="stat-value" id="categoryCount">0</div><div class="stat-label">Categories</div></div></div>
+        <div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-arrow-trend-up"></i></div><div class="stat-info"><div class="stat-value" id="expenseCount">0</div><div class="stat-label">Total Records</div></div></div>
+      </div>
+      <div class="grid-2 mb-4" style="grid-template-columns:1fr 1.5fr">
+        <div class="card">
+          <div class="card-header-custom"><span class="card-title">By Category</span></div>
+          <div style="height:240px"><canvas id="expenseChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header-custom">
+            <span class="card-title">Expense Records</span>
+            <button class="btn-primary-custom" onclick="showAddModal()"><i class="fa-solid fa-plus"></i> Add</button>
+          </div>
+          <table class="table-custom">
+            <thead><tr><th>Category</th><th>Description</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="expenseTableBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Loading expenses...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade modal-custom" id="addExpModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Add Expense</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label-custom">Category</label><select class="form-control-custom"><option>Rent</option><option>Salary</option><option>Utilities</option><option>Marketing</option><option>IT</option><option>Misc</option></select></div>
+      <div class="form-group"><label class="form-label-custom">Description</label><input class="form-control-custom" placeholder="Expense description"/></div>
+      <div class="form-group"><label class="form-label-custom">Amount (₹)</label><input class="form-control-custom" type="number" placeholder="0.00"/></div>
+      <div class="form-group"><label class="form-label-custom">Date</label><input class="form-control-custom" type="date"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn-primary-custom" onclick="saveExpense()"><i class="fa-solid fa-check"></i> Save</button>
+    </div>
+  </div></div>
+</div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/dashboard.js"></script>
+<script>
+let expenseChart = null;
+function showAddModal(){ new bootstrap.Modal(document.getElementById('addExpModal')).show(); }
+function loadExpenses(){
+  apiGet('?module=expenses&action=admin_all&limit=100').then(res=>{
+    const expenses = res.data.expenses || [];
+    const tbody = document.getElementById('expenseTableBody');
+    if(expenses.length === 0){
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No expenses found</td></tr>';
+    } else {
+      tbody.innerHTML = expenses.map(e=>`
+        <tr>
+          <td><span class="badge-custom badge-purple">${e.category}</span></td>
+          <td>${e.description || '-'}</td>
+          <td style="color:var(--danger)">₹${Number(e.amount).toLocaleString('en-IN')}</td>
+          <td>${e.date}</td>
+          <td><button class="btn-danger-custom" onclick="deleteExpense('${e._id}')"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>`).join('');
+    }
+    document.getElementById('expenseCount').textContent = expenses.length;
+  }).catch(()=>{
+    document.getElementById('expenseTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--danger)">Failed to load expenses</td></tr>';
+  });
+}
+function loadSummary(){
+  apiGet('?module=expenses&action=admin_summary&period=all').then(res=>{
+    const s = res.data;
+    document.getElementById('totalExpenses').textContent = '₹' + Number(s.total||0).toLocaleString('en-IN');
+    const cats = s.category_breakdown || [];
+    document.getElementById('categoryCount').textContent = cats.length;
+    if(expenseChart){ expenseChart.destroy(); }
+    expenseChart = new Chart(document.getElementById('expenseChart'), {
+      type: 'doughnut',
+      data: { labels: cats.map(c=>c.category), datasets: [{ data: cats.map(c=>c.total), backgroundColor: ['#6366f1','#f59e0b','#10b981','#ef4444','#06b6d4','#8b5cf6'] }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
+    });
+  }).catch(()=>{});
+  apiGet('?module=expenses&action=admin_summary&period=month').then(res=>{
+    document.getElementById('monthExpenses').textContent = '₹' + Number(res.data.total||0).toLocaleString('en-IN');
+  }).catch(()=>{});
+}
+function saveExpense(){
+  const category = document.querySelector('#addExpModal select').value;
+  const description = document.querySelector('#addExpModal input[placeholder="Expense description"]').value.trim();
+  const amount = parseFloat(document.querySelector('#addExpModal input[type="number"]').value);
+  const date = document.querySelector('#addExpModal input[type="date"]').value || new Date().toISOString().split('T')[0];
+  if(!description){ showToast('Please enter a description','error'); return; }
+  if(!amount || amount <= 0){ showToast('Please enter a valid amount','error'); return; }
+  apiPost('?module=expenses&action=create', {category, description, amount, date}).then(()=>{
+    showToast('Expense added!','success');
+    bootstrap.Modal.getInstance(document.getElementById('addExpModal')).hide();
+    loadExpenses(); loadSummary();
+  }).catch(err=>showToast(err.message||'Failed to add expense','error'));
+}
+function deleteExpense(id){
+  if(!confirm('Delete this expense?')) return;
+  apiPost('?module=expenses&action=delete', {id}).then(()=>{
+    showToast('Expense deleted','success');
+    loadExpenses(); loadSummary();
+  }).catch(err=>showToast(err.message||'Failed to delete','error'));
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  Auth.requireRole(['admin']);
+  loadExpenses();
+  loadSummary();
+});
+</script>
+</body>
+</html>

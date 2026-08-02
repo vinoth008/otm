@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Reports — SecureSOT Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <link rel="stylesheet" href="../assets/css/dashboard.css"/>
+</head>
+<body>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="brand-text"><h3>SecureSOT</h3><span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a class="nav-link-custom" href="dashboard.html"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <a class="nav-link-custom" href="users.html"><i class="fa-solid fa-users"></i> Users</a>
+      <a class="nav-link-custom" href="transactions.html"><i class="fa-solid fa-arrow-right-arrow-left"></i> Transactions</a>
+      <a class="nav-link-custom" href="expenses.html"><i class="fa-solid fa-wallet"></i> Expenses</a>
+      <span class="nav-section-label">Reports</span>
+      <a class="nav-link-custom active" href="reports.html"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+      <a class="nav-link-custom" href="complaints.html"><i class="fa-solid fa-comment-dots"></i> Complaints</a>
+      <a class="nav-link-custom" href="notifications.html"><i class="fa-solid fa-bell"></i> Notifications</a>
+      <span class="nav-section-label">System</span>
+      <a class="nav-link-custom" href="audit-logs.html"><i class="fa-solid fa-clipboard-list"></i> Audit Logs</a>
+      <a class="nav-link-custom" href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="avatar" data-user-avatar>AU</div><div class="user-info"><div class="user-name" data-user-name>Admin</div><span class="user-role">Administrator</span></div></div>
+      <button class="btn-logout" data-logout><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+        <div><div style="font-weight:700">Reports & Analytics</div><div style="font-size:0.75rem;color:var(--text-muted)">Generate and download reports</div></div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn"><i class="fa-solid fa-bell"></i><span class="notif-dot"></span></button>
+        <div class="topbar-profile"><div class="avatar" data-user-avatar>AU</div></div>
+      </div>
+    </header>
+    <div class="page-body">
+      <div class="page-header">
+        <div><h1 class="page-title">Reports</h1><p class="page-subtitle">Financial & operational insights</p></div>
+        <div class="page-actions">
+          <select class="form-control-custom" id="reportPeriod" style="width:auto" onchange="loadReports()">
+            <option value="month">This Month</option>
+            <option value="year">This Year</option>
+            <option value="all">All Time</option>
+          </select>
+          <button class="btn-primary-custom" onclick="exportReport('pdf')"><i class="fa-solid fa-download"></i> Export PDF</button>
+          <button class="btn-primary-custom" onclick="exportReport('csv')"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+        </div>
+      </div>
+
+      <div class="grid-4 mb-4">
+        <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-chart-line"></i></div><div class="stat-info"><div class="stat-value" id="totalRevenue">₹0</div><div class="stat-label">Total Revenue</div></div></div>
+        <div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-chart-column"></i></div><div class="stat-info"><div class="stat-value" id="totalExpenses">₹0</div><div class="stat-label">Total Expenses</div></div></div>
+        <div class="stat-card"><div class="stat-icon cyan"><i class="fa-solid fa-sack-dollar"></i></div><div class="stat-info"><div class="stat-value" id="netProfit">₹0</div><div class="stat-label">Net Profit</div></div></div>
+        <div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-percent"></i></div><div class="stat-info"><div class="stat-value" id="profitMargin">0%</div><div class="stat-label">Profit Margin</div></div></div>
+      </div>
+
+      <div class="grid-2 mb-4">
+        <div class="card"><div class="card-header-custom"><span class="card-title">Monthly Revenue vs Expenses</span></div><div style="height:280px"><canvas id="revenueChart"></canvas></div></div>
+        <div class="card"><div class="card-header-custom"><span class="card-title">Transaction Distribution</span></div><div style="height:280px"><canvas id="txTypeChart"></canvas></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header-custom"><span class="card-title">Saved Reports</span><button class="btn-primary-custom" onclick="exportReport('pdf')"><i class="fa-solid fa-plus"></i> Generate New</button></div>
+        <table class="table-custom">
+          <thead><tr><th>Report Name</th><th>Type</th><th>Period</th><th>Generated</th><th>Action</th></tr></thead>
+          <tbody id="savedReportsBody">
+            <tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Loading reports...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/dashboard.js"></script>
+<script>
+let revenueChart = null;
+let txTypeChart = null;
+
+function loadReports(){
+  const period = document.getElementById('reportPeriod').value;
+  const year = new Date().getFullYear();
+  const month = new Date().getMonth() + 1;
+
+  const summaryPromise = period === 'month'
+    ? apiGet('?module=reports&action=admin_monthly_summary&year=' + year + '&month=' + month)
+    : period === 'year'
+      ? apiGet('?module=reports&action=admin_yearly_summary&year=' + year)
+      : Promise.all([
+          apiGet('?module=reports&action=admin_yearly_summary&year=' + year),
+          apiGet('?module=reports&action=admin_yearly_summary&year=' + (year - 1))
+        ]).then(([cur, prev]) => ({
+          data: {
+            total_income: (cur.data.total_income || 0) + (prev.data.total_income || 0),
+            total_expense: (cur.data.total_expense || 0) + (prev.data.total_expense || 0),
+            net: (cur.data.net || 0) + (prev.data.net || 0)
+          }
+        }));
+
+  summaryPromise.then(res=>{
+    const d = res.data;
+    const income = Number(d.total_income || 0);
+    const expense = Number(d.total_expense || 0);
+    const net = Number(d.net || 0);
+    document.getElementById('totalRevenue').textContent = '₹' + income.toLocaleString('en-IN');
+    document.getElementById('totalExpenses').textContent = '₹' + expense.toLocaleString('en-IN');
+    document.getElementById('netProfit').textContent = '₹' + net.toLocaleString('en-IN');
+    document.getElementById('profitMargin').textContent = (income > 0 ? ((net / income) * 100).toFixed(1) : 0) + '%';
+  }).catch(()=>{});
+
+  // Revenue vs Expenses chart
+  apiGet('?module=reports&action=admin_yearly_summary&year=' + year).then(res=>{
+    const months = res.data.months || [];
+    const labels = months.map(m=>['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m.month-1]);
+    const incomeData = months.map(m=>m.income);
+    const expenseData = months.map(m=>m.expense);
+    if(revenueChart){ revenueChart.destroy(); }
+    revenueChart = new Chart(document.getElementById('revenueChart'), {
+      type: 'bar',
+      data: { labels, datasets: [
+        { label: 'Revenue', data: incomeData, backgroundColor: '#10b981' },
+        { label: 'Expenses', data: expenseData, backgroundColor: '#ef4444' }
+      ]},
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } }, scales:{ y:{ beginAtZero:true } } }
+    });
+  }).catch(()=>{});
+
+  // Transaction distribution chart
+  apiGet('?module=reports&action=admin_category_breakdown&type=expense&period=' + (period === 'year' ? 'year' : 'month')).then(res=>{
+    const cats = res.data.categories || [];
+    if(txTypeChart){ txTypeChart.destroy(); }
+    txTypeChart = new Chart(document.getElementById('txTypeChart'), {
+      type: 'doughnut',
+      data: { labels: cats.map(c=>c._id), datasets: [{ data: cats.map(c=>c.total), backgroundColor: ['#6366f1','#f59e0b','#10b981','#ef4444','#06b6d4','#8b5cf6','#f97316','#14b8a6'] }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
+    });
+  }).catch(()=>{});
+
+  // Saved reports list
+  apiGet('?module=reports&action=admin_yearly_summary&year=' + year).then(res=>{
+    const d = res.data;
+    const tbody = document.getElementById('savedReportsBody');
+    const now = new Date();
+    const rows = [
+      { name:'Monthly Financial Report', type:'Financial', period: now.toLocaleString('default',{month:'short'}) + ' ' + year, generated: now.toISOString().split('T')[0], action:'pdf' },
+      { name:'Transaction Summary', type:'Transactions', period: now.toLocaleString('default',{month:'short'}) + ' ' + year, generated: now.toISOString().split('T')[0], action:'csv' },
+      { name:'Expense Analysis', type:'Expenses', period: 'Q' + (Math.floor(now.getMonth()/3)+1) + ' ' + year, generated: now.toISOString().split('T')[0], action:'pdf' }
+    ];
+    tbody.innerHTML = rows.map(r=>`
+      <tr>
+        <td><i class="fa-solid fa-file-pdf" style="color:var(--danger);margin-right:8px"></i>${r.name}</td>
+        <td><span class="badge-custom badge-${r.type === 'Financial' ? 'success' : r.type === 'Transactions' ? 'info' : 'warning'}">${r.type}</span></td>
+        <td>${r.period}</td>
+        <td>${r.generated}</td>
+        <td><button class="btn-primary-custom" style="padding:6px 12px;font-size:0.75rem" onclick="exportReport('${r.action}')"><i class="fa-solid fa-download"></i></button></td>
+      </tr>`).join('');
+  }).catch(()=>{
+    document.getElementById('savedReportsBody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--danger)">Failed to load reports</td></tr>';
+  });
+}
+
+function exportReport(format){
+  const period = document.getElementById('reportPeriod').value;
+  const from = period === 'month' ? new Date().toISOString().slice(0,7) + '-01' : period === 'year' ? new Date().getFullYear() + '-01-01' : '';
+  const to = new Date().toISOString().split('T')[0];
+  const action = format === 'csv' ? 'admin_export_csv' : 'admin_export_pdf';
+  const url = '?module=reports&action=' + action + '&type=transactions&from=' + from + '&to=' + to;
+  window.open(url, '_blank');
+  showToast('Report ' + format.toUpperCase() + ' downloaded!','success');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  Auth.requireRole(['admin']);
+  loadReports();
+});
+</script>
+</body>
+</html>

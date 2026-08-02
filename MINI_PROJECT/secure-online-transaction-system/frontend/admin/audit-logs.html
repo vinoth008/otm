@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Audit Logs — SecureSOT Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <link rel="stylesheet" href="../assets/css/dashboard.css"/>
+</head>
+<body>
+<div class="app-wrapper">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div><div class="brand-text"><h3>SecureSOT</h3><span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-label">Main</span>
+      <a class="nav-link-custom" href="dashboard.html"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <a class="nav-link-custom" href="users.html"><i class="fa-solid fa-users"></i> Users</a>
+      <a class="nav-link-custom" href="transactions.html"><i class="fa-solid fa-arrow-right-arrow-left"></i> Transactions</a>
+      <a class="nav-link-custom" href="expenses.html"><i class="fa-solid fa-wallet"></i> Expenses</a>
+      <span class="nav-section-label">Reports</span>
+      <a class="nav-link-custom" href="reports.html"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+      <a class="nav-link-custom" href="complaints.html"><i class="fa-solid fa-comment-dots"></i> Complaints</a>
+      <a class="nav-link-custom" href="notifications.html"><i class="fa-solid fa-bell"></i> Notifications</a>
+      <span class="nav-section-label">System</span>
+      <a class="nav-link-custom active" href="audit-logs.html"><i class="fa-solid fa-clipboard-list"></i> Audit Logs</a>
+      <a class="nav-link-custom" href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="avatar" data-user-avatar>AU</div><div class="user-info"><div class="user-name" data-user-name>Admin</div><span class="user-role">Administrator</span></div></div>
+      <button class="btn-logout" data-logout><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+        <div><div style="font-weight:700">Audit Logs</div><div style="font-size:0.75rem;color:var(--text-muted)">Complete system activity trail</div></div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn"><i class="fa-solid fa-bell"></i><span class="notif-dot"></span></button>
+        <div class="topbar-profile"><div class="avatar" data-user-avatar>AU</div></div>
+      </div>
+    </header>
+    <div class="page-body">
+      <div class="page-header">
+        <div><h1 class="page-title">Audit Logs</h1><p class="page-subtitle">Track all system events</p></div>
+        <div class="page-actions">
+          <select class="form-control-custom" id="actionFilter" style="width:auto" onchange="loadLogs()">
+            <option value="">All Actions</option>
+          </select>
+          <button class="btn-primary-custom" onclick="exportLogs()"><i class="fa-solid fa-download"></i> Export</button>
+        </div>
+      </div>
+      <div class="card">
+        <table class="table-custom">
+          <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Resource</th><th>IP Address</th><th>Status</th></tr></thead>
+          <tbody id="logsBody">
+            <tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Loading logs...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/app.js"></script>
+<script>
+function badgeForAction(action){
+  const a = (action || '').toUpperCase();
+  if(a.includes('LOGIN')) return '<span class="badge-custom badge-info">' + a + '</span>';
+  if(a.includes('TRANSACTION') || a.includes('EXPENSE')) return '<span class="badge-custom badge-purple">' + a + '</span>';
+  if(a.includes('DELETE')) return '<span class="badge-custom badge-danger">' + a + '</span>';
+  if(a.includes('UPDATE') || a.includes('SETTINGS') || a.includes('PROFILE')) return '<span class="badge-custom badge-warning">' + a + '</span>';
+  return '<span class="badge-custom badge-info">' + a + '</span>';
+}
+
+function formatTimestamp(ts){
+  const d = new Date(ts.replace(' ','T'));
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + ', ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+function loadLogs(){
+  const action = document.getElementById('actionFilter').value;
+  const url = '?module=audit&action=get_logs' + (action ? '&action=' + encodeURIComponent(action) : '');
+  apiGet(url).then(res=>{
+    const logs = res.data.logs || [];
+    const tbody = document.getElementById('logsBody');
+    if(logs.length === 0){
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No audit logs found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = logs.map(l=>`
+      <tr>
+        <td style="font-size:0.78rem;color:var(--text-muted)">${formatTimestamp(l.created_at)}</td>
+        <td>${l.user_email || 'System'}</td>
+        <td>${badgeForAction(l.action)}</td>
+        <td style="font-size:0.8rem;color:var(--text-muted)">${l.details && l.details.resource ? l.details.resource : '/' + (l.action||'').replace(/_/g,'/')}</td>
+        <td style="font-size:0.8rem;color:var(--text-muted)">${l.ip_address || '-'}</td>
+        <td><span class="badge-custom badge-success">Success</span></td>
+      </tr>`).join('');
+  }).catch(()=>{
+    document.getElementById('logsBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--danger)">Failed to load audit logs</td></tr>';
+  });
+}
+
+function loadActions(){
+  apiGet('?module=audit&action=get_actions').then(res=>{
+    const actions = res.data.actions || [];
+    const sel = document.getElementById('actionFilter');
+    sel.innerHTML = '<option value="">All Actions</option>' + actions.map(a=>'<option value="' + a + '">' + a.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) + '</option>').join('');
+  }).catch(()=>{});
+}
+
+function exportLogs(){
+  const rows = document.querySelectorAll('#logsBody tr');
+  if(rows.length === 0 || rows[0].textContent.includes('No audit logs')){
+    showToast('No logs to export','warning');
+    return;
+  }
+  let csv = 'Timestamp,User,Action,Resource,IP Address,Status\n';
+  rows.forEach(r=>{
+    const cells = r.querySelectorAll('td');
+    if(cells.length === 6){
+      csv += [cells[0].textContent.trim(), cells[1].textContent.trim(), cells[2].textContent.trim(), cells[3].textContent.trim(), cells[4].textContent.trim(), cells[5].textContent.trim()].map(c=>'"' + c.replace(/"/g,'""') + '"').join(',') + '\n';
+    }
+  });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'audit-logs-' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Logs exported!','success');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  Auth.requireRole(['admin']);
+  loadActions();
+  loadLogs();
+});
+</script>
+</body>
+</html>

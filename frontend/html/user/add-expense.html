@@ -1,0 +1,176 @@
+<!-- frontend/html/user/add-expense.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expense | Smart Transaction Control</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/components.css">
+    <link rel="stylesheet" href="../../css/animations.css">
+    <link rel="stylesheet" href="../../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div class="content-area" style="padding: 24px; max-width: 760px; margin: 0 auto;">
+                <div class="card" style="padding: 28px;">
+                    <div class="table-header" style="margin-bottom: 20px;">
+                        <h3 class="table-title" id="formTitle"><i class="fas fa-plus-circle"></i> Add Expense</h3>
+                        <a href="expenses.html" class="btn btn-sm btn-secondary"><i class="fas fa-arrow-left"></i> Back to Expenses</a>
+                    </div>
+
+                    <form id="expenseForm" novalidate>
+                        <input type="hidden" id="expenseId" value="">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;" class="form-grid">
+                            <div class="form-group">
+                                <label for="category"><i class="fas fa-tag"></i> Category <span style="color: var(--danger);">*</span></label>
+                                <select id="category" name="category" required>
+                                    <option value="">Select Category</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="subcategory"><i class="fas fa-tags"></i> Subcategory</label>
+                                <input type="text" id="subcategory" name="subcategory" placeholder="e.g. Lunch, Fuel, Office supplies">
+                            </div>
+                            <div class="form-group">
+                                <label for="amount"><i class="fas fa-rupee-sign"></i> Amount <span style="color: var(--danger);">*</span></label>
+                                <input type="number" id="amount" name="amount" min="0.01" step="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="expense_date"><i class="fas fa-calendar"></i> Date <span style="color: var(--danger);">*</span></label>
+                                <input type="date" id="expense_date" name="expense_date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="payment_method"><i class="fas fa-credit-card"></i> Payment Method</label>
+                                <select id="payment_method" name="payment_method">
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Debit Card</option>
+                                    <option value="credit_card">Credit Card</option>
+                                    <option value="upi">UPI</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="wallet">Wallet</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="receipt"><i class="fas fa-paperclip"></i> Attach Bill (JPG, PNG, PDF - max 5MB)</label>
+                                <input type="file" id="receipt" name="receipt" accept=".jpg,.jpeg,.png,.pdf">
+                                <small class="text-muted" id="existingReceipt"></small>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label for="description"><i class="fas fa-align-left"></i> Description <span style="color: var(--danger);">*</span></label>
+                            <textarea id="description" name="description" rows="3" placeholder="What was this expense for?" required></textarea>
+                        </div>
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label for="notes"><i class="fas fa-sticky-note"></i> Notes (optional)</label>
+                            <textarea id="notes" name="notes" rows="2" placeholder="Additional details"></textarea>
+                        </div>
+                        <div style="display: flex; gap: 12px; margin-top: 24px;">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" style="flex: 1;">
+                                <i class="fas fa-paper-plane"></i> Submit for Approval
+                            </button>
+                            <a href="expenses.html" class="btn btn-secondary btn-lg">Cancel</a>
+                        </div>
+                        <div id="formMessage" class="mt-3"></div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/app_common.js"></script>
+    <script>
+        let editingId = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const params = new URLSearchParams(window.location.search);
+            editingId = params.get('id');
+            STC.boot({
+                roles: ['user'],
+                title: editingId ? 'Edit Expense' : 'Add Expense',
+                page: 'add-expense.html',
+                init: initPage
+            });
+        });
+
+        async function initPage() {
+            const dateInput = document.getElementById('expense_date');
+            if (!dateInput.value) dateInput.value = new Date().toISOString().slice(0, 10);
+
+            try {
+                const cats = await STC.get('category_crud.php', 'get_all');
+                const list = (cats.categories || []).filter(c => c.type === 'expense');
+                const sel = document.getElementById('category');
+                list.forEach(c => {
+                    const o = document.createElement('option');
+                    o.value = c.name;
+                    o.textContent = c.name;
+                    sel.appendChild(o);
+                });
+            } catch (e) { /* categories optional */ }
+
+            if (editingId) {
+                document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Expense';
+                document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save"></i> Update Expense';
+                try {
+                    const exp = await STC.get('expense_crud.php', 'get', { expense_id: editingId });
+                    document.getElementById('expenseId').value = exp.expense_id;
+                    document.getElementById('category').value = exp.category || '';
+                    document.getElementById('subcategory').value = exp.subcategory || '';
+                    document.getElementById('amount').value = exp.amount;
+                    document.getElementById('expense_date').value = exp.expense_date;
+                    document.getElementById('payment_method').value = exp.payment_method || 'cash';
+                    document.getElementById('description').value = exp.description || '';
+                    document.getElementById('notes').value = exp.notes || '';
+                    if (exp.receipt_url) {
+                        document.getElementById('existingReceipt').textContent = 'Current bill attached. Upload a new file to replace it.';
+                    }
+                } catch (e) {
+                    showToast(e.message || 'Failed to load expense', 'error');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('expenseForm').addEventListener('submit', submitExpense);
+        });
+
+        async function submitExpense(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const msg = document.getElementById('formMessage');
+            msg.innerHTML = '';
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner spinner-sm"></span> Saving...';
+
+            try {
+                const fd = new FormData(document.getElementById('expenseForm'));
+                fd.append('csrf_token', getCookie('csrf_token') || '');
+                const action = editingId ? 'update' : 'create';
+                const res = await fetch('../../backend/php/expense_crud.php?action=' + action, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: fd
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Request failed');
+                showToast(data.message || 'Expense saved', 'success');
+                setTimeout(() => { location.href = 'expenses.html'; }, 800);
+            } catch (err) {
+                msg.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ${STC.esc(err.message)}</div>`;
+                btn.disabled = false;
+                btn.innerHTML = editingId
+                    ? '<i class="fas fa-save"></i> Update Expense'
+                    : '<i class="fas fa-paper-plane"></i> Submit for Approval';
+            }
+        }
+    </script>
+</body>
+</html>
