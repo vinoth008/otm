@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: smart-transaction-control
+    env: static
+    buildCommand: echo "Build step complete"
+    staticPublishPath: .
