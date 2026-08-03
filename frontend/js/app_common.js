@@ -16,7 +16,35 @@ const STC = (function () {
     const API = DEEP ? '../../../backend/php/' : '../../backend/php/';
     const P = DEEP ? '../' : ''; // prefix for cross-folder customer pages
 
-    // Inject the MINI_PROJECT design system on every page that boots the shell
+    // Fallback toggle if utils.js wasn't loaded before app_common.js
+    const THEME_STORE_KEY = 'theme';
+    function localGetTheme() {
+        return document.documentElement.getAttribute('data-theme') || 'light';
+    }
+    function localSetTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem(THEME_STORE_KEY, theme);
+        // Persist to backend so it survives across devices (best-effort)
+        try {
+            fetch(apiUrl('settings.php', 'update'), {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ theme_preference: theme })
+            }).catch(() => {});
+        } catch (e) { /* ignore */ }
+    }
+    if (typeof window.toggleTheme !== 'function') {
+        window.toggleTheme = function toggleTheme() {
+            localSetTheme(localGetTheme() === 'light' ? 'dark' : 'light');
+        };
+    }
+    if (typeof window.setTheme !== 'function') {
+        window.setTheme = localSetTheme;
+    }
+
+    // Inject the MINI_PROJECT design system on every page that boots the shell.
+    // ROOT is relative to frontend/html/ — the CSS lives at ROOT/css/mini_theme.css.
     (function injectTheme() {
         if (document.getElementById('miniThemeCss')) return;
         const link = document.createElement('link');
@@ -486,7 +514,7 @@ const STC = (function () {
         const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
         const colors = { success: '#10b981', error: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
         const toast = document.createElement('div');
-        toast.style.cssText = 'background: white; border-left: 4px solid ' + (colors[type] || colors.info) + '; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 12px 16px; min-width: 260px; max-width: 360px; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-primary, #1f2937); animation: slideInRight 0.25s ease;';
+        toast.style.cssText = 'background: var(--bg-card, #ffffff); border: 1px solid var(--border, #e5e7eb); border-left: 4px solid ' + (colors[type] || colors.info) + '; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); padding: 12px 16px; min-width: 260px; max-width: 360px; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-primary, #1f2937); animation: slideInRight 0.25s ease;';
         toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '" style="color: ' + (colors[type] || colors.info) + '; font-size: 1.1rem;"></i><span></span>';
         toast.querySelector('span').textContent = message;
         container.appendChild(toast);

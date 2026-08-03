@@ -16,6 +16,7 @@
     .form-control::placeholder { color: #94a3b8; }
     .form-select option { background: #1e293b; color: #fff; }
   </style>
+  <link href="../css/app_theme.css" rel="stylesheet">
 </head>
 <body class="dash-body">
   <nav class="navbar navbar-dark border-bottom border-light border-opacity-10 px-4">
@@ -149,5 +150,6 @@
     document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') loadReceipts(); });
     document.addEventListener('DOMContentLoaded', loadReceipts);
   </script>
+  <script src="../js/app_theme.js"></script>
 </body>
 </html>

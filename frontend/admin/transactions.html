@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="stylesheet" href="../assets/css/style.css"/>
   <link rel="stylesheet" href="../assets/css/dashboard.css"/>
+  <link href="../css/app_theme.css" rel="stylesheet">
 </head>
 <body>
 <div class="app-wrapper">
@@ -39,6 +40,7 @@
         <div><div style="font-weight:700">Transactions</div><div style="font-size:0.75rem;color:var(--text-muted)">Monitor all financial transactions</div></div>
       </div>
       <div class="topbar-right">
+        <button class="topbar-btn" id="themeBtn"><i class="fa-solid fa-moon"></i></button>
         <button class="topbar-btn"><i class="fa-solid fa-bell"></i><span class="notif-dot"></span></button>
         <div class="topbar-profile"><div class="avatar" data-user-avatar>AU</div></div>
       </div>
@@ -134,7 +136,8 @@ function viewTx(id) {
 function printTxDetail() {
   const body = document.getElementById('tx-detail-body').innerHTML;
   const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>Transaction Details</title><style>body{font-family:Arial,sans-serif;padding:20px}.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}.detail-label{font-weight:600;color:#555}.detail-value{color:#222}</style></head><body><h2>Transaction Details</h2>${body}</body></html>`);
+  w.document.write(`<html><head><title>Transaction Details</title><style>body{font-family:Arial,sans-serif;padding:20px}.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}.detail-label{font-weight:600;color:#555}.detail-value{color:#222}</style></head><body><h2>Transaction Details</h2>${body}  <script src="../js/app_theme.js"></script>
+</body></html>`);
   w.document.close();
   w.print();
 }

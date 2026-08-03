@@ -143,6 +143,20 @@ function deleteExpense() {
     successResponse(null, 'Expense deleted successfully');
 }
 
+if (!function_exists('calculateDateRange')) {
+    function calculateDateRange($period) {
+        switch ($period) {
+            case 'today': return ['from' => date('Y-m-d'), 'to' => date('Y-m-d')];
+            case 'week': return ['from' => date('Y-m-d', strtotime('monday this week')), 'to' => date('Y-m-d', strtotime('sunday this week'))];
+            case 'year': return ['from' => date('Y-01-01'), 'to' => date('Y-12-31')];
+            case 'last_month': return ['from' => date('Y-m-01', strtotime('-1 month')), 'to' => date('Y-m-t', strtotime('-1 month'))];
+            case 'last_year': return ['from' => date('Y-01-01', strtotime('-1 year')), 'to' => date('Y-12-31', strtotime('-1 year'))];
+            case 'custom': return ['from' => $_GET['date_from'] ?? date('Y-m-01'), 'to' => $_GET['date_to'] ?? date('Y-m-t')];
+            default: return ['from' => date('Y-m-01'), 'to' => date('Y-m-t')];
+        }
+    }
+}
+
 function getExpenseSummary() {
     requireActiveSession();
     $period = $_GET['period'] ?? 'month';
@@ -189,7 +203,7 @@ function getAdminExpenses() {
     $total = $collection->countDocuments($filter);
     $expenses = $collection->find($filter, ['sort' => ['date' => -1], 'skip' => $skip, 'limit' => $limit])->toArray();
     $formatted = array_map(function($e) use ($users) {
-        $owner = $users->findOne(['_id' => $e['user_id']]);
+        $owner = !empty($e['user_id']) ? $users->findOne(['_id' => $e['user_id']]) : null;
         $name = $owner ? $owner['first_name'] . ' ' . ($owner['last_name'] ?? '') : 'Unknown';
         return [
             '_id' => (string)$e['_id'],
@@ -197,7 +211,7 @@ function getAdminExpenses() {
             'category' => $e['category'],
             'amount' => $e['amount'],
             'description' => $e['description'] ?? '',
-            'date' => mongoDateToPHP($e['date'])->format('Y-m-d'),
+            'date' => isset($e['date']) ? mongoDateToPHP($e['date'])->format('Y-m-d') : '',
             'payment_method' => $e['payment_method'] ?? 'cash',
             'created_at' => mongoDateToPHP($e['created_at'])->format('Y-m-d H:i:s')
         ];

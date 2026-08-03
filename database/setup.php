@@ -1,4 +1,4 @@
-  <?php
+<?php
 // database/setup.php
 /**
  * Smart Transaction Control - Database Setup & Seed Script

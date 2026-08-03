@@ -14,19 +14,23 @@ if (!defined('APP_NAME')) {
  * @param string $data
  * @return string
  */
-function sanitizeInput($data) {
-    $data = trim($data);
-    $data = stripslashes($data);
-    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
-    return $data;
+if (!function_exists('sanitizeInput')) {
+    function sanitizeInput($data) {
+        $data = trim($data);
+        $data = stripslashes($data);
+        $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+        return $data;
+    }
 }
 /**
  * Validate email format
  * @param string $email
  * @return bool
  */
-function validateEmail($email) {
-    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+if (!function_exists('validateEmail')) {
+    function validateEmail($email) {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+    }
 }
 /**
  * Validate password strength
@@ -68,17 +72,21 @@ function validatePhone($phone) {
  * @param mixed $amount
  * @return bool
  */
-function validateAmount($amount) {
-    return is_numeric($amount) && $amount >= 0;
+if (!function_exists('validateAmount')) {
+    function validateAmount($amount) {
+        return is_numeric($amount) && $amount >= 0;
+    }
 }
 /**
  * Validate date format (YYYY-MM-DD)
  * @param string $date
  * @return bool
  */
-function validateDate($date) {
-    $d = DateTime::createFromFormat('Y-m-d', $date);
-    return $d && $d->format('Y-m-d') === $date;
+if (!function_exists('validateDate')) {
+    function validateDate($date) {
+        $d = DateTime::createFromFormat('Y-m-d', $date);
+        return $d && $d->format('Y-m-d') === $date;
+    }
 }
 /**
  * Generate CSRF token

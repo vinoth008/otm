@@ -1,0 +1,16 @@
+body.light{background:#f1f5f9!important;color:#0f172a!important}
+body.light .dash-body{background:linear-gradient(135deg,#e2e8f0,#f8fafc)!important;color:#0f172a!important}
+body.light .glass{background:rgba(255,255,255,.9)!important;border:1px solid rgba(15,23,42,.08)!important;color:#0f172a!important}
+body.light .table-darkish,body.light .table-darkish td,body.light .table-darkish th{color:#1e293b!important;border-color:rgba(15,23,42,.1)!important}
+body.light .navbar-dark{background:#fff!important}
+body.light .navbar-dark .navbar-brand,body.light .navbar-dark .nav-link{color:#0f172a!important}
+body.light .btn-outline-light{color:#0f172a!important;border-color:#94a3b8!important}
+body.light .btn-outline-light:hover{background:#e2e8f0!important;color:#0f172a!important}
+body.light .dropdown-menu{background:#fff!important;border:1px solid #e2e8f0!important}
+body.light .dropdown-item{color:#1e293b!important}
+body.light .dropdown-item:hover{background:#f1f5f9!important}
+body.light .card,body.light .stat-card,body.light .panel{background:#fff!important;color:#0f172a!important;border-color:#e2e8f0!important}
+body.light .text-muted,body.light .text-secondary{color:#475569!important}
+body.light input,body.light select,body.light textarea{background:#fff!important;color:#0f172a!important;border-color:#cbd5e1!important}
+body.light .modal-content{background:#fff!important;color:#0f172a!important}
+body.light .sidebar{background:#fff!important;color:#0f172a!important}

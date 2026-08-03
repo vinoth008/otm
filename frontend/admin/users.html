@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="stylesheet" href="../assets/css/style.css"/>
   <link rel="stylesheet" href="../assets/css/dashboard.css"/>
+  <link href="../css/app_theme.css" rel="stylesheet">
 </head>
 <body>
 <div class="app-wrapper">
@@ -39,6 +40,7 @@
         <div><div style="font-weight:700">User Management</div><div style="font-size:0.75rem;color:var(--text-muted)">Manage all system users</div></div>
       </div>
       <div class="topbar-right">
+        <button class="topbar-btn" id="themeBtn"><i class="fa-solid fa-moon"></i></button>
         <button class="topbar-btn"><i class="fa-solid fa-bell"></i><span class="notif-dot"></span></button>
         <div class="topbar-profile"><div class="avatar" data-user-avatar>AU</div></div>
       </div>
@@ -249,5 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadUsers();
 });
 </script>
+  <script src="../js/app_theme.js"></script>
 </body>
 </html>

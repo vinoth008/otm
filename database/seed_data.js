@@ -40,13 +40,15 @@ db.categories.insertMany(systemCategories);
 const bcrypt = require('bcryptjs'); // Use bcrypt in actual implementation
 const adminUser = {
     email: 'admin@smarttransaction.com',
-    password_hash: '$2b$10$YourHashedPasswordHere', // Replace with actual bcrypt hash in production
+    password_hash: '$2y$10$q/uxfrVdJ3YIw2Tx7NSb0.Ut82DsKK9C7CfT.A0K9cH5Gy0EoXEx.', // Admin@123
     first_name: 'System',
     last_name: 'Administrator',
     phone: '+91 0000000000',
     role: 'admin',
     status: 'active',
     is_verified: true,
+    login_attempts: 0,
+    locked_until: null,
     currency: 'INR',
     theme_preference: 'dark',
     created_at: new Date(),
@@ -60,13 +62,15 @@ db.users.insertOne(adminUser);
 const sampleUsers = [
     {
         email: 'user1@example.com',
-        password_hash: '$2b$10$SampleHash1',
+        password_hash: '$2y$10$k66QpH8eD3e7Frw5gO.rcuWdKk3DqPyTuVCGBBaxMqCkw.j6zkpF.', // User@123
         first_name: 'John',
         last_name: 'Doe',
         phone: '+91 9876543210',
         role: 'customer',
         status: 'active',
         is_verified: true,
+        login_attempts: 0,
+        locked_until: null,
         currency: 'INR',
         theme_preference: 'light',
         created_at: new Date('2026-01-15'),
@@ -75,13 +79,15 @@ const sampleUsers = [
     },
     {
         email: 'user2@example.com',
-        password_hash: '$2b$10$SampleHash2',
+        password_hash: '$2y$10$EuZXLny3mXYRpC6ey18AbO7e5g2xNv9EYzUIhxrWsTExigRBhLKYa', // Staff@123
         first_name: 'Jane',
         last_name: 'Smith',
         phone: '+91 9876543211',
         role: 'customer',
         status: 'active',
         is_verified: true,
+        login_attempts: 0,
+        locked_until: null,
         currency: 'INR',
         theme_preference: 'dark',
         created_at: new Date('2026-02-20'),

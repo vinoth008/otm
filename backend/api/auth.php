@@ -8,6 +8,7 @@ switch ($action) {
     case 'logout': $method === 'POST' && logout(); break;
     case 'forgot_password': $method === 'POST' && forgotPassword(); break;
     case 'reset_password': $method === 'POST' && resetPassword(); break;
+    case 'verify_email': $method === 'POST' && verifyEmail(); break;
     case 'get_session': $method === 'GET' && getSession(); break;
     default: errorResponse('Invalid action', 404);
 }
@@ -229,4 +230,51 @@ function getSession() {
         'email' => $_SESSION['user_email'] ?? '',
         'role' => getCurrentUserRole()
     ], 'Session active');
+}
+
+function verifyEmail() {
+    $data = getJSONRequest();
+    if (!$data) errorResponse('Invalid request format');
+    $userId = sanitizeInput($data['user_id'] ?? '');
+    $token = sanitizeInput($data['token'] ?? '');
+    $isResend = !empty($data['resend']);
+    if (empty($userId) || !isValidObjectId($userId)) errorResponse('Invalid user id');
+    $usersCollection = getCollection('users');
+    if (!$usersCollection) errorResponse('Database connection error');
+    $user = $usersCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($userId), 'deleted_at' => null]);
+    if (!$user) errorResponse('User not found', 404);
+    if ($isResend) {
+        $verifyToken = bin2hex(random_bytes(32));
+        $tokensCollection = getCollection('email_verifications');
+        if (!$tokensCollection) errorResponse('Database connection error');
+        $tokensCollection->deleteMany(['user_id' => new MongoDB\BSON\ObjectId($userId)]);
+        $tokensCollection->insertOne([
+            'user_id' => new MongoDB\BSON\ObjectId($userId),
+            'email' => $user['email'] ?? '',
+            'token_hash' => hash('sha256', $verifyToken),
+            'expires_at' => phpDateToMongo(date('Y-m-d H:i:s', time() + 3600)),
+            'used' => false,
+            'created_at' => phpDateToMongo()
+        ]);
+        logActivity('email_verification_resend', $userId);
+        successResponse([
+            'verify_link' => BASE_URL . 'frontend/auth/verify-email.html?uid=' . $userId . '&token=' . $verifyToken
+        ], 'Verification link generated');
+    }
+    if (empty($token)) errorResponse('Verification token is required');
+    $tokensCollection = getCollection('email_verifications');
+    if (!$tokensCollection) errorResponse('Database connection error');
+    $verification = $tokensCollection->findOne([
+        'user_id' => new MongoDB\BSON\ObjectId($userId),
+        'token_hash' => hash('sha256', $token),
+        'used' => false,
+        'expires_at' => ['$gte' => phpDateToMongo()]
+    ]);
+    if (!$verification) errorResponse('Invalid or expired verification token', 400);
+    $usersCollection->updateOne(['_id' => new MongoDB\BSON\ObjectId($userId)], [
+        '$set' => ['email_verified' => true, 'email_verified_at' => phpDateToMongo(), 'updated_at' => phpDateToMongo()]
+    ]);
+    $tokensCollection->updateOne(['_id' => $verification['_id']], ['$set' => ['used' => true]]);
+    logActivity('email_verified', $userId);
+    successResponse(null, 'Email verified successfully');
 }

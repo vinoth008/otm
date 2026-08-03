@@ -119,3 +119,11 @@ Stack trace:
 #1 C:\xampp\htdocs\MPWT\MINI_PROJECT\secure-online-transaction-system\backend\api\index.php(167): require_once('C:\\xampp\\htdocs...')
 #2 {main}
   thrown in C:\xampp\htdocs\MPWT\MINI_PROJECT\secure-online-transaction-system\backend\api\expenses.php on line 149
+[03-Aug-2026 12:15:55 Asia/Kolkata] PHP Warning:  session_name(): Session name cannot be changed after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 44
+[03-Aug-2026 12:15:55 Asia/Kolkata] PHP Warning:  session_set_cookie_params(): Session cookie parameters cannot be changed after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 49
+[03-Aug-2026 12:15:55 Asia/Kolkata] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in C:\xampp\htdocs\MPWT\config.php on line 57
+[03-Aug-2026 12:15:55 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 415
+[03-Aug-2026 12:15:55 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 416
+[03-Aug-2026 12:15:55 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 417
+[03-Aug-2026 12:15:55 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 418
+[03-Aug-2026 12:15:55 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 419
