@@ -13,6 +13,8 @@ switch ($action) {
     case 'admin_category_breakdown': $method === 'GET' && getAdminCategoryBreakdown(); break;
     case 'admin_export_csv': $method === 'GET' && adminExportCSV(); break;
     case 'admin_export_pdf': $method === 'GET' && adminExportPDF(); break;
+    case 'export_excel': $method === 'GET' && exportExcel(); break;
+    case 'admin_export_excel': $method === 'GET' && adminExportExcel(); break;
     default: errorResponse('Invalid action', 404);
 }
 
@@ -128,6 +130,90 @@ function exportPDF() {
     header('Content-Disposition: attachment; filename="' . $type . '_report_' . date('Y-m-d') . '.html"');
     echo $html;
     exit;
+}
+
+/**
+ * Export transactions as Excel (XLSX-compatible XML format).
+ */
+function exportExcel() {
+    requireActiveSession();
+    $type = $_GET['type'] ?? 'transactions';
+    $userId = new MongoDB\BSON\ObjectId(getCurrentUserId());
+    $collection = getCollection($type === 'expenses' ? 'expenses' : 'transactions');
+    $filter = ['user_id' => $userId, 'deleted_at' => null];
+    if (!empty($_GET['from'])) $filter['date']['$gte'] = phpDateToMongo($_GET['from']);
+    if (!empty($_GET['to'])) $filter['date']['$lte'] = phpDateToMongo($_GET['to'] . ' 23:59:59');
+    $docs = $collection->find($filter, ['sort' => ['date' => -1]])->toArray();
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment; filename="' . $type . '_export_' . date('Y-m-d') . '.xlsx"');
+    echo buildExcelXML($docs, ucfirst($type) . ' Report');
+    exit;
+}
+
+/**
+ * Admin export Excel.
+ */
+function adminExportExcel() {
+    requireRole(['admin']);
+    $type = $_GET['type'] ?? 'transactions';
+    $collection = getCollection($type === 'expenses' ? 'expenses' : 'transactions');
+    $filter = ['deleted_at' => null];
+    if (!empty($_GET['from'])) $filter['date']['$gte'] = phpDateToMongo($_GET['from']);
+    if (!empty($_GET['to'])) $filter['date']['$lte'] = phpDateToMongo($_GET['to'] . ' 23:59:59');
+    $docs = $collection->find($filter, ['sort' => ['date' => -1]])->toArray();
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment; filename="' . $type . '_export_' . date('Y-m-d') . '.xlsx"');
+    echo buildExcelXml($docs, ucfirst($type) . ' Report');
+    exit;
+}
+
+/**
+ * Build a minimal Excel-compatible XML (SpreadsheetML 2003 format).
+ * @param array $docs Transaction documents
+ * @param string $title Report title
+ * @return string
+ */
+function buildExcelXml(array $docs, $title = 'Report') {
+    $rows = '';
+    $headers = ['Date', 'Type', 'Category', 'Amount', 'Description', 'Status'];
+    $rows .= '<Row>';
+    foreach ($headers as $h) {
+        $rows .= '<Cell><Data ss:Type="String">' . htmlspecialchars($h) . '</Data></Cell>';
+    }
+    $rows .= '</Row>';
+    foreach ($docs as $d) {
+        $rows .= '<Row>';
+        $rows .= '<Cell><Data ss:Type="String">' . mongoDateToPHP($d['date'])->format('Y-m-d') . '</Data></Cell>';
+        $rows .= '<Cell><Data ss:Type="String">' . htmlspecialchars($d['type'] ?? '') . '</Data></Cell>';
+        $rows .= '<Cell><Data ss:Type="String">' . htmlspecialchars($d['category'] ?? '') . '</Data></Cell>';
+        $rows .= '<Cell><Data ss:Type="Number">' . (float)($d['amount'] ?? 0) . '</Data></Cell>';
+        $rows .= '<Cell><Data ss:Type="String">' . htmlspecialchars($d['description'] ?? '') . '</Data></Cell>';
+        $rows .= '<Cell><Data ss:Type="String">' . htmlspecialchars($d['status'] ?? 'completed') . '</Data></Cell>';
+        $rows .= '</Row>';
+    }
+    return '<?xml version="1.0" encoding="UTF-8"?>
+    <?mso-application progid="Excel.Sheet"?>
+    <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+              xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:x="urn:schemas-microsoft-com:office:excel"
+              xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+              xmlns:html="http://www.w3.org/TR/REC-html40">
+      <Worksheet ss:Name="' . htmlspecialchars($title) . '">
+        <Table>
+          ' . $rows . '
+        </Table>
+      </Worksheet>
+    </Workbook>';
+}
+
+/**
+ * Helper to format a Mongo date to Y-m-d string.
+ */
+function mongoDateToDate($mongoDate) {
+    if ($mongoDate instanceof MongoDB\BSON\UTCDateTime) {
+        return $mongoDate->toDateTime()->format('Y-m-d');
+    }
+    return date('Y-m-d');
 }
 
 function getAdminMonthlySummary() {

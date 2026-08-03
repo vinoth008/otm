@@ -202,6 +202,21 @@ switch ($module) {
     case 'appointments':
         require_once __DIR__ . '/appointments.php';
         break;
+    case 'wallets':
+        require_once __DIR__ . '/wallets.php';
+        break;
+    case 'goals':
+        require_once __DIR__ . '/goals.php';
+        break;
+    case 'reminders':
+        require_once __DIR__ . '/reminders.php';
+        break;
+    case 'recurring':
+        require_once __DIR__ . '/recurring.php';
+        break;
+    case 'analytics':
+        require_once __DIR__ . '/analytics.php';
+        break;
     default:
         errorResponse('Invalid module', 404);
 }

@@ -273,3 +273,119 @@ const sessionsSchema = {
 // Indexes
 db.sessions.createIndex({ session_id: 1 }, { unique: true });
 db.sessions.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 });
+// ============================================
+// 16. WALLETS COLLECTION
+// ============================================
+const walletsSchema = {
+    _id: ObjectId,
+    user_id: ObjectId, // Reference to users._id, indexed
+    name: String, // e.g. 'Cash', 'HDFC Bank', 'Paytm'
+    balance: Number, // Current wallet balance
+    currency: String, // 'INR'
+    icon: String, // Font Awesome icon
+    color: String, // Display color
+    description: String,
+    is_default: Boolean,
+    created_at: Date,
+    updated_at: Date,
+    deleted_at: Date // Soft delete
+};
+// Indexes
+db.wallets.createIndex({ user_id: 1, deleted_at: 1 });
+db.wallets.createIndex({ user_id: 1, name: 1 }, { unique: true, partialFilterExpression: { deleted_at: null } });
+// ============================================
+// 17. WALLET TRANSFERS COLLECTION
+// ============================================
+const walletTransfersSchema = {
+    _id: ObjectId,
+    user_id: ObjectId,
+    from_wallet_id: ObjectId,
+    to_wallet_id: ObjectId,
+    from_wallet_name: String,
+    to_wallet_name: String,
+    amount: Number,
+    description: String,
+    created_at: Date,
+    deleted_at: Date
+};
+// Indexes
+db.wallet_transfers.createIndex({ user_id: 1, created_at: -1 });
+db.wallet_transfers.createIndex({ from_wallet_id: 1 });
+db.wallet_transfers.createIndex({ to_wallet_id: 1 });
+// ============================================
+// 18. REMINDERS COLLECTION
+// ============================================
+const remindersSchema = {
+    _id: ObjectId,
+    user_id: ObjectId,
+    title: String, // e.g. 'Electricity Bill'
+    type: String, // 'electricity' | 'water' | 'internet' | 'gas' | 'mobile_recharge' | 'credit_card' | 'emi' | 'insurance' | 'rent' | 'other'
+    amount: Number,
+    due_date: Date,
+    repeat: String, // 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
+    days_before_notify: Number, // Notify N days before due
+    category: String,
+    notes: String,
+    is_active: Boolean,
+    is_paid: Boolean,
+    paid_date: Date,
+    last_notified_at: Date,
+    notification_sent: Boolean,
+    created_at: Date,
+    updated_at: Date,
+    deleted_at: Date
+};
+// Indexes
+db.reminders.createIndex({ user_id: 1, due_date: 1 });
+db.reminders.createIndex({ user_id: 1, is_active: 1, is_paid: 1 });
+// ============================================
+// 19. RECURRING TRANSACTIONS COLLECTION
+// ============================================
+const recurringTransactionsSchema = {
+    _id: ObjectId,
+    user_id: ObjectId,
+    name: String,
+    type: String, // 'income' | 'expense'
+    category: String,
+    amount: Number,
+    currency: String,
+    frequency: String, // 'daily' | 'weekly' | 'monthly' | 'yearly'
+    interval: Number, // Every N periods
+    start_date: Date,
+    end_date: Date, // null = no end
+    wallet_id: ObjectId, // Optional linked wallet
+    payment_method: String,
+    merchant: String,
+    description: String,
+    tags: [String],
+    is_active: Boolean,
+    next_run_date: Date,
+    last_run_date: Date,
+    times_generated: Number,
+    created_at: Date,
+    updated_at: Date,
+    deleted_at: Date
+};
+// Indexes
+db.recurring_transactions.createIndex({ user_id: 1, is_active: 1 });
+db.recurring_transactions.createIndex({ next_run_date: 1 });
+// ============================================
+// 20. OTP RECORDS COLLECTION
+// ============================================
+const otpRecordsSchema = {
+    _id: ObjectId,
+    email: String, // Indexed - the email the OTP was sent to
+    user_id: ObjectId, // Optional for logged-in requests
+    otp_code: String, // Hashed OTP
+    purpose: String, // 'verify_email' | 'forgot_password' | 'login'
+    expires_at: Date,
+    attempts: Number, // Tracks verification attempts
+    is_used: Boolean,
+    ip_address: String,
+    user_agent: String,
+    created_at: Date
+};
+// Indexes
+db.otp_records.createIndex({ email: 1, purpose: 1, created_at: -1 });
+db.otp_records.createIndex({ email: 1, otp_code: 1, is_used: 1 });
+db.otp_records.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 }); // Auto-delete expired OTPs
