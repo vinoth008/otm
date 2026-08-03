@@ -4,10 +4,18 @@ declare(strict_types=1);
 // MongoDB Atlas Connection (unified with MPWT)
 require_once __DIR__ . '/constants.php';
 
-// Composer autoloader for mongodb/mongodb library (shared with MPWT root vendor/)
-$autoload = __DIR__ . '/../../../../vendor/autoload.php';
-if (file_exists($autoload)) {
-    require_once $autoload;
+// Composer autoloader for mongodb/mongodb library
+$autoloadPaths = [
+    __DIR__ . '/../../vendor/autoload.php',
+    __DIR__ . '/../../../vendor/autoload.php',
+    __DIR__ . '/../../../../vendor/autoload.php',
+    dirname(__DIR__, 2) . '/vendor/autoload.php',
+];
+foreach ($autoloadPaths as $autoload) {
+    if (file_exists($autoload)) {
+        require_once $autoload;
+        break;
+    }
 }
 
 function getMongoClient() {
