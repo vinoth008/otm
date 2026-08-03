@@ -138,8 +138,8 @@ java -jar target/expense-tracker-1.0-SNAPSHOT.jar
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@expensetracker.com | Admin@123 |
-| User | user@expensetracker.com | User@123 |
+| Admin | admin1@gmail.com | admin@001 |
+| Customer | customer1@gmail.com | customer@001 |
 
 ## 📊 Features
 

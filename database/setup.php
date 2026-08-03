@@ -105,137 +105,73 @@ if ($existingCategory == 0) {
 }
 echo "\n";
 
-// 4. Test user
+// 4. Delete old demo users & related data
+echo "Cleaning up old demo users...\n";
+$oldEmails = [
+    'admin@sot.com', 'manager@sot.com', 'staff@sot.com', 'recept@sot.com',
+    'cust@sot.com', 'employee@sot.com', 'auditor@sot.com', 'customer2@sot.com',
+    'admin@smarttransaction.com', 'manager@smarttransaction.com',
+    'employee@smarttransaction.com', 'auditor@smarttransaction.com',
+    'test@smarttransaction.com', 'admin@expensetracker.com',
+    'user@expensetracker.com', 'user1@example.com', 'user2@example.com'
+];
+foreach ($oldEmails as $oldEmail) {
+    $oldUser = $db->users->findOne(['email' => $oldEmail]);
+    if ($oldUser) {
+        $oldId = $oldUser['_id'];
+        foreach (['transactions', 'wallets', 'budgets', 'goals', 'notifications', 'notes', 'beneficiaries', 'complaints', 'receipts', 'appointments', 'sessions', 'activity_logs'] as $collName) {
+            $coll = $db->$collName ?? null;
+            if ($coll) {
+                try { $coll->deleteMany(['user_id' => $oldId]); } catch (Exception $e) {}
+            }
+        }
+        $db->users->deleteOne(['_id' => $oldId]);
+        echo "  [DELETED] {$oldEmail} and related data\n";
+    }
+}
+
+// 4b. Seed demo users (4 roles)
 echo "Seeding users...\n";
-$testUserEmail = 'test@smarttransaction.com';
-// Migrate legacy roles to the unified 4-role system
-$db->users->updateMany(['role' => 'customer'], ['$set' => ['role' => 'user']]);
-$db->users->updateMany(['role' => 'receptionist'], ['$set' => ['role' => 'user']]);
-$db->users->updateMany(['role' => 'staff'], ['$set' => ['role' => 'manager']]);
-$testUser = $db->users->findOne(['email' => $testUserEmail]);
-if ($testUser) {
-    echo "  [SKIP] Test user already exists: $testUserEmail\n";
-    $userId = $testUser['_id'];
-} else {
-    $userDoc = [
-        'email' => $testUserEmail,
-        'password_hash' => hashPassword('Test@12345'),
-        'first_name' => 'Test',
-        'last_name' => 'User',
-        'phone' => '9876543210',
-        'role' => 'user',
-        'department' => 'General',
+$demoUsers = [
+    ['email' => 'admin1@gmail.com',    'password' => 'admin@001',    'first_name' => 'System',    'last_name' => 'Administrator', 'phone' => '9876500001', 'role' => 'admin',        'balance' => 100000, 'theme' => 'dark'],
+    ['email' => 'staff1@gmail.com',    'password' => 'staff@001',    'first_name' => 'Staff',     'last_name' => 'Member',       'phone' => '9876500003', 'role' => 'staff',         'balance' => 50000,  'theme' => 'light'],
+    ['email' => 'recept1@gmail.com',   'password' => 'recept@001',   'first_name' => 'Reception', 'last_name' => 'Desk',         'phone' => '9876500004', 'role' => 'receptionist',  'balance' => 30000,  'theme' => 'light'],
+    ['email' => 'customer1@gmail.com', 'password' => 'customer@001', 'first_name' => 'Demo',      'last_name' => 'Customer',     'phone' => '9876500005', 'role' => 'customer',      'balance' => 25000,  'theme' => 'light'],
+];
+
+$userId = null;
+foreach ($demoUsers as $du) {
+    $existing = $db->users->findOne(['email' => $du['email']]);
+    if ($existing) {
+        echo "  [SKIP] {$du['email']} already exists\n";
+        if ($du['role'] === 'customer') $userId = $existing['_id'];
+        continue;
+    }
+    $result = $db->users->insertOne([
+        'email' => $du['email'],
+        'password_hash' => hashPassword($du['password']),
+        'first_name' => $du['first_name'],
+        'last_name' => $du['last_name'],
+        'phone' => $du['phone'],
+        'role' => $du['role'],
         'status' => 'active',
         'is_verified' => true,
         'login_attempts' => 0,
         'locked_until' => null,
+        'balance' => $du['balance'],
         'currency' => 'INR',
-        'theme_preference' => 'light',
+        'theme_preference' => $du['theme'],
         'created_at' => phpDateToMongo(),
         'updated_at' => phpDateToMongo(),
         'last_login' => null,
         'deleted_at' => null
-    ];
-    $result = $db->users->insertOne($userDoc);
-    $userId = $result->getInsertedId();
-    echo "  [OK] Test user created: $testUserEmail / Test@12345\n";
-}
-
-// Admin user
-$adminEmail = 'admin@smarttransaction.com';
-if (!$db->users->findOne(['email' => $adminEmail])) {
-    $db->users->insertOne([
-        'email' => $adminEmail,
-        'password_hash' => hashPassword('Admin@12345'),
-        'first_name' => 'System',
-        'last_name' => 'Administrator',
-        'phone' => '0000000000',
-        'role' => 'admin',
-        'status' => 'active',
-        'is_verified' => true,
-        'currency' => 'INR',
-        'theme_preference' => 'dark',
-        'created_at' => phpDateToMongo(),
-        'updated_at' => phpDateToMongo(),
-        'deleted_at' => null
     ]);
-    echo "  [OK] Admin user created: $adminEmail / Admin@12345\n";
-} else {
-    echo "  [SKIP] Admin user already exists\n";
-}
-
-// Manager user
-$managerEmail = 'manager@smarttransaction.com';
-if (!$db->users->findOne(['email' => $managerEmail])) {
-    $db->users->insertOne([
-        'email' => $managerEmail,
-        'password_hash' => hashPassword('Manager@12345'),
-        'first_name' => 'Jane',
-        'last_name' => 'Wilson',
-        'phone' => '9111111111',
-        'role' => 'manager',
-        'status' => 'active',
-        'is_verified' => true,
-        'currency' => 'INR',
-        'theme_preference' => 'light',
-        'created_at' => phpDateToMongo(),
-        'updated_at' => phpDateToMongo(),
-        'deleted_at' => null
-    ]);
-    echo "  [OK] Manager user created: $managerEmail / Manager@12345\n";
-} else {
-    echo "  [SKIP] Manager user already exists\n";
-}
-
-// Employee/User
-$employeeEmail = 'employee@smarttransaction.com';
-if (!$db->users->findOne(['email' => $employeeEmail])) {
-    $db->users->insertOne([
-        'email' => $employeeEmail,
-        'password_hash' => hashPassword('Employee@12345'),
-        'first_name' => 'John',
-        'last_name' => 'Doe',
-        'phone' => '9876543210',
-        'role' => 'user',
-        'department' => 'IT',
-        'status' => 'active',
-        'is_verified' => true,
-        'currency' => 'INR',
-        'theme_preference' => 'light',
-        'created_at' => phpDateToMongo(),
-        'updated_at' => phpDateToMongo(),
-        'deleted_at' => null
-    ]);
-    echo "  [OK] Employee user created: $employeeEmail / Employee@12345\n";
-} else {
-    echo "  [SKIP] Employee user already exists\n";
-}
-
-// Auditor user (read-only)
-$auditorEmail = 'auditor@smarttransaction.com';
-if (!$db->users->findOne(['email' => $auditorEmail])) {
-    $db->users->insertOne([
-        'email' => $auditorEmail,
-        'password_hash' => hashPassword('Auditor@12345'),
-        'first_name' => 'Rose',
-        'last_name' => 'Green',
-        'phone' => '9333333333',
-        'role' => 'auditor',
-        'status' => 'active',
-        'is_verified' => true,
-        'currency' => 'INR',
-        'theme_preference' => 'dark',
-        'created_at' => phpDateToMongo(),
-        'updated_at' => phpDateToMongo(),
-        'deleted_at' => null
-    ]);
-    echo "  [OK] Auditor user created: $auditorEmail / Auditor@12345\n";
-} else {
-    echo "  [SKIP] Auditor user already exists\n";
+    if ($du['role'] === 'customer') $userId = $result->getInsertedId();
+    echo "  [OK] Created {$du['email']} / {$du['password']} (role: {$du['role']})\n";
 }
 echo "\n";
 
-// 4b. Roles (MINI_PROJECT RBAC)
+// 4c. Roles (MINI_PROJECT RBAC)
 echo "Seeding roles...\n";
 $roles = [
     ['role_code' => 'ADMIN', 'role_name' => 'Administrator', 'permissions' => ['MANAGE_USERS', 'APPROVE_TX', 'MANAGE_EXPENSES', 'MANAGE_CATEGORIES', 'MANAGE_DEPARTMENTS', 'VIEW_REPORTS', 'VIEW_ANALYTICS', 'MANAGE_SETTINGS', 'MANAGE_ANNOUNCEMENTS', 'EXPORT_REPORTS', 'BACKUP_DB', 'RESTORE_DB', 'VIEW_ALL']],
@@ -260,7 +196,7 @@ if ($roleCount == 0) {
 }
 echo "\n";
 
-// 4c. Branches (MINI_PROJECT)
+// 4d. Branches (MINI_PROJECT)
 echo "Seeding branches...\n";
 $branches = [
     ['branch_code' => 'BR001', 'branch_name' => 'Main Branch', 'address_line1' => 'T. Nagar Main Road', 'city' => 'Chennai', 'state' => 'Tamil Nadu', 'pincode' => '600017', 'phone' => '0441111111', 'email' => 'main@smarttransaction.com', 'status' => 'active'],
@@ -289,14 +225,13 @@ if ($branchCount == 0) {
 }
 echo "\n";
 
-// 4d. Wallets (MINI_PROJECT digital wallet)
+// 4e. Wallets (MINI_PROJECT digital wallet)
 echo "Seeding wallets...\n";
 $walletUsers = [
-    ['email' => $testUserEmail, 'balance' => 25000],
-    ['email' => $adminEmail, 'balance' => 100000],
-    ['email' => $managerEmail, 'balance' => 50000],
-    ['email' => $employeeEmail, 'balance' => 30000],
-    ['email' => $auditorEmail, 'balance' => 20000],
+    ['email' => 'admin1@gmail.com',    'balance' => 100000],
+    ['email' => 'staff1@gmail.com',    'balance' => 50000],
+    ['email' => 'recept1@gmail.com',   'balance' => 30000],
+    ['email' => 'customer1@gmail.com', 'balance' => 25000],
 ];
 $walletCount = $db->wallets->countDocuments([]);
 if ($walletCount == 0) {
@@ -438,9 +373,8 @@ if ($settingsCount == 0) {
 echo "\n==========================================\n";
 echo "Setup complete!\n";
 echo "Demo Accounts (login page auto-fills these):\n";
-echo "Admin:    admin@smarttransaction.com    / Admin@12345\n";
-echo "Manager:  manager@smarttransaction.com  / Manager@12345\n";
-echo "Employee: employee@smarttransaction.com / Employee@12345\n";
-echo "Auditor:  auditor@smarttransaction.com  / Auditor@12345\n";
-echo "Test:     test@smarttransaction.com     / Test@12345\n";
+echo "Admin:        admin1@gmail.com    / admin@001\n";
+echo "Staff:        staff1@gmail.com    / staff@001\n";
+echo "Receptionist: recept1@gmail.com   / recept@001\n";
+echo "Customer:     customer1@gmail.com / customer@001\n";
 ?>

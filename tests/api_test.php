@@ -70,8 +70,8 @@ $csrf = $m[1] ?? '';
 check('Session + CSRF cookie established', !empty($csrf), $r['headers'] ?? '');
 
 $r = req($BASE . 'backend/php/auth.php?action=login', [
-    'email' => 'test@smarttransaction.com',
-    'password' => 'Test@12345',
+    'email' => 'customer1@gmail.com',
+    'password' => 'customer@001',
     'csrf_token' => $csrf
 ]);
 check('Login as test user', $r['code'] === 200 && ($r['body']['success'] ?? false), json_encode($r['body']));
@@ -176,7 +176,7 @@ $r = req($BASE . 'backend/php/wallet_crud.php?action=topup', [
 check('Wallet topup', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
 
 $r = req($BASE . 'backend/php/wallet_crud.php?action=transfer', [
-    'csrf_token' => $csrf, 'recipient_email' => 'staff@smarttransaction.com', 'amount' => 10, 'description' => 'Automated test transfer'
+    'csrf_token' => $csrf, 'recipient_email' => 'staff1@gmail.com', 'amount' => 10, 'description' => 'Automated test transfer'
 ]);
 check('Wallet transfer', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
 
@@ -190,7 +190,7 @@ $r = req($BASE . 'backend/php/transfer_crud.php?action=summary');
 check('Transfer summary (own)', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
 
 $r = req($BASE . 'backend/php/transfer_crud.php?action=create', [
-    'csrf_token' => $csrf, 'recipient_email' => 'staff@smarttransaction.com', 'amount' => 25, 'type' => 'internal', 'description' => 'Automated test transfer request'
+    'csrf_token' => $csrf, 'recipient_email' => 'staff1@gmail.com', 'amount' => 25, 'type' => 'internal', 'description' => 'Automated test transfer request'
 ]);
 check('Create transfer request', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
 
@@ -265,7 +265,7 @@ check('Mark notifications read', $r['code'] === 200 && ($r['body']['success'] ??
 // 9. Manager Modules (legacy "staff" role replaced by "manager" in 4-role system)
 echo "\n[9] Manager Modules\n";
 $r = req($BASE . 'backend/php/auth.php?action=login', [
-    'email' => 'manager@smarttransaction.com', 'password' => 'Manager@12345', 'csrf_token' => $csrf
+    'email' => 'staff1@gmail.com', 'password' => 'staff@001', 'csrf_token' => $csrf
 ]);
 check('Login as manager', $r['code'] === 200 && ($r['body']['success'] ?? false), json_encode($r['body']));
 
@@ -285,7 +285,7 @@ $r = req($BASE . 'backend/php/admin_crud.php?action=get_users&role=user');
 check('Manager: employee list', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
 $custId = '';
 foreach (($r['body']['data']['users'] ?? []) as $u) {
-    if ($u['email'] === 'test@smarttransaction.com') { $custId = $u['user_id']; break; }
+    if ($u['email'] === 'customer1@gmail.com') { $custId = $u['user_id']; break; }
 }
 
 $r = req($BASE . 'backend/php/expense_crud.php?action=create', [
@@ -307,7 +307,7 @@ check('Manager: list receipts', $r['code'] === 200 && ($r['body']['success'] ?? 
 // 10. Admin Modules
 echo "\n[10] Admin Modules\n";
 $r = req($BASE . 'backend/php/auth.php?action=login', [
-    'email' => 'admin@smarttransaction.com', 'password' => 'Admin@12345', 'csrf_token' => $csrf
+    'email' => 'admin1@gmail.com', 'password' => 'admin@001', 'csrf_token' => $csrf
 ]);
 check('Login as admin', $r['code'] === 200 && ($r['body']['success'] ?? false), json_encode($r['body']));
 

@@ -5,13 +5,19 @@ declare(strict_types=1);
  * Run: php database/seed_demo_users.php
  *
  * Seeds:
- *   - 8 demo users across all roles (admin, manager, staff, receptionist, customer/employee, auditor)
+ *   - 4 demo users across all roles (admin, staff, receptionist, customer)
  *   - Full system categories (income + expense)
  *   - Wallets for each user
  *   - Transactions for every user
  *   - Budgets, goals, notifications
  *   - Appointments, complaints, beneficiaries, receipts, notes for customer-facing roles
  *   - System settings
+ *
+ * Demo Credentials:
+ *   Admin:        admin1@gmail.com  / admin@001
+ *   Staff:        staff1@gmail.com  / staff@001
+ *   Receptionist: recept1@gmail.com / recept@001
+ *   Customer:     customer1@gmail.com / customer@001
  */
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -37,17 +43,41 @@ $users = $db->users;
 $wallets = $db->wallets;
 
 // ============================================
+// 0. DELETE OLD DEMO USERS & RELATED DATA
+// ============================================
+$oldEmails = [
+    'admin@sot.com', 'manager@sot.com', 'staff@sot.com', 'recept@sot.com',
+    'cust@sot.com', 'employee@sot.com', 'auditor@sot.com', 'customer2@sot.com',
+    'admin@smarttransaction.com', 'manager@smarttransaction.com',
+    'employee@smarttransaction.com', 'auditor@smarttransaction.com',
+    'test@smarttransaction.com', 'admin@expensetracker.com',
+    'user@expensetracker.com', 'user1@example.com', 'user2@example.com'
+];
+echo "Cleaning up old demo users...\n";
+foreach ($oldEmails as $oldEmail) {
+    $oldUser = $users->findOne(['email' => $oldEmail]);
+    if ($oldUser) {
+        $oldId = $oldUser['_id'];
+        // Delete related data
+        foreach (['transactions', 'wallets', 'budgets', 'goals', 'notifications', 'notes', 'beneficiaries', 'complaints', 'receipts', 'appointments', 'sessions', 'activity_logs'] as $collName) {
+            $coll = $db->$collName ?? null;
+            if ($coll) {
+                try { $coll->deleteMany(['user_id' => $oldId]); } catch (Exception $e) {}
+            }
+        }
+        $users->deleteOne(['_id' => $oldId]);
+        echo "  [DELETED] {$oldEmail} and related data\n";
+    }
+}
+
+// ============================================
 // 1. USERS
 // ============================================
 $demoUsers = [
-    ['email' => 'admin@sot.com',      'password' => 'Admin@123',   'first_name' => 'System',    'last_name' => 'Administrator', 'phone' => '9876500001', 'role' => 'admin',        'balance' => 100000, 'theme' => 'dark'],
-    ['email' => 'manager@sot.com',    'password' => 'Manager@123', 'first_name' => 'Priya',     'last_name' => 'Sharma',       'phone' => '9876500002', 'role' => 'manager',       'balance' => 75000,  'theme' => 'dark'],
-    ['email' => 'staff@sot.com',      'password' => 'Staff@123',   'first_name' => 'Staff',     'last_name' => 'Member',       'phone' => '9876500003', 'role' => 'staff',         'balance' => 50000,  'theme' => 'light'],
-    ['email' => 'recept@sot.com',     'password' => 'Recept@123',  'first_name' => 'Reception', 'last_name' => 'Desk',         'phone' => '9876500004', 'role' => 'receptionist',  'balance' => 30000,  'theme' => 'light'],
-    ['email' => 'cust@sot.com',       'password' => 'Cust@123',    'first_name' => 'Demo',      'last_name' => 'Customer',     'phone' => '9876500005', 'role' => 'customer',      'balance' => 25000,  'theme' => 'light'],
-    ['email' => 'employee@sot.com',   'password' => 'User@123',    'first_name' => 'Rahul',     'last_name' => 'Verma',        'phone' => '9876500006', 'role' => 'employee',      'balance' => 40000,  'theme' => 'light'],
-    ['email' => 'auditor@sot.com',    'password' => 'Audit@123',   'first_name' => 'Anita',     'last_name' => 'Rao',          'phone' => '9876500007', 'role' => 'auditor',       'balance' => 0,      'theme' => 'dark'],
-    ['email' => 'customer2@sot.com',  'password' => 'Cust@123',    'first_name' => 'Sneha',     'last_name' => 'Nair',         'phone' => '9876500008', 'role' => 'customer',      'balance' => 15000,  'theme' => 'dark'],
+    ['email' => 'admin1@gmail.com',    'password' => 'admin@001',    'first_name' => 'System',    'last_name' => 'Administrator', 'phone' => '9876500001', 'role' => 'admin',        'balance' => 100000, 'theme' => 'dark'],
+    ['email' => 'staff1@gmail.com',    'password' => 'staff@001',    'first_name' => 'Staff',     'last_name' => 'Member',       'phone' => '9876500003', 'role' => 'staff',         'balance' => 50000,  'theme' => 'light'],
+    ['email' => 'recept1@gmail.com',   'password' => 'recept@001',   'first_name' => 'Reception', 'last_name' => 'Desk',         'phone' => '9876500004', 'role' => 'receptionist',  'balance' => 30000,  'theme' => 'light'],
+    ['email' => 'customer1@gmail.com', 'password' => 'customer@001', 'first_name' => 'Demo',      'last_name' => 'Customer',     'phone' => '9876500005', 'role' => 'customer',      'balance' => 25000,  'theme' => 'light'],
 ];
 
 $userIds = [];
@@ -142,7 +172,7 @@ if ($catCount == 0) {
 $txColl = $db->transactions;
 
 $txTemplates = [
-    'cust@sot.com' => [
+    'customer1@gmail.com' => [
         ['income', 'Salary', 50000, 'Monthly salary', '-20 days', 'bank_transfer', 'completed'],
         ['expense', 'Food', 5000, 'Groceries and dining', '-16 days', 'upi', 'completed'],
         ['expense', 'Travel', 2000, 'Fuel and cab', '-12 days', 'card', 'completed'],
@@ -152,25 +182,7 @@ $txTemplates = [
         ['expense', 'Medical', 1200, 'Pharmacy', '-1 days', 'upi', 'completed'],
         ['expense', 'Entertainment', 1500, 'Movie tickets', '-5 days', 'card', 'pending'],
     ],
-    'employee@sot.com' => [
-        ['income', 'Salary', 40000, 'Monthly salary', '-18 days', 'bank_transfer', 'completed'],
-        ['expense', 'Food', 3500, 'Lunch and snacks', '-15 days', 'upi', 'completed'],
-        ['expense', 'Travel', 1800, 'Metro card recharge', '-10 days', 'wallet', 'completed'],
-        ['expense', 'Subscriptions', 999, 'Netflix & Spotify', '-9 days', 'card', 'completed'],
-        ['expense', 'Education', 2500, 'Online course', '-6 days', 'upi', 'completed'],
-        ['income', 'Freelance', 8000, 'Design project', '-3 days', 'bank_transfer', 'completed'],
-        ['expense', 'Fuel', 2500, 'Petrol', '-2 days', 'card', 'pending'],
-    ],
-    'manager@sot.com' => [
-        ['income', 'Salary', 75000, 'Monthly salary', '-19 days', 'bank_transfer', 'completed'],
-        ['expense', 'Rent', 15000, 'Apartment rent', '-14 days', 'bank_transfer', 'completed'],
-        ['expense', 'Shopping', 8000, 'Home appliances', '-11 days', 'card', 'completed'],
-        ['expense', 'Food', 6000, 'Family dining', '-7 days', 'upi', 'completed'],
-        ['expense', 'EMI', 9500, 'Car EMI', '-5 days', 'bank_transfer', 'completed'],
-        ['income', 'Bonus', 15000, 'Quarterly bonus', '-1 days', 'bank_transfer', 'completed'],
-        ['expense', 'Medical', 3000, 'Health checkup', '-3 days', 'card', 'pending'],
-    ],
-    'staff@sot.com' => [
+    'staff1@gmail.com' => [
         ['income', 'Salary', 45000, 'Monthly salary', '-17 days', 'bank_transfer', 'completed'],
         ['expense', 'Food', 4200, 'Meals', '-13 days', 'upi', 'completed'],
         ['expense', 'Bills & Utilities', 2800, 'WiFi + electricity', '-9 days', 'bank_transfer', 'completed'],
@@ -178,21 +190,14 @@ $txTemplates = [
         ['expense', 'Loan', 5000, 'Personal loan EMi', '-4 days', 'bank_transfer', 'completed'],
         ['income', 'Freelance', 6000, 'Website project', '-2 days', 'upi', 'completed'],
     ],
-    'recept@sot.com' => [
+    'recept1@gmail.com' => [
         ['income', 'Salary', 30000, 'Monthly salary', '-16 days', 'bank_transfer', 'completed'],
         ['expense', 'Food', 3000, 'Meals', '-11 days', 'upi', 'completed'],
         ['expense', 'Travel', 1500, 'Auto fare', '-7 days', 'wallet', 'completed'],
         ['expense', 'Shopping', 2000, 'Cosmetics', '-3 days', 'card', 'completed'],
         ['expense', 'Education', 1000, 'Skill course', '-1 days', 'upi', 'pending'],
     ],
-    'customer2@sot.com' => [
-        ['income', 'Salary', 35000, 'Monthly salary', '-15 days', 'bank_transfer', 'completed'],
-        ['expense', 'Food', 4000, 'Groceries', '-10 days', 'upi', 'completed'],
-        ['expense', 'Rent', 10000, 'Room rent', '-5 days', 'bank_transfer', 'completed'],
-        ['expense', 'Shopping', 3500, 'Clothes', '-2 days', 'card', 'completed'],
-        ['income', 'Rental', 5000, 'Second room income', '-1 days', 'upi', 'completed'],
-    ],
-    'admin@sot.com' => [
+    'admin1@gmail.com' => [
         ['expense', 'Bills & Utilities', 8000, 'Server hosting', '-12 days', 'bank_transfer', 'completed'],
         ['expense', 'Subscriptions', 4000, 'SaaS tools', '-8 days', 'card', 'completed'],
         ['expense', 'Insurance', 12000, 'Business insurance', '-3 days', 'bank_transfer', 'completed'],
@@ -223,12 +228,9 @@ foreach ($txTemplates as $email => $txs) {
 // ============================================
 $budgetColl = $db->budgets;
 $budgetTemplates = [
-    'cust@sot.com'   => [['Food', 8000, 5000], ['Travel', 5000, 2000], ['Shopping', 6000, 4000], ['Entertainment', 3000, 1500]],
-    'employee@sot.com' => [['Food', 6000, 3500], ['Travel', 3000, 1800], ['Subscriptions', 1500, 999], ['Education', 4000, 2500]],
-    'manager@sot.com' => [['Rent', 18000, 15000], ['Food', 8000, 6000], ['EMI', 10000, 9500], ['Shopping', 10000, 8000]],
-    'staff@sot.com'  => [['Food', 6000, 4200], ['Bills & Utilities', 4000, 2800], ['Entertainment', 2000, 1200]],
-    'recept@sot.com' => [['Food', 4000, 3000], ['Travel', 2500, 1500], ['Shopping', 3000, 2000]],
-    'customer2@sot.com' => [['Food', 5000, 4000], ['Rent', 12000, 10000], ['Shopping', 4000, 3500]],
+    'customer1@gmail.com' => [['Food', 8000, 5000], ['Travel', 5000, 2000], ['Shopping', 6000, 4000], ['Entertainment', 3000, 1500]],
+    'staff1@gmail.com'    => [['Food', 6000, 4200], ['Bills & Utilities', 4000, 2800], ['Entertainment', 2000, 1200]],
+    'recept1@gmail.com'   => [['Food', 4000, 3000], ['Travel', 2500, 1500], ['Shopping', 3000, 2000]],
 ];
 
 foreach ($budgetTemplates as $email => $budgets) {
@@ -254,17 +256,9 @@ foreach ($budgetTemplates as $email => $budgets) {
 // ============================================
 $goalColl = $db->goals;
 $goalTemplates = [
-    'cust@sot.com' => [
+    'customer1@gmail.com' => [
         ['Emergency Fund', 100000, 45000, '2026-12-31', 'high', 'active', 'Build 6 months expense buffer'],
         ['Vacation', 50000, 15000, '2027-03-31', 'medium', 'active', 'Trip to Goa'],
-    ],
-    'employee@sot.com' => [
-        ['New Laptop', 80000, 25000, '2026-10-31', 'high', 'active', 'MacBook for work'],
-        ['Emergency Fund', 60000, 12000, '2027-06-30', 'medium', 'active', 'Rainy day savings'],
-    ],
-    'manager@sot.com' => [
-        ['Home Down Payment', 500000, 120000, '2027-12-31', 'high', 'active', 'Save for own house'],
-        ['Car Upgrade', 300000, 60000, '2028-06-30', 'low', 'active', 'New SUV'],
     ],
 ];
 
@@ -288,15 +282,15 @@ foreach ($goalTemplates as $email => $goals) {
 // ============================================
 $notifColl = $db->notifications;
 $notifTemplates = [
-    'cust@sot.com' => [
+    'customer1@gmail.com' => [
         ['Budget Alert', 'You have used 80% of your Food budget for this month.', 'budget'],
         ['Welcome', 'Welcome to Smart Transaction Control! Start tracking your expenses.', 'system'],
     ],
-    'employee@sot.com' => [
+    'staff1@gmail.com' => [
         ['Expense Approved', 'Your Travel expense of ₹1,800 has been approved by your manager.', 'expense'],
         ['Budget Alert', 'You have used 75% of your Food budget.', 'budget'],
     ],
-    'manager@sot.com' => [
+    'admin1@gmail.com' => [
         ['Pending Approvals', 'You have 3 expense requests waiting for approval.', 'approval'],
         ['Report Ready', 'Your departmental report for this month is ready.', 'report'],
     ],
@@ -321,9 +315,9 @@ foreach ($notifTemplates as $email => $notifs) {
 // ============================================
 $apptColl = $db->appointments;
 $apptSeeds = [
-    ['recept@sot.com', 'cust@sot.com',  'Account opening consultation', '2026-08-05 10:30:00', 'scheduled', 'Bring your PAN and Aadhaar'],
-    ['recept@sot.com', 'customer2@sot.com', 'Loan application follow-up', '2026-08-06 14:00:00', 'scheduled', 'Documents required'],
-    ['recept@sot.com', 'staff@sot.com',  'Salary account query', '2026-08-07 11:00:00', 'pending', null],
+    ['recept1@gmail.com', 'customer1@gmail.com', 'Account opening consultation', '2026-08-05 10:30:00', 'scheduled', 'Bring your PAN and Aadhaar'],
+    ['recept1@gmail.com', 'customer1@gmail.com', 'Loan application follow-up', '2026-08-06 14:00:00', 'scheduled', 'Documents required'],
+    ['recept1@gmail.com', 'staff1@gmail.com',    'Salary account query', '2026-08-07 11:00:00', 'pending', null],
 ];
 foreach ($apptSeeds as $a) {
     if (!isset($userIds[$a[0]]) || !isset($userIds[$a[1]])) continue;
@@ -346,8 +340,7 @@ echo "  [OK] Inserted " . $apptColl->countDocuments() . " total appointments\n";
 // ============================================
 $compColl = $db->complaints;
 $complaintSeeds = [
-    ['cust@sot.com',  'APP003', 'App mobile login not working', 'Warning',   'APP-2026-0001', 'open'],
-    ['customer2@sot.com', 'TRN002', 'Expected transaction missing from statement', 'Medium', 'TRN-2026-0002', 'in_progress'],
+    ['customer1@gmail.com', 'APP003', 'App mobile login not working', 'Warning',   'APP-2026-0001', 'open'],
 ];
 foreach ($complaintSeeds as $c) {
     if (!isset($userIds[$c[0]])) continue;
@@ -371,9 +364,8 @@ echo "  [OK] Inserted " . $compColl->countDocuments() . " total complaints\n";
 // ============================================
 $benColl = $db->beneficiaries;
 $benSeeds = [
-    ['cust@sot.com', 'Ramesh Kumar', 'Paytm UPI',      'ramesh@paytm'],
-    ['cust@sot.com', 'SBI - Rent',    'Bank Account',  'SBIN0001234'],
-    ['employee@sot.com', 'Landlord',  'Bank Account',  'HDFC0005678'],
+    ['customer1@gmail.com', 'Ramesh Kumar', 'Paytm UPI',      'ramesh@paytm'],
+    ['customer1@gmail.com', 'SBI - Rent',    'Bank Account',  'SBIN0001234'],
 ];
 foreach ($benSeeds as $b) {
     if (!isset($userIds[$b[0]])) continue;
@@ -391,9 +383,8 @@ echo "  [OK] Inserted " . $benColl->countDocuments() . " total beneficiaries\n";
 // ============================================
 $noteColl = $db->notes;
 $noteSeeds = [
-    ['cust@sot.com', 'Monthly budget review', 'Review all subscriptions and trim unused ones.', 'personal'],
-    ['cust@sot.com', 'Tax filing reminders', 'Submit Form 16 to CA before August 15.', 'work'],
-    ['employee@sot.com', 'Work trip reimbursements', 'Collect all cab bills for the Mumbai trip.', 'work'],
+    ['customer1@gmail.com', 'Monthly budget review', 'Review all subscriptions and trim unused ones.', 'personal'],
+    ['customer1@gmail.com', 'Tax filing reminders', 'Submit Form 16 to CA before August 15.', 'work'],
 ];
 foreach ($noteSeeds as $n) {
     if (!isset($userIds[$n[0]])) continue;
@@ -415,8 +406,8 @@ $settings = [
     ['setting_key' => 'default_currency', 'setting_value' => 'INR', 'description' => 'Default currency for new users'],
     ['setting_key' => 'max_upload_size', 'setting_value' => 5242880, 'description' => 'Maximum file upload size in bytes'],
     ['setting_key' => 'session_timeout', 'setting_value' => 3600, 'description' => 'Session timeout in seconds'],
-    ['setting_key' => 'company_name', 'setting_value' => 'SOT Bank Ltd', 'description' => 'Company / bank display name'],
-    ['setting_key' => 'support_email', 'setting_value' => 'support@sot.com', 'description' => 'Support contact email'],
+    ['setting_key' => 'company_name', 'setting_value' => 'SecureSOT Ltd', 'description' => 'Company / bank display name'],
+    ['setting_key' => 'support_email', 'setting_value' => 'support@securesot.com', 'description' => 'Support contact email'],
     ['setting_key' => 'support_phone', 'setting_value' => '1800-419-0000', 'description' => 'Support toll-free number'],
 ];
 if ($settingsColl->countDocuments() == 0) {
