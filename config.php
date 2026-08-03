@@ -3,8 +3,8 @@
 // Composer autoloader (mongodb/mongodb library)
 require_once __DIR__ . '/vendor/autoload.php';
 // MongoDB Atlas Connection Configuration
-define('MONGODB_URI', getenv('MONGODB_URI') ?: 'mongodb+srv://vinothyokesh008009_db_user:T6AEVJBfBWlhYx8q@expense-tracker.hqmyhrg.mongodb.net/');
-define('DB_NAME', getenv('DB_NAME') ?: 'smart_transaction_control');
+define('MONGODB_URI', 'mongodb+srv://vinothyokesh008009_db_user:T6AEVJBfBWlhYx8q@expense-tracker.hqmyhrg.mongodb.net/');
+define('DB_NAME', 'smart_transaction_control');
 define('ATLAS_CLUSTER', 'expense-tracker');
 // Application Configuration
 define('APP_NAME', 'Smart Transaction Control');
