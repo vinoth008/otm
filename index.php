@@ -26,11 +26,11 @@ if ($isLoggedIn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Transaction Control - Login</title>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>frontend/css/main.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>frontend/css/components.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>frontend/css/animations.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>frontend/css/responsive.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>frontend/css/mini_theme.css">
+    <link rel="stylesheet" href="frontend/css/main.css">
+    <link rel="stylesheet" href="frontend/css/components.css">
+    <link rel="stylesheet" href="frontend/css/animations.css">
+    <link rel="stylesheet" href="frontend/css/responsive.css">
+    <link rel="stylesheet" href="frontend/css/mini_theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body class="auth-page">
@@ -266,8 +266,8 @@ if ($isLoggedIn) {
             </div>
         </div>
     </div>
-    <script src="<?php echo BASE_URL; ?>frontend/js/utils.js"></script>
-    <script src="<?php echo BASE_URL; ?>frontend/js/auth.js"></script>
+    <script src="frontend/js/utils.js"></script>
+    <script src="frontend/js/auth.js"></script>
     <script>
         (function () {
             var roleCards = document.querySelectorAll('.role-card');

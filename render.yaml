@@ -1,6 +1,10 @@
 services:
   - type: web
     name: smart-transaction-control
-    env: static
-    buildCommand: echo "Build step complete"
-    staticPublishPath: .
+    env: docker
+    plan: free
+    envVars:
+      - key: MONGODB_URI
+        value: mongodb+srv://vinothyokesh008009_db_user:T6AEVJBfBWlhYx8q@expense-tracker.hqmyhrg.mongodb.net/
+      - key: DB_NAME
+        value: smart_transaction_control
