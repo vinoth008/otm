@@ -2,12 +2,6 @@
 /**
  * MongoDB Atlas Database Initialization and Seed Data
  * Run this script to set up the database with initial data
- *
- * Demo Credentials:
- *   Admin:        admin1@gmail.com  / admin@001
- *   Staff:        staff1@gmail.com  / staff@001
- *   Receptionist: recept1@gmail.com / recept@001
- *   Customer:     customer1@gmail.com / customer@001
  */
 // Switch to database
 use smart_transaction_control;
@@ -20,7 +14,8 @@ const oldEmails = [
     'admin@smarttransaction.com', 'manager@smarttransaction.com',
     'employee@smarttransaction.com', 'auditor@smarttransaction.com',
     'test@smarttransaction.com', 'admin@expensetracker.com',
-    'user@expensetracker.com', 'user1@example.com', 'user2@example.com'
+    'user@expensetracker.com', 'user1@example.com', 'user2@example.com',
+    'admin1@gmail.com', 'staff1@gmail.com', 'recept1@gmail.com', 'customer1@gmail.com'
 ];
 print('Cleaning up old demo users...');
 oldEmails.forEach(email => {
@@ -73,274 +68,7 @@ if (db.categories.countDocuments({ is_system: true }) === 0) {
 }
 
 // ============================================
-// 2. Create Demo Users (4 roles)
-// ============================================
-// Note: In actual PHP seeding, passwords are hashed with bcrypt.
-// These hashes correspond to the plaintext passwords shown below (for reference only).
-const demoUsers = [
-    {
-        email: 'admin1@gmail.com',
-        password_hash: '$2y$10$examplehashforadmin000000000000000000000000000000000000000000000', // admin@001
-        first_name: 'System',
-        last_name: 'Administrator',
-        phone: '9876500001',
-        role: 'admin',
-        status: 'active',
-        is_verified: true,
-        login_attempts: 0,
-        locked_until: null,
-        balance: 100000,
-        currency: 'INR',
-        theme_preference: 'dark',
-        created_at: new Date(),
-        updated_at: new Date(),
-        last_login: null
-    },
-    {
-        email: 'staff1@gmail.com',
-        password_hash: '$2y$10$examplehashforstaff0000000000000000000000000000000000000000000000', // staff@001
-        first_name: 'Staff',
-        last_name: 'Member',
-        phone: '9876500003',
-        role: 'staff',
-        status: 'active',
-        is_verified: true,
-        login_attempts: 0,
-        locked_until: null,
-        balance: 50000,
-        currency: 'INR',
-        theme_preference: 'light',
-        created_at: new Date(),
-        updated_at: new Date(),
-        last_login: null
-    },
-    {
-        email: 'recept1@gmail.com',
-        password_hash: '$2y$10$examplehashforrecept0000000000000000000000000000000000000000000', // recept@001
-        first_name: 'Reception',
-        last_name: 'Desk',
-        phone: '9876500004',
-        role: 'receptionist',
-        status: 'active',
-        is_verified: true,
-        login_attempts: 0,
-        locked_until: null,
-        balance: 30000,
-        currency: 'INR',
-        theme_preference: 'light',
-        created_at: new Date(),
-        updated_at: new Date(),
-        last_login: null
-    },
-    {
-        email: 'customer1@gmail.com',
-        password_hash: '$2y$10$examplehashforcustomer0000000000000000000000000000000000000000', // customer@001
-        first_name: 'Demo',
-        last_name: 'Customer',
-        phone: '9876500005',
-        role: 'customer',
-        status: 'active',
-        is_verified: true,
-        login_attempts: 0,
-        locked_until: null,
-        balance: 25000,
-        currency: 'INR',
-        theme_preference: 'light',
-        created_at: new Date(),
-        updated_at: new Date(),
-        last_login: null
-    }
-];
-
-const userIds = {};
-demoUsers.forEach(u => {
-    const existing = db.users.findOne({ email: u.email });
-    if (existing) {
-        print('[SKIP] ' + u.email + ' already exists');
-        userIds[u.email] = existing._id;
-        return;
-    }
-    const result = db.users.insertOne(u);
-    userIds[u.email] = result.insertedId;
-    print('[OK] Created ' + u.email + ' (role: ' + u.role + ')');
-});
-
-// ============================================
-// 3. Create Wallets for Demo Users
-// ============================================
-demoUsers.forEach(u => {
-    const uid = userIds[u.email];
-    if (!uid) return;
-    if (db.wallets.countDocuments({ user_id: uid }) > 0) return;
-    db.wallets.insertMany([
-        {
-            user_id: uid,
-            name: 'Main Account',
-            balance: u.balance,
-            currency: 'INR',
-            created_at: new Date(),
-            updated_at: new Date(),
-            deleted_at: null
-        },
-        {
-            user_id: uid,
-            name: 'Savings',
-            balance: parseInt(u.balance * 0.3),
-            currency: 'INR',
-            created_at: new Date(),
-            updated_at: new Date(),
-            deleted_at: null
-        }
-    ]);
-    print('[OK] Created wallets for ' + u.email);
-});
-
-// ============================================
-// 4. Create Sample Transactions
-// ============================================
-const sampleTransactions = [
-    {
-        email: 'customer1@gmail.com',
-        txns: [
-            ['income', 'Salary', 50000, 'Monthly salary', -20, 'bank_transfer'],
-            ['expense', 'Food', 5000, 'Groceries and dining', -16, 'upi'],
-            ['expense', 'Travel', 2000, 'Fuel and cab', -12, 'card'],
-            ['expense', 'Bills & Utilities', 3000, 'Electricity and internet', -8, 'bank_transfer'],
-            ['expense', 'Shopping', 4000, 'Clothes and accessories', -4, 'card'],
-            ['income', 'Bonus', 10000, 'Performance bonus', -2, 'bank_transfer']
-        ]
-    },
-    {
-        email: 'staff1@gmail.com',
-        txns: [
-            ['income', 'Salary', 45000, 'Monthly salary', -17, 'bank_transfer'],
-            ['expense', 'Food', 4200, 'Meals', -13, 'upi'],
-            ['expense', 'Bills & Utilities', 2800, 'WiFi + electricity', -9, 'bank_transfer'],
-            ['expense', 'Entertainment', 1200, 'Concert', -6, 'card'],
-            ['expense', 'Loan', 5000, 'Personal loan EMI', -4, 'bank_transfer']
-        ]
-    },
-    {
-        email: 'recept1@gmail.com',
-        txns: [
-            ['income', 'Salary', 30000, 'Monthly salary', -16, 'bank_transfer'],
-            ['expense', 'Food', 3000, 'Meals', -11, 'upi'],
-            ['expense', 'Travel', 1500, 'Auto fare', -7, 'wallet'],
-            ['expense', 'Shopping', 2000, 'Cosmetics', -3, 'card']
-        ]
-    },
-    {
-        email: 'admin1@gmail.com',
-        txns: [
-            ['expense', 'Bills & Utilities', 8000, 'Server hosting', -12, 'bank_transfer'],
-            ['expense', 'Subscriptions', 4000, 'SaaS tools', -8, 'card'],
-            ['expense', 'Insurance', 12000, 'Business insurance', -3, 'bank_transfer']
-        ]
-    }
-];
-
-sampleTransactions.forEach(group => {
-    const uid = userIds[group.email];
-    if (!uid) return;
-    if (db.transactions.countDocuments({ user_id: uid }) > 0) {
-        print('[SKIP] ' + group.email + ' already has transactions');
-        return;
-    }
-    const now = new Date();
-    group.txns.forEach(t => {
-        const d = new Date(now);
-        d.setDate(d.getDate() + t[4]);
-        db.transactions.insertOne({
-            user_id: uid,
-            type: t[0],
-            category: t[1],
-            amount: t[2],
-            currency: 'INR',
-            description: t[3],
-            date: d,
-            payment_method: t[5],
-            status: 'completed',
-            is_recurring: false,
-            reference: 'TXN' + Math.random().toString(36).substring(2, 10).toUpperCase(),
-            created_at: new Date(),
-            updated_at: new Date(),
-            deleted_at: null
-        });
-    });
-    print('[OK] Created ' + group.txns.length + ' transactions for ' + group.email);
-});
-
-// ============================================
-// 5. Create Sample Budgets
-// ============================================
-const sampleBudgets = {
-    'customer1@gmail.com': [
-        ['Food', 8000, 5000],
-        ['Travel', 5000, 2000],
-        ['Shopping', 6000, 4000]
-    ]
-};
-
-Object.entries(sampleBudgets).forEach(([email, budgets]) => {
-    const uid = userIds[email];
-    if (!uid) return;
-    if (db.budgets.countDocuments({ user_id: uid }) > 0) return;
-    const start = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    const end = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
-    budgets.forEach(b => {
-        db.budgets.insertOne({
-            user_id: uid,
-            category: b[0],
-            monthly_limit: b[1],
-            current_spent: b[2],
-            period_start: start,
-            period_end: end,
-            warning_threshold: 80,
-            is_active: true,
-            created_at: new Date(),
-            updated_at: new Date()
-        });
-    });
-    print('[OK] Created budgets for ' + email);
-});
-
-// ============================================
-// 6. Create Sample Goals
-// ============================================
-const customerId = userIds['customer1@gmail.com'];
-if (customerId && db.goals.countDocuments({ user_id: customerId }) === 0) {
-    const sampleGoals = [
-        {
-            user_id: customerId,
-            name: 'Emergency Fund',
-            target_amount: 100000,
-            current_amount: 45000,
-            deadline: new Date('2026-12-31'),
-            priority: 'high',
-            status: 'active',
-            notes: 'Build 6 months expense buffer',
-            created_at: new Date(),
-            updated_at: new Date()
-        },
-        {
-            user_id: customerId,
-            name: 'Vacation',
-            target_amount: 50000,
-            current_amount: 15000,
-            deadline: new Date('2027-03-31'),
-            priority: 'medium',
-            status: 'active',
-            notes: 'Trip to Goa',
-            created_at: new Date(),
-            updated_at: new Date()
-        }
-    ];
-    db.goals.insertMany(sampleGoals);
-    print('[OK] Created goals for customer1@gmail.com');
-}
-
-// ============================================
-// 7. Create System Settings
+// 2. Create System Settings
 // ============================================
 const systemSettings = [
     {
@@ -383,13 +111,8 @@ const systemSettings = [
 db.system_settings.insertMany(systemSettings);
 
 // ============================================
-// 8. Create Indexes (already in schema, but documenting here)
+// 3. Create Indexes (already in schema, but documenting here)
 // ============================================
 // Run these in MongoDB shell or through MongoDB Compass
 print('Database initialization complete!');
 print('Collections created: users, transactions, budgets, goals, wishlist, notes, categories, analytics_cache, notifications, achievements, activity_logs, audit_logs, system_settings, feedback, sessions');
-print('Demo Credentials:');
-print('  Admin:        admin1@gmail.com   / admin@001');
-print('  Staff:        staff1@gmail.com   / staff@001');
-print('  Receptionist: recept1@gmail.com  / recept@001');
-print('  Customer:     customer1@gmail.com / customer@001');

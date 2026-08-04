@@ -134,13 +134,6 @@ mvn clean package
 java -jar target/expense-tracker-1.0-SNAPSHOT.jar
 ```
 
-## 🔐 Default Accounts (from seed data)
-
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin1@gmail.com | admin@001 |
-| Customer | customer1@gmail.com | customer@001 |
-
 ## 📊 Features
 
 ### User Features

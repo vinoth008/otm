@@ -113,7 +113,8 @@ $oldEmails = [
     'admin@smarttransaction.com', 'manager@smarttransaction.com',
     'employee@smarttransaction.com', 'auditor@smarttransaction.com',
     'test@smarttransaction.com', 'admin@expensetracker.com',
-    'user@expensetracker.com', 'user1@example.com', 'user2@example.com'
+    'user@expensetracker.com', 'user1@example.com', 'user2@example.com',
+    'admin1@gmail.com', 'staff1@gmail.com', 'recept1@gmail.com', 'customer1@gmail.com'
 ];
 foreach ($oldEmails as $oldEmail) {
     $oldUser = $db->users->findOne(['email' => $oldEmail]);
@@ -130,46 +131,6 @@ foreach ($oldEmails as $oldEmail) {
     }
 }
 
-// 4b. Seed demo users (4 roles)
-echo "Seeding users...\n";
-$demoUsers = [
-    ['email' => 'admin1@gmail.com',    'password' => 'admin@001',    'first_name' => 'System',    'last_name' => 'Administrator', 'phone' => '9876500001', 'role' => 'admin',        'balance' => 100000, 'theme' => 'dark'],
-    ['email' => 'staff1@gmail.com',    'password' => 'staff@001',    'first_name' => 'Staff',     'last_name' => 'Member',       'phone' => '9876500003', 'role' => 'staff',         'balance' => 50000,  'theme' => 'light'],
-    ['email' => 'recept1@gmail.com',   'password' => 'recept@001',   'first_name' => 'Reception', 'last_name' => 'Desk',         'phone' => '9876500004', 'role' => 'receptionist',  'balance' => 30000,  'theme' => 'light'],
-    ['email' => 'customer1@gmail.com', 'password' => 'customer@001', 'first_name' => 'Demo',      'last_name' => 'Customer',     'phone' => '9876500005', 'role' => 'customer',      'balance' => 25000,  'theme' => 'light'],
-];
-
-$userId = null;
-foreach ($demoUsers as $du) {
-    $existing = $db->users->findOne(['email' => $du['email']]);
-    if ($existing) {
-        echo "  [SKIP] {$du['email']} already exists\n";
-        if ($du['role'] === 'customer') $userId = $existing['_id'];
-        continue;
-    }
-    $result = $db->users->insertOne([
-        'email' => $du['email'],
-        'password_hash' => hashPassword($du['password']),
-        'first_name' => $du['first_name'],
-        'last_name' => $du['last_name'],
-        'phone' => $du['phone'],
-        'role' => $du['role'],
-        'status' => 'active',
-        'is_verified' => true,
-        'login_attempts' => 0,
-        'locked_until' => null,
-        'balance' => $du['balance'],
-        'currency' => 'INR',
-        'theme_preference' => $du['theme'],
-        'created_at' => phpDateToMongo(),
-        'updated_at' => phpDateToMongo(),
-        'last_login' => null,
-        'deleted_at' => null
-    ]);
-    if ($du['role'] === 'customer') $userId = $result->getInsertedId();
-    echo "  [OK] Created {$du['email']} / {$du['password']} (role: {$du['role']})\n";
-}
-echo "\n";
 
 // 4c. Roles (MINI_PROJECT RBAC)
 echo "Seeding roles...\n";
@@ -225,129 +186,7 @@ if ($branchCount == 0) {
 }
 echo "\n";
 
-// 4e. Wallets (MINI_PROJECT digital wallet)
-echo "Seeding wallets...\n";
-$walletUsers = [
-    ['email' => 'admin1@gmail.com',    'balance' => 100000],
-    ['email' => 'staff1@gmail.com',    'balance' => 50000],
-    ['email' => 'recept1@gmail.com',   'balance' => 30000],
-    ['email' => 'customer1@gmail.com', 'balance' => 25000],
-];
-$walletCount = $db->wallets->countDocuments([]);
-if ($walletCount == 0) {
-    foreach ($walletUsers as $wu) {
-        $u = $db->users->findOne(['email' => $wu['email']]);
-        if (!$u) continue;
-        $db->wallets->insertOne([
-            'user_id' => $u['_id'],
-            'balance' => $wu['balance'],
-            'currency' => 'INR',
-            'created_at' => phpDateToMongo(),
-            'updated_at' => phpDateToMongo()
-        ]);
-    }
-    echo "  [OK] Inserted " . count($walletUsers) . " wallets\n";
-} else {
-    echo "  [SKIP] Wallets already present ($walletCount)\n";
-}
-echo "\n";
-
-// 5. Sample transactions
-echo "Seeding transactions...\n";
-$txCount = $db->transactions->countDocuments(['user_id' => $userId]);
-if ($txCount == 0) {
-    $now = new DateTime();
-    $now->modify('-5 days'); // ensure some fall in current month
-    $sampleTransactions = [
-        ['type' => 'income', 'category' => 'Salary', 'amount' => 50000, 'description' => 'Monthly salary', 'date' => (clone $now)->modify('-20 days'), 'payment_method' => 'bank_transfer'],
-        ['type' => 'expense', 'category' => 'Food', 'amount' => 5000, 'description' => 'Groceries and dining', 'date' => (clone $now)->modify('-16 days'), 'payment_method' => 'upi'],
-        ['type' => 'expense', 'category' => 'Travel', 'amount' => 2000, 'description' => 'Fuel and cab', 'date' => (clone $now)->modify('-12 days'), 'payment_method' => 'card'],
-        ['type' => 'expense', 'category' => 'Bills & Utilities', 'amount' => 3000, 'description' => 'Electricity and internet', 'date' => (clone $now)->modify('-8 days'), 'payment_method' => 'bank_transfer'],
-        ['type' => 'expense', 'category' => 'Shopping', 'amount' => 4000, 'description' => 'Clothes and accessories', 'date' => (clone $now)->modify('-4 days'), 'payment_method' => 'card'],
-        ['type' => 'income', 'category' => 'Bonus', 'amount' => 10000, 'description' => 'Performance bonus', 'date' => clone $now, 'payment_method' => 'bank_transfer'],
-    ];
-    foreach ($sampleTransactions as $t) {
-        $db->transactions->insertOne([
-            'user_id' => $userId,
-            'type' => $t['type'],
-            'category' => $t['category'],
-            'amount' => $t['amount'],
-            'currency' => 'INR',
-            'description' => $t['description'],
-            'date' => phpDateToMongo($t['date']),
-            'payment_method' => $t['payment_method'],
-            'is_recurring' => false,
-            'created_at' => phpDateToMongo(),
-            'updated_at' => phpDateToMongo(),
-            'deleted_at' => null
-        ]);
-    }
-    echo "  [OK] Inserted " . count($sampleTransactions) . " transactions\n";
-} else {
-    echo "  [SKIP] Transactions already present ($txCount)\n";
-}
-echo "\n";
-
-// 6. Sample budgets
-echo "Seeding budgets...\n";
-$budgetCount = $db->budgets->countDocuments(['user_id' => $userId]);
-if ($budgetCount == 0) {
-    $monthStart = new DateTime('first day of this month');
-    $monthEnd = new DateTime('last day of this month');
-    $sampleBudgets = [
-        ['category' => 'Food', 'monthly_limit' => 8000, 'current_spent' => 5000, 'warning_threshold' => 80],
-        ['category' => 'Travel', 'monthly_limit' => 5000, 'current_spent' => 2000, 'warning_threshold' => 80],
-        ['category' => 'Shopping', 'monthly_limit' => 6000, 'current_spent' => 4000, 'warning_threshold' => 80],
-    ];
-    foreach ($sampleBudgets as $b) {
-        $db->budgets->insertOne([
-            'user_id' => $userId,
-            'category' => $b['category'],
-            'monthly_limit' => $b['monthly_limit'],
-            'current_spent' => $b['current_spent'],
-            'period_start' => phpDateToMongo($monthStart),
-            'period_end' => phpDateToMongo($monthEnd),
-            'warning_threshold' => $b['warning_threshold'],
-            'is_active' => true,
-            'created_at' => phpDateToMongo(),
-            'updated_at' => phpDateToMongo()
-        ]);
-    }
-    echo "  [OK] Inserted " . count($sampleBudgets) . " budgets\n";
-} else {
-    echo "  [SKIP] Budgets already present ($budgetCount)\n";
-}
-echo "\n";
-
-// 7. Sample goals
-echo "Seeding goals...\n";
-$goalCount = $db->goals->countDocuments(['user_id' => $userId]);
-if ($goalCount == 0) {
-    $sampleGoals = [
-        ['name' => 'Emergency Fund', 'target_amount' => 100000, 'current_amount' => 45000, 'icon' => 'fa-heart', 'description' => 'Build 6 months expense buffer'],
-        ['name' => 'Vacation', 'target_amount' => 50000, 'current_amount' => 15000, 'icon' => 'fa-plane', 'description' => 'Trip to Goa'],
-    ];
-    foreach ($sampleGoals as $g) {
-        $db->goals->insertOne([
-            'user_id' => $userId,
-            'name' => $g['name'],
-            'target_amount' => $g['target_amount'],
-            'current_amount' => $g['current_amount'],
-            'target_date' => phpDateToMongo((new DateTime())->modify('+6 months')),
-            'icon' => $g['icon'],
-            'description' => $g['description'],
-            'status' => 'active',
-            'created_at' => phpDateToMongo(),
-            'updated_at' => phpDateToMongo()
-        ]);
-    }
-    echo "  [OK] Inserted " . count($sampleGoals) . " goals\n";
-} else {
-    echo "  [SKIP] Goals already present ($goalCount)\n";
-}
-echo "\n";
-
-// 8. System settings
+// 5. System settings
 echo "Seeding system settings...\n";
 $settings = [
     ['setting_key' => 'app_name', 'setting_value' => 'Smart Transaction Control'],
@@ -372,9 +211,4 @@ if ($settingsCount == 0) {
 
 echo "\n==========================================\n";
 echo "Setup complete!\n";
-echo "Demo Accounts (login page auto-fills these):\n";
-echo "Admin:        admin1@gmail.com    / admin@001\n";
-echo "Staff:        staff1@gmail.com    / staff@001\n";
-echo "Receptionist: recept1@gmail.com   / recept@001\n";
-echo "Customer:     customer1@gmail.com / customer@001\n";
 ?>

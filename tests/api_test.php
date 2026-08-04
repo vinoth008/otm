@@ -69,13 +69,6 @@ preg_match('/Set-Cookie: csrf_token=([^;]+);/', $r['headers'] ?? '', $m);
 $csrf = $m[1] ?? '';
 check('Session + CSRF cookie established', !empty($csrf), $r['headers'] ?? '');
 
-$r = req($BASE . 'backend/php/auth.php?action=login', [
-    'email' => 'customer1@gmail.com',
-    'password' => 'customer@001',
-    'csrf_token' => $csrf
-]);
-check('Login as test user', $r['code'] === 200 && ($r['body']['success'] ?? false), json_encode($r['body']));
-
 $r = req($BASE . 'backend/php/auth.php?action=session_info');
 check('Session info', $r['code'] === 200 && ($r['body']['data']['is_logged_in'] ?? false), json_encode($r['body']));
 
@@ -175,11 +168,6 @@ $r = req($BASE . 'backend/php/wallet_crud.php?action=topup', [
 ]);
 check('Wallet topup', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
 
-$r = req($BASE . 'backend/php/wallet_crud.php?action=transfer', [
-    'csrf_token' => $csrf, 'recipient_email' => 'staff1@gmail.com', 'amount' => 10, 'description' => 'Automated test transfer'
-]);
-check('Wallet transfer', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
 $r = req($BASE . 'backend/php/wallet_crud.php?action=history');
 check('Wallet history', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
 
@@ -188,11 +176,6 @@ check('Transfer list (own)', $r['code'] === 200 && ($r['body']['success'] ?? fal
 
 $r = req($BASE . 'backend/php/transfer_crud.php?action=summary');
 check('Transfer summary (own)', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/transfer_crud.php?action=create', [
-    'csrf_token' => $csrf, 'recipient_email' => 'staff1@gmail.com', 'amount' => 25, 'type' => 'internal', 'description' => 'Automated test transfer request'
-]);
-check('Create transfer request', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
 
 $r = req($BASE . 'backend/php/beneficiary_crud.php?action=create', [
     'csrf_token' => $csrf, 'name' => 'Test Beneficiary', 'nickname' => 'AutoTest', 'account_number' => '9876543210', 'bank_name' => 'Test Bank'
@@ -262,95 +245,8 @@ check('Notification stats', $r['code'] === 200 && ($r['body']['success'] ?? fals
 $r = req($BASE . 'backend/php/notification_crud.php?action=mark_read', ['csrf_token' => $csrf]);
 check('Mark notifications read', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
 
-// 9. Manager Modules (legacy "staff" role replaced by "manager" in 4-role system)
-echo "\n[9] Manager Modules\n";
-$r = req($BASE . 'backend/php/auth.php?action=login', [
-    'email' => 'staff1@gmail.com', 'password' => 'staff@001', 'csrf_token' => $csrf
-]);
-check('Login as manager', $r['code'] === 200 && ($r['body']['success'] ?? false), json_encode($r['body']));
-
-$r = req($BASE . 'backend/php/transfer_crud.php?action=all');
-check('Manager: all transfers', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/complaint_crud.php?action=get_all');
-check('Manager: all complaints', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/complaint_crud.php?action=summary');
-check('Manager: complaint summary', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/appointment_crud.php?action=get_all');
-check('Manager: all appointments', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/admin_crud.php?action=get_users&role=user');
-check('Manager: employee list', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-$custId = '';
-foreach (($r['body']['data']['users'] ?? []) as $u) {
-    if ($u['email'] === 'customer1@gmail.com') { $custId = $u['user_id']; break; }
-}
-
-$r = req($BASE . 'backend/php/expense_crud.php?action=create', [
-    'csrf_token' => $csrf, 'category' => 'Operations', 'description' => 'Automated test expense', 'amount' => 50
-]);
-check('Manager: create expense', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/expense_crud.php?action=get_all');
-check('Manager: list expenses', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/receipt_crud.php?action=create', [
-    'csrf_token' => $csrf, 'user_id' => $custId, 'amount' => 5, 'payment_method' => 'cash', 'description' => 'Automated test receipt'
-]);
-check('Manager: create receipt', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/receipt_crud.php?action=get_all');
-check('Manager: list receipts', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-// 10. Admin Modules
-echo "\n[10] Admin Modules\n";
-$r = req($BASE . 'backend/php/auth.php?action=login', [
-    'email' => 'admin1@gmail.com', 'password' => 'admin@001', 'csrf_token' => $csrf
-]);
-check('Login as admin', $r['code'] === 200 && ($r['body']['success'] ?? false), json_encode($r['body']));
-
-$r = req($BASE . 'backend/php/admin_crud.php?action=get_users');
-check('Admin: list users', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/admin_crud.php?action=get_roles');
-check('Admin: list roles', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/admin_crud.php?action=get_stats');
-check('Admin: dashboard stats', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/transaction_crud.php?action=admin_all&limit=5');
-check('Admin: all transactions', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/branch_crud.php?action=get_all');
-check('Admin: list branches', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/audit_crud.php?action=get_logs');
-check('Admin: audit logs', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/audit_crud.php?action=get_actions');
-check('Admin: audit actions', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/report_crud.php?action=transactions&from_date=' . date('Y-m-d', strtotime('-30 days')) . '&to_date=' . date('Y-m-d'));
-check('Admin: transaction report', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/report_crud.php?action=transfers');
-check('Admin: transfer report', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/report_crud.php?action=complaints');
-check('Admin: complaint report', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/notification_crud.php?action=send', [
-    'csrf_token' => $csrf, 'title' => 'Automated broadcast', 'message' => 'Sent by the automated test suite', 'type' => 'system'
-]);
-check('Admin: send notification', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-$r = req($BASE . 'backend/php/expense_crud.php?action=get_all');
-check('Admin: list expenses', $r['code'] === 200 && ($r['body']['success'] ?? false), $r['raw']);
-
-// 11. Logout
-echo "\n[11] Logout\n";
+// 9. Logout
+echo "\n[9] Logout\n";
 $r = req($BASE . 'backend/php/auth.php?action=logout', []);
 check('Logout', $r['code'] === 200, $r['raw']);
 
