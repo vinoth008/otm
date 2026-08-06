@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
           sessionStorage.setItem('sot_otp_email', email);
           sessionStorage.setItem('sot_otp_user_id', user.user_id);
           sessionStorage.setItem('sot_otp_purpose', 'verify_email');
+          if (user.dev_otp) sessionStorage.setItem('sot_dev_otp', user.dev_otp);
           showToast('Account created! Enter the OTP sent to your email.', 'success');
           setTimeout(() => window.location.href = 'otp-verify.html', 1200);
           return;
@@ -115,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionStorage.setItem('sot_otp_email', email);
         sessionStorage.setItem('sot_otp_user_id', res.data.user_id);
         sessionStorage.setItem('sot_otp_purpose', 'forgot_password');
-        sessionStorage.setItem('sot_reset_token', 'verified');
+        if (res.data.dev_otp) sessionStorage.setItem('sot_dev_otp', res.data.dev_otp);
         showToast('OTP sent! Check your email.', 'success');
         setTimeout(() => window.location.href = 'otp-verify.html', 1200);
       } catch (err) {
@@ -190,7 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!email) { showToast('No email stored. Please request again.', 'error'); return; }
         try {
           const purpose = sessionStorage.getItem('sot_otp_purpose') || 'verify_email';
-          await apiPost('?module=auth&action=send_otp', { email, purpose });
+          const res = await apiPost('?module=auth&action=send_otp', { email, purpose });
+          if (res.data && res.data.dev_otp) sessionStorage.setItem('sot_dev_otp', res.data.dev_otp);
           showToast('New OTP sent to your email!', 'success');
         } catch (err) {
           showToast(err.message || 'Resend failed', 'error');

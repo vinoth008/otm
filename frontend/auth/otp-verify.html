@@ -18,6 +18,11 @@
       <h2>OTP Verification</h2>
       <p>Enter the 6-digit code sent to your email</p>
     </div>
+    <div id="dev-otp-box" class="hidden" style="background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:14px 18px;color:#92400e;font-size:0.9rem;text-align:center;margin-bottom:20px;animation:slideDown .5s ease both;">
+      <i class="fa-solid fa-flask"></i>
+      <strong>Development Mode</strong> — your OTP is: <span id="dev-otp-code" style="font-weight:800;letter-spacing:3px;font-size:1.1rem;"></span>
+      <p style="margin:6px 0 0;font-size:0.75rem;">No email? Use this code to verify locally.</p>
+    </div>
     <form id="otp-form">
       <div class="otp-grid">
         <input type="text" class="otp-input" maxlength="1" inputmode="numeric" />
@@ -33,6 +38,17 @@
     <div class="auth-footer">Didn't receive? <a href="#" id="resend-otp">Resend OTP</a></div>
   </div>
 </div>
+<script>
+(function(){
+  var devOtp = sessionStorage.getItem('sot_dev_otp');
+  if (devOtp) {
+    var box = document.getElementById('dev-otp-box');
+    var code = document.getElementById('dev-otp-code');
+    if (box && code) { code.textContent = devOtp; box.classList.remove('hidden'); }
+    document.querySelectorAll('.otp-input').forEach(function(inp, i){ if (devOtp[i]) inp.value = devOtp[i]; });
+  }
+})();
+</script>
 <script src="../assets/js/api.js"></script>
 <script src="../assets/js/app.js"></script>
 <script src="../assets/js/auth.js"></script>

@@ -147,7 +147,8 @@ function register() {
         successResponse([
             'user_id' => $userId,
             'email' => $email,
-            'needs_otp' => true
+            'needs_otp' => true,
+            'dev_otp' => is_email_configured() ? '' : $otp
         ], 'Registration successful! Enter the OTP sent to your email to verify your account.');
     }
     // Auto-login fallback
@@ -309,7 +310,11 @@ function sendOtp() {
     $name = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
     $emailSent = send_otp_email($email, $name ?: 'User', $otp, $purpose);
     logActivity('otp_sent', $userId, ['purpose' => $purpose, 'email_delivered' => $emailSent]);
-    successResponse(['email_delivered' => $emailSent, 'user_id' => $userId], 'OTP sent to your email');
+    successResponse([
+        'email_delivered' => $emailSent,
+        'user_id' => $userId,
+        'dev_otp' => is_email_configured() ? '' : $otp
+    ], 'OTP sent to your email');
 }
 
 function verifyOtp() {
