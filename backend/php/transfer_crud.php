@@ -84,8 +84,12 @@ function createTransfer() {
     if (!$transfers) {
         errorResponse('Database connection error');
     }
-    // Scheduled transfers are created as pending and auto-completed later
-    $status = ($type === 'scheduled') ? 'scheduled' : 'pending';
+    // Approval is required ONLY for NEFT/IMPS bank transactions.
+    // Internal transfers complete immediately (status 'approved').
+    // Scheduled transfers remain 'scheduled' until their due date.
+    $status = ($type === 'scheduled') ? 'scheduled' : 'approved';
+    // Non-scheduled internal transfers process the balance instantly
+    $processNow = ($type !== 'scheduled');
     $scheduleDate = null;
     if ($type === 'scheduled') {
         $rawDate = $data['schedule_date'] ?? '';
@@ -96,7 +100,7 @@ function createTransfer() {
             $scheduleDate = phpDateToMongo($rawDate);
         }
     }
-    $result = $transfers->insertOne([
+    $transferDocument = [
         'from_user_id' => new MongoDB\BSON\ObjectId(getCurrentUserId()),
         'to_user_id' => $recipient['_id'],
         'amount' => $amount,
@@ -107,16 +111,98 @@ function createTransfer() {
         'created_at' => phpDateToMongo(),
         'updated_at' => phpDateToMongo(),
         'deleted_at' => null
-    ]);
+    ];
+    // For instant transfers, create synchronized ledger entries so both
+    // dashboards, balances, expenses, income, and reports update instantly.
+    // Balance = total income - total expense for each user.
+    // Approvals are required ONLY for NEFT/IMPS bank transactions.
+    if ($processNow) {
+        $transactionsCol = getCollection('transactions');
+        if (!$transactionsCol) {
+            errorResponse('Database connection error');
+        }
+        $now = phpDateToMongo();
+        $senderId = new MongoDB\BSON\ObjectId(getCurrentUserId());
+        $recipientId = $recipient['_id'];
+        $desc = sanitizeInput($data['description'] ?? 'Transfer to ' . $recipientEmail);
+        $doneAt = new MongoDB\BSON\UTCDateTime(time() * 1000);
+        // Verify the sender has sufficient balance (income - expense)
+        $balancePipelines = [
+            ['$match' => [
+                'user_id' => $senderId,
+                'type' => ['$in' => ['income', 'expense']],
+                'deleted_at' => null
+            ]],
+            ['$group' => [
+                '_id' => null,
+                'income' => ['$sum' => ['$cond' => [['$eq' => ['$type', 'income']], '$amount', 0]]],
+                'expense' => ['$sum' => ['$cond' => [['$eq' => ['$type', 'expense']], '$amount', 0]]]
+            ]]
+        ];
+        $balanceResult = $transactionsCol->aggregate($balancePipelines)->toArray();
+        $senderBalance = count($balanceResult) > 0 ? (float)($balanceResult[0]['income'] ?? 0) - (float)($balanceResult[0]['expense'] ?? 0) : 0;
+        if ($senderBalance < $amount) {
+            errorResponse('Insufficient balance for this transfer');
+        }
+        // Sender: expense entry reduces sender's balance
+        $transactionsCol->insertOne([
+            'user_id' => $senderId,
+            'type' => 'expense',
+            'category' => 'Bank Transfer',
+            'subcategory' => 'Internal Transfer',
+            'amount' => (float)$amount,
+            'currency' => $_SESSION['user_currency'] ?? 'INR',
+            'description' => $desc,
+            'date' => $doneAt,
+            'payment_method' => 'bank_transfer',
+            'recipient_payer' => $recipientEmail,
+            'recipient_user_id' => $recipientId,
+            'status' => 'approved',
+            'requires_approval' => false,
+            'approved_by' => $senderId,
+            'approved_at' => $doneAt,
+            'source' => 'internal_transfer',
+            'created_at' => $now,
+            'updated_at' => $now,
+            'deleted_at' => null
+        ]);
+        // Recipient: income entry increases recipient's balance
+        $transactionsCol->insertOne([
+            'user_id' => $recipientId,
+            'type' => 'income',
+            'category' => 'Bank Transfer',
+            'subcategory' => 'Internal Transfer',
+            'amount' => (float)$amount,
+            'currency' => $_SESSION['user_currency'] ?? 'INR',
+            'description' => 'Transfer from ' . getCurrentUserEmail(),
+            'date' => $doneAt,
+            'payment_method' => 'bank_transfer',
+            'recipient_payer' => getCurrentUserEmail(),
+            'from_user_id' => $senderId,
+            'status' => 'approved',
+            'requires_approval' => false,
+            'approved_by' => $senderId,
+            'approved_at' => $doneAt,
+            'source' => 'internal_transfer',
+            'created_at' => $now,
+            'updated_at' => $now,
+            'deleted_at' => null
+        ]);
+    }
+    $result = $transfers->insertOne($transferDocument);
     logActivity('transfer_created', getCurrentUserId(), [
         'transfer_id' => (string)$result->getInsertedId(),
         'amount' => $amount,
-        'recipient_email' => $recipientEmail
+        'recipient_email' => $recipientEmail,
+        'status' => $status
     ]);
+    $message = ($type === 'scheduled')
+        ? 'Transfer scheduled successfully'
+        : 'Transfer completed successfully';
     successResponse([
         'transfer_id' => (string)$result->getInsertedId(),
         'status' => $status
-    ], 'Transfer request submitted for approval');
+    ], $message);
 }
 /**
  * Update transfer status (staff/admin approval or rejection)
@@ -212,14 +298,14 @@ function getTransferSummary() {
     ];
     $stats = [
         'pending' => $transfers->countDocuments($baseFilter + ['status' => 'pending']),
-        'completed' => $transfers->countDocuments($baseFilter + ['status' => 'completed']),
+        'completed' => $transfers->countDocuments($baseFilter + ['status' => ['$in' => ['approved', 'completed']]]),
         'scheduled' => $transfers->countDocuments($baseFilter + ['status' => 'scheduled']),
         'total_sent' => 0,
         'total_received' => 0
     ];
-    // Sum completed amounts
+    // Sum completed/approved amounts (instant internal transfers are 'approved')
     $pipeline = [
-        ['$match' => $baseFilter + ['status' => 'completed']],
+        ['$match' => $baseFilter + ['status' => ['$in' => ['approved', 'completed']]]],
         ['$group' => [
             '_id' => null,
             'sent' => ['$sum' => ['$cond' => [['$eq' => ['$from_user_id', $userId]], '$amount', 0]]],

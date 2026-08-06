@@ -3,7 +3,7 @@
 /**
  * Admin Management for Smart Transaction Control
  * Handles user management, roles, dashboard stats, and system settings (admin only)
- * Roles: admin, manager, user, auditor
+ * Roles: admin, staff, receptionist, customer
  */
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/security.php';
@@ -18,7 +18,7 @@ if (!defined('APP_NAME')) {
  * @return array
  */
 function getValidRoles() {
-    return ['admin', 'manager', 'user', 'auditor'];
+    return ['admin', 'staff', 'receptionist', 'customer'];
 }
 /**
  * Normalize a role input to canonical role
@@ -29,24 +29,24 @@ function normalizeRoleInput($role) {
     $map = [
         'admin' => 'admin',
         'administrator' => 'admin',
-        'manager' => 'manager',
-        'staff' => 'manager',
-        'user' => 'user',
-        'employee' => 'user',
-        'customer' => 'user',
-        'receptionist' => 'user',
-        'auditor' => 'auditor',
-        'audit' => 'auditor'
+        'staff' => 'staff',
+        'manager' => 'staff',
+        'employee' => 'staff',
+        'receptionist' => 'receptionist',
+        'customer' => 'customer',
+        'user' => 'customer',
+        'auditor' => 'admin',
+        'audit' => 'admin'
     ];
     $key = strtolower((string)$role);
-    return $map[$key] ?? 'user';
+    return $map[$key] ?? 'customer';
 }
 /**
  * Admin: list all users
  * GET: role (optional), search (optional), page, limit
  */
 function adminListUsers() {
-    requireRole(['admin', 'manager']);
+    requireRole(['admin', 'staff']);
     $page = max(1, (int)($_GET['page'] ?? 1));
     $limit = min(100, max(1, (int)($_GET['limit'] ?? 20)));
     $skip = ($page - 1) * $limit;
@@ -121,7 +121,7 @@ function adminCreateUser() {
     $email = strtolower(trim($data['email'] ?? ''));
     $phone = sanitizeInput($data['phone'] ?? '');
     $password = $data['password'] ?? '';
-    $role = normalizeRoleInput($data['role'] ?? 'user');
+    $role = normalizeRoleInput($data['role'] ?? 'customer');
     $department = sanitizeInput($data['department'] ?? 'General');
     if (empty($firstName) || empty($lastName) || empty($email)) {
         errorResponse('Name and email are required');
@@ -228,26 +228,26 @@ function adminListRoles() {
         [
             'role_id' => 'admin',
             'name' => 'Admin',
-            'description' => 'Full system access - manage users, expenses, categories, departments, settings',
+            'description' => 'Full system access - manage users, transactions, approval workflow, audit logs, settings',
             'permissions' => ['*']
         ],
         [
-            'role_id' => 'manager',
-            'name' => 'Manager',
-            'description' => 'Approve/reject expenses, view department reports, manage team',
-            'permissions' => ['expense.approve', 'expense.reject', 'expense.view_all', 'report.department', 'dashboard.manager']
+            'role_id' => 'staff',
+            'name' => 'Staff',
+            'description' => 'Approve/reject NEFT/IMPS transactions, view customers, generate reports, manage requests',
+            'permissions' => ['transaction.approve', 'transaction.reject', 'transaction.view_all', 'customer.view', 'report.generate', 'dashboard.staff']
         ],
         [
-            'role_id' => 'user',
-            'name' => 'Employee',
-            'description' => 'Add/edit/delete own expenses, upload bills, view own history and reports',
-            'permissions' => ['expense.create', 'expense.edit_own', 'expense.delete_own', 'expense.view_own', 'report.own', 'dashboard.user']
+            'role_id' => 'receptionist',
+            'name' => 'Receptionist',
+            'description' => 'Register customers, update profiles, create transaction requests, upload docs, print receipts',
+            'permissions' => ['customer.register', 'customer.update', 'transaction.create', 'document.upload', 'receipt.print', 'dashboard.receptionist']
         ],
         [
-            'role_id' => 'auditor',
-            'name' => 'Auditor',
-            'description' => 'Read-only access - view transactions, reports, audit logs, analytics',
-            'permissions' => ['transaction.view_all', 'report.view', 'audit.view', 'analytics.view', 'readonly']
+            'role_id' => 'customer',
+            'name' => 'Customer',
+            'description' => 'View balance, create transaction requests, track approval status, download statements',
+            'permissions' => ['transaction.create', 'transaction.view_own', 'transaction.track', 'statement.download', 'dashboard.customer']
         ]
     ];
     successResponse(['roles' => $roles], 'Roles retrieved');
@@ -276,7 +276,7 @@ function adminSaveRole() {
     if (!$collection) {
         errorResponse('Database connection error');
     }
-    if (!empty($roleId) && $roleId !== 'admin' && $roleId !== 'manager' && $roleId !== 'user' && $roleId !== 'auditor') {
+    if (!empty($roleId) && $roleId !== 'admin' && $roleId !== 'staff' && $roleId !== 'receptionist' && $roleId !== 'customer') {
         // Custom roles stored in DB
         $existing = $collection->findOne(['_id' => new MongoDB\BSON\ObjectId($roleId)]);
         if ($existing) {
@@ -309,16 +309,20 @@ function adminSaveRole() {
  * GET
  */
 function adminGetStats() {
-    requireRole(['admin', 'manager', 'auditor']);
+    requireRole(['admin', 'staff']);
     $stats = [];
     $users = getCollection('users');
     $stats['total_users'] = $users ? $users->countDocuments(['status' => ['$ne' => 'deleted']]) : 0;
-    $stats['managers'] = $users ? $users->countDocuments(['role' => 'manager', 'status' => ['$ne' => 'deleted']]) : 0;
-    $stats['employees'] = $users ? $users->countDocuments(['role' => 'user', 'status' => ['$ne' => 'deleted']]) : 0;
-    $stats['auditors'] = $users ? $users->countDocuments(['role' => 'auditor', 'status' => ['$ne' => 'deleted']]) : 0;
-    $stats['staff_users'] = $stats['managers'];
-    $stats['receptionist_users'] = 0;
-    $stats['customers'] = $stats['employees'];
+    $stats['admins'] = $users ? $users->countDocuments(['role' => 'admin', 'status' => ['$ne' => 'deleted']]) : 0;
+    $stats['staff'] = $users ? $users->countDocuments(['role' => 'staff', 'status' => ['$ne' => 'deleted']]) : 0;
+    $stats['receptionists'] = $users ? $users->countDocuments(['role' => 'receptionist', 'status' => ['$ne' => 'deleted']]) : 0;
+    $stats['customers'] = $users ? $users->countDocuments(['role' => 'customer', 'status' => ['$ne' => 'deleted']]) : 0;
+    $stats['staff_users'] = $stats['staff'];
+    $stats['receptionist_users'] = $stats['receptionists'];
+    $stats['total_employee_portal'] = $stats['admins'] + $stats['staff'] + $stats['receptionists'];
+    $stats['managers'] = $stats['staff'];
+    $stats['employees'] = $stats['customers'];
+    $stats['auditors'] = $stats['admins'];
     $transactions = getCollection('transactions');
     $stats['total_transactions'] = $transactions ? $transactions->countDocuments(['deleted_at' => null]) : 0;
     // Expense stats

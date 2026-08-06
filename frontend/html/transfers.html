@@ -106,9 +106,17 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Type</label>
+                            <label>Method</label>
+                            <select id="trMethod" class="form-control">
+                                <option value="internal">Internal (Instant)</option>
+                                <option value="neft">NEFT (Requires Approval)</option>
+                                <option value="imps">IMPS (Requires Approval)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="trTypeWrap">
+                            <label>Frequency</label>
                             <select id="trType" class="form-control">
-                                <option value="internal">Internal</option>
+                                <option value="one_time">One-time</option>
                                 <option value="scheduled">Scheduled</option>
                                 <option value="recurring">Recurring</option>
                             </select>
@@ -118,9 +126,29 @@
                             <input type="date" id="trScheduleDate" class="form-control">
                         </div>
                     </div>
+                    <div id="trBankDetails" style="display: none;">
+                        <div class="form-group">
+                            <label>Beneficiary Name</label>
+                            <input type="text" id="trRecipientName" class="form-control" placeholder="Recipient's full name">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Account Number</label>
+                                <input type="text" id="trAccountNumber" class="form-control" maxlength="18" placeholder="9-18 digit account number">
+                            </div>
+                            <div class="form-group">
+                                <label>IFSC Code</label>
+                                <input type="text" id="trIfsc" class="form-control" maxlength="11" placeholder="e.g. SBIN0001234" style="text-transform: uppercase;">
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Description</label>
                         <input type="text" id="trDescription" class="form-control" placeholder="What is this transfer for?">
+                    </div>
+                    <div class="form-group" id="trApprovalNote" style="display: none; padding: 10px 14px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); font-size: 0.8rem; color: var(--text-secondary);">
+                        <i class="fas fa-info-circle" style="color: #f59e0b; margin-right: 6px;"></i>
+                        <strong>NEFT/IMPS transfers require Admin/Staff approval</strong> before funds are moved. Your balance will not change until approved.
                     </div>
                 </form>
             </div>
@@ -135,13 +163,32 @@
     <script src="../js/app_common.js"></script>
     <script src="../js/banking.js"></script>
     <script>
-        document.getElementById('trType').addEventListener('change', function () {
-            document.getElementById('trScheduleWrap').style.display = this.value === 'scheduled' ? 'block' : 'none';
-        });
         document.addEventListener('DOMContentLoaded', function () {
+            const methodSel = document.getElementById('trMethod');
+            const bankDetails = document.getElementById('trBankDetails');
+            const approvalNote = document.getElementById('trApprovalNote');
+            const saveBtn = document.getElementById('saveTransferBtn');
+            const scheduleWrap = document.getElementById('trScheduleWrap');
+            function toggleTransferMode() {
+                const isBank = methodSel.value === 'neft' || methodSel.value === 'imps';
+                bankDetails.style.display = isBank ? 'block' : 'none';
+                approvalNote.style.display = isBank ? 'block' : 'none';
+                saveBtn.innerHTML = isBank
+                    ? '<i class="fas fa-paper-plane"></i> Submit for Approval'
+                    : '<i class="fas fa-paper-plane"></i> Send Transfer';
+                // NEFT/IMPS are one-time bank transfers; frequency is for internal only
+                document.getElementById('trTypeWrap').style.display = isBank ? 'none' : 'block';
+                scheduleWrap.style.display = 'none';
+                if (isBank) document.getElementById('trType').value = 'one_time';
+            }
+            if (methodSel) methodSel.addEventListener('change', toggleTransferMode);
+            document.getElementById('trType').addEventListener('change', function () {
+                document.getElementById('trScheduleWrap').style.display = this.value === 'scheduled' ? 'block' : 'none';
+            });
             STC.boot({ roles: ['customer'], title: 'Transfers', page: 'transfers.html', init: initTransfers });
             const prefill = new URLSearchParams(window.location.search).get('to');
             if (prefill) document.getElementById('trRecipientEmail').value = prefill;
+            toggleTransferMode();
         });
     </script>
 </body>

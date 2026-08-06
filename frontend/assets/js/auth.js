@@ -85,6 +85,15 @@ document.addEventListener('DOMContentLoaded', () => {
           first_name: nameParts[0] || '', last_name: nameParts.slice(1).join(' '), email, password: pass, phone
         });
         const user = res.data;
+        if (user.needs_otp) {
+          // New account must verify email via OTP before accessing the dashboard
+          sessionStorage.setItem('sot_otp_email', email);
+          sessionStorage.setItem('sot_otp_user_id', user.user_id);
+          sessionStorage.setItem('sot_otp_purpose', 'verify_email');
+          showToast('Account created! Enter the OTP sent to your email.', 'success');
+          setTimeout(() => window.location.href = 'otp-verify.html', 1200);
+          return;
+        }
         Auth.login({ id: user.user_id, name: user.name, email: user.email, role: user.role, avatar: user.name.slice(0,2).toUpperCase() });
         showToast('Account created successfully!', 'success');
         setTimeout(() => window.location.href = ROLE_DASHBOARD[user.role] || '../customer/dashboard.html', 1200);
@@ -102,10 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const email = document.getElementById('email').value.trim();
       if (!email) { showToast('Please enter your email', 'error'); return; }
       try {
-        const res = await apiPost('?module=auth&action=forgot_password', { email });
-        if (res.data && res.data.reset_token) sessionStorage.setItem('sot_reset_token', res.data.reset_token);
-        showToast('Reset link sent! Check your email.', 'success');
-        setTimeout(() => window.location.href = 'reset-password.html', 1200);
+        const res = await apiPost('?module=auth&action=send_otp', { email, purpose: 'forgot_password' });
+        sessionStorage.setItem('sot_otp_email', email);
+        sessionStorage.setItem('sot_otp_user_id', res.data.user_id);
+        sessionStorage.setItem('sot_otp_purpose', 'forgot_password');
+        sessionStorage.setItem('sot_reset_token', 'verified');
+        showToast('OTP sent! Check your email.', 'success');
+        setTimeout(() => window.location.href = 'otp-verify.html', 1200);
       } catch (err) {
         showToast(err.message || 'Request failed', 'error');
       }
@@ -125,18 +137,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const otpForm = document.getElementById('otp-form');
   if (otpForm) {
-    otpForm.addEventListener('submit', e => {
+    // Auto-submit when all 6 digits filled
+    otpInputs.forEach((inp, idx) => {
+      inp.addEventListener('input', () => {
+        if (inp.value.length === 1 && idx < otpInputs.length - 1) otpInputs[idx + 1].focus();
+        const allFilled = [...otpInputs].every(i => i.value);
+        if (allFilled) otpForm.dispatchEvent(new Event('submit'));
+      });
+    });
+
+    otpForm.addEventListener('submit', async e => {
       e.preventDefault();
       const otp = [...otpInputs].map(i => i.value).join('');
       if (otp.length < 6) { showToast('Enter all 6 digits', 'error'); return; }
-      if (!sessionStorage.getItem('sot_reset_token')) {
-        showToast('Please request a reset link first', 'error');
+
+      const userId = sessionStorage.getItem('sot_otp_user_id');
+      const purpose = sessionStorage.getItem('sot_otp_purpose') || 'verify_email';
+
+      if (!userId) {
+        showToast('Session expired. Please request a new OTP.', 'error');
         setTimeout(() => window.location.href = 'forgot-password.html', 1200);
         return;
       }
-      showToast('OTP verified!', 'success');
-      setTimeout(() => window.location.href = 'reset-password.html', 1200);
+
+      try {
+        const res = await apiPost('?module=auth&action=verify_otp', { user_id: userId, purpose, otp });
+        showToast(res.message || 'OTP verified!', 'success');
+        sessionStorage.removeItem('sot_otp_user_id');
+        sessionStorage.removeItem('sot_otp_purpose');
+        // For forgot_password resets, store the real reset token returned by the backend
+        if (res.data && res.data.reset_token) {
+          sessionStorage.setItem('sot_reset_token', res.data.reset_token);
+        }
+        const resetToken = sessionStorage.getItem('sot_reset_token');
+        if (resetToken && purpose === 'forgot_password') {
+          setTimeout(() => window.location.href = 'reset-password.html', 1000);
+        } else {
+          setTimeout(() => window.location.href = 'login.html', 1000);
+        }
+      } catch (err) {
+        showToast(err.message || 'OTP verification failed', 'error');
+        otpInputs.forEach(i => i.value = '');
+        otpInputs[0].focus();
+      }
     });
+
+    const resendLink = document.getElementById('resend-otp');
+    if (resendLink) {
+      resendLink.addEventListener('click', async e => {
+        e.preventDefault();
+        const email = sessionStorage.getItem('sot_otp_email');
+        if (!email) { showToast('No email stored. Please request again.', 'error'); return; }
+        try {
+          const purpose = sessionStorage.getItem('sot_otp_purpose') || 'verify_email';
+          await apiPost('?module=auth&action=send_otp', { email, purpose });
+          showToast('New OTP sent to your email!', 'success');
+        } catch (err) {
+          showToast(err.message || 'Resend failed', 'error');
+        }
+      });
+    }
   }
 
   // ── Reset Password ─────────────────────────────────────────

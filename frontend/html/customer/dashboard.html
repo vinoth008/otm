@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - Smart Transaction Control</title>
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/components.css">
+    <link rel="stylesheet" href="../../css/animations.css">
+    <link rel="stylesheet" href="../../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <main class="main-content">
+            <div id="dashboardContent">
+                <div id="dashboardLoading" class="loading-overlay">
+                    <div class="spinner spinner-lg"></div>
+                </div>
+                <div id="dashboardGrid" style="display: none;">
+                    <div class="dashboard-grid">
+                        <div class="stat-card balance">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Available Balance</div>
+                                    <div class="stat-card-value" id="currentBalance">₹0.00</div>
+                                </div>
+                                <div class="stat-card-icon"><i class="fas fa-wallet"></i></div>
+                            </div>
+                            <div class="stat-card-change positive"><i class="fas fa-credit-card"></i><span id="accountNumber">Account #------</span></div>
+                        </div>
+                        <div class="stat-card income">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Total Income</div>
+                                    <div class="stat-card-value" id="totalIncome">₹0.00</div>
+                                </div>
+                                <div class="stat-card-icon"><i class="fas fa-arrow-down"></i></div>
+                            </div>
+                            <div class="stat-card-change positive"><i class="fas fa-receipt"></i><span id="incomeChange">0 transactions</span></div>
+                        </div>
+                        <div class="stat-card expense">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Total Expenses</div>
+                                    <div class="stat-card-value" id="totalExpense">₹0.00</div>
+                                </div>
+                                <div class="stat-card-icon"><i class="fas fa-arrow-up"></i></div>
+                            </div>
+                            <div class="stat-card-change negative"><i class="fas fa-receipt"></i><span id="expenseChange">0 transactions</span></div>
+                        </div>
+                        <div class="stat-card savings">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-card-title">Pending Approvals</div>
+                                    <div class="stat-card-value" id="pendingApprovals">0</div>
+                                </div>
+                                <div class="stat-card-icon"><i class="fas fa-clock"></i></div>
+                            </div>
+                            <div class="stat-card-change"><i class="fas fa-info-circle"></i><span>NEFT/IMPS requests awaiting review</span></div>
+                        </div>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Income vs Expense</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="incomeExpenseChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Category Breakdown</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="categoryPieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="charts-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Recent Transactions</h3>
+                                <a href="../transactions.html" class="btn btn-sm btn-outline">View All</a>
+                            </div>
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th>Method</th>
+                                            <th>Status</th>
+                                            <th class="text-right">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentTransactionsTable">
+                                        <tr><td colspan="5" class="text-center"><div class="spinner"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Notifications</h3>
+                                <button class="btn btn-sm btn-outline" onclick="STC.markAllRead()">Mark All Read</button>
+                            </div>
+                            <div id="recentNotifications" class="list-group">
+                                <div class="text-center"><div class="spinner"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/app_common.js"></script>
+    <script src="../../js/customer_dashboard.js"></script>
+</body>
+</html>

@@ -3,35 +3,39 @@
 /**
  * Session Manager for Smart Transaction Control
  * Handles user sessions, authentication state, and session security.
- * Roles: admin, manager, user (employee), auditor
+ * Roles (4 canonical): admin, staff, receptionist, customer
+ * Legacy aliases map: manager->staff, employee->staff, auditor->admin(read-only), user->customer
  */
 // Prevent direct access
 if (!defined('APP_NAME')) {
     http_response_code(403);
     exit('Direct access not allowed');
 }
+
 /**
  * Normalize a role to one of the 4 canonical roles
- * Legacy roles are mapped: staff->manager, receptionist->user, customer->user, employee->user
  * @param string|null $role
  * @return string
  */
 function normalizeRole($role) {
     $map = [
+        // Canonical roles
         'admin' => 'admin',
+        'staff' => 'staff',
+        'receptionist' => 'receptionist',
+        'customer' => 'customer',
+        // Legacy aliases
         'administrator' => 'admin',
-        'manager' => 'manager',
-        'staff' => 'manager',
-        'user' => 'user',
-        'employee' => 'user',
-        'customer' => 'user',
-        'receptionist' => 'user',
-        'auditor' => 'auditor',
-        'audit' => 'auditor'
+        'manager' => 'staff',
+        'employee' => 'staff',
+        'user' => 'customer',
+        'auditor' => 'admin',
+        'audit' => 'admin'
     ];
     $key = strtolower((string)$role);
-    return $map[$key] ?? 'user';
+    return $map[$key] ?? 'customer';
 }
+
 /**
  * Check if user is logged in
  * @return bool
@@ -42,6 +46,7 @@ function isLoggedIn() {
         isset($_SESSION['last_activity']) &&
         (time() - $_SESSION['last_activity']) < SESSION_TIMEOUT;
 }
+
 /**
  * Check if user is admin
  * @return bool
@@ -51,24 +56,61 @@ function isAdmin() {
         isset($_SESSION['user_role']) &&
         $_SESSION['user_role'] === 'admin';
 }
+
 /**
- * Check if user is manager
+ * Check if user is staff
+ * @return bool
+ */
+function isStaff() {
+    return isLoggedIn() &&
+        isset($_SESSION['user_role']) &&
+        $_SESSION['user_role'] === 'staff';
+}
+
+/**
+ * Check if user is receptionist
+ * @return bool
+ */
+function isReceptionist() {
+    return isLoggedIn() &&
+        isset($_SESSION['user_role']) &&
+        $_SESSION['user_role'] === 'receptionist';
+}
+
+/**
+ * Check if user is customer
+ * @return bool
+ */
+function isCustomer() {
+    return isLoggedIn() &&
+        isset($_SESSION['user_role']) &&
+        $_SESSION['user_role'] === 'customer';
+}
+
+/**
+ * Legacy alias: isManager -> isStaff
  * @return bool
  */
 function isManager() {
-    return isLoggedIn() &&
-        isset($_SESSION['user_role']) &&
-        $_SESSION['user_role'] === 'manager';
+    return isStaff();
 }
+
 /**
- * Check if user is auditor
+ * Legacy alias: isStaffAsLegacy -> staff or receptionist (employee portal)
+ * @return bool
+ */
+function isEmployee() {
+    return isStaff() || isReceptionist();
+}
+
+/**
+ * Legacy: isAuditor -> admin (auditor view)
  * @return bool
  */
 function isAuditor() {
-    return isLoggedIn() &&
-        isset($_SESSION['user_role']) &&
-        $_SESSION['user_role'] === 'auditor';
+    return isAdmin();
 }
+
 /**
  * Check if current user has one of the given roles
  * @param string|array $roles
@@ -90,20 +132,7 @@ function hasRole($roles) {
     }
     return normalizeRole($roles) === $currentNorm;
 }
-/**
- * Check if user is staff (legacy alias for manager)
- * @return bool
- */
-function isStaff() {
-    return hasRole('manager');
-}
-/**
- * Check if user is receptionist (legacy alias for user)
- * @return bool
- */
-function isReceptionist() {
-    return hasRole('user');
-}
+
 /**
  * Require one of the given roles (admin always passes)
  * @param string|array $roles
@@ -120,6 +149,23 @@ function requireRole($roles) {
         exit;
     }
 }
+
+/**
+ * Require employee portal role (admin, staff, or receptionist)
+ */
+function requireEmployeeRole() {
+    requireActiveSession();
+    if (isAdmin() || isStaff() || isReceptionist()) {
+        return;
+    }
+    if (isAjaxRequest()) {
+        errorResponse('Employee access required', 403);
+    } else {
+        header('Location: ' . BASE_URL . 'index.php');
+        exit;
+    }
+}
+
 /**
  * Get current user ID
  * @return string|null
@@ -127,6 +173,7 @@ function requireRole($roles) {
 function getCurrentUserId() {
     return $_SESSION['user_id'] ?? null;
 }
+
 /**
  * Get current user email
  * @return string|null
@@ -134,6 +181,7 @@ function getCurrentUserId() {
 function getCurrentUserEmail() {
     return $_SESSION['user_email'] ?? null;
 }
+
 /**
  * Get current user role
  * @return string|null
@@ -141,6 +189,15 @@ function getCurrentUserEmail() {
 function getCurrentUserRole() {
     return $_SESSION['user_role'] ?? null;
 }
+
+/**
+ * Get current user full name
+ * @return string
+ */
+function getCurrentUserName() {
+    return $_SESSION['user_name'] ?? '';
+}
+
 /**
  * Create user session
  * @param array $user
@@ -148,15 +205,18 @@ function getCurrentUserRole() {
 function createUserSession($user) {
     // Regenerate session ID to prevent session fixation
     session_regenerate_id(true);
-    $role = normalizeRole($user['role'] ?? 'user');
+    $role = normalizeRole($user['role'] ?? 'customer');
     $_SESSION['user_id'] = (string)$user['_id'];
     $_SESSION['user_email'] = $user['email'];
     $_SESSION['user_role'] = $role;
-    $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+    $_SESSION['user_name'] = ($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '');
     $_SESSION['user_theme'] = $user['theme_preference'] ?? 'light';
     $_SESSION['user_currency'] = $user['currency'] ?? 'INR';
     $_SESSION['login_time'] = time();
     $_SESSION['last_activity'] = time();
+    $_SESSION['session_id'] = session_id();
+    $_SESSION['ip_address'] = getUserIP();
+    $_SESSION['user_agent'] = getUserAgent();
     // Update last login in database
     $collection = getCollection('users');
     if ($collection) {
@@ -165,9 +225,114 @@ function createUserSession($user) {
             ['$set' => ['last_login' => phpDateToMongo()]]
         );
     }
+    // Record login history
+    recordLoginHistory($user, true);
     // Log activity
     logActivity('login', $user['_id'], ['email' => $user['email'], 'role' => $role]);
 }
+
+/**
+ * Record a login attempt to the login_history collection
+ * @param array|null $user
+ * @param bool $success
+ * @param string|null $failureReason
+ */
+function recordLoginHistory($user, $success, $failureReason = null) {
+    $collection = getCollection('login_history');
+    if (!$collection) {
+        return;
+    }
+    $ip = getUserIP();
+    $ua = getUserAgent();
+    $browser = detectBrowser($ua);
+    $os = detectOS($ua);
+    $device = detectDevice($ua);
+    $collection->insertOne([
+        'user_id' => $user && isset($user['_id']) ? new MongoDB\BSON\ObjectId((string)$user['_id']) : null,
+        'email' => $user['email'] ?? '',
+        'role' => $user ? normalizeRole($user['role'] ?? 'customer') : '',
+        'ip_address' => $ip,
+        'browser' => $browser,
+        'os' => $os,
+        'device' => $device,
+        'user_agent' => $ua,
+        'session_id' => session_id(),
+        'attempt_time' => phpDateToMongo(),
+        'login_time' => $success ? phpDateToMongo() : null,
+        'logout_time' => null,
+        'success' => (bool)$success,
+        'failure_reason' => $failureReason,
+        'locked' => false,
+        'blocked' => false,
+        'created_at' => phpDateToMongo()
+    ]);
+}
+
+/**
+ * Record logout time in login_history
+ */
+function recordLogoutTime() {
+    $collection = getCollection('login_history');
+    if (!$collection) {
+        return;
+    }
+    $sessionId = $_SESSION['session_id'] ?? session_id();
+    $collection->updateOne(
+        [
+            'session_id' => $sessionId,
+            'user_id' => isset($_SESSION['user_id']) ? new MongoDB\BSON\ObjectId(getCurrentUserId()) : null,
+            'logout_time' => null
+        ],
+        ['$set' => ['logout_time' => phpDateToMongo()]]
+    );
+}
+
+/**
+ * Detect browser from user agent
+ * @param string $ua
+ * @return string
+ */
+function detectBrowser($ua) {
+    if (stripos($ua, 'Edg/') !== false) return 'Microsoft Edge';
+    if (stripos($ua, 'Chrome/') !== false) return 'Chrome';
+    if (stripos($ua, 'Firefox/') !== false) return 'Firefox';
+    if (stripos($ua, 'Safari/') !== false) return 'Safari';
+    if (stripos($ua, 'OPR/') !== false) return 'Opera';
+    if (stripos($ua, 'MSIE') !== false || stripos($ua, 'Trident/') !== false) return 'Internet Explorer';
+    return 'Unknown';
+}
+
+/**
+ * Detect OS from user agent
+ * @param string $ua
+ * @return string
+ */
+function detectOS($ua) {
+    if (stripos($ua, 'Windows NT 10') !== false) return 'Windows 10/11';
+    if (stripos($ua, 'Windows NT 6.3') !== false) return 'Windows 8.1';
+    if (stripos($ua, 'Windows NT 6.1') !== false) return 'Windows 7';
+    if (stripos($ua, 'Android') !== false) return 'Android';
+    if (stripos($ua, 'iPhone') !== false || stripos($ua, 'iPad') !== false) return 'iOS';
+    if (stripos($ua, 'Mac OS X') !== false) return 'macOS';
+    if (stripos($ua, 'Linux') !== false) return 'Linux';
+    return 'Unknown';
+}
+
+/**
+ * Detect device type from user agent
+ * @param string $ua
+ * @return string
+ */
+function detectDevice($ua) {
+    if (stripos($ua, 'Mobile') !== false || stripos($ua, 'iPhone') !== false || stripos($ua, 'Android') !== false) {
+        return 'Mobile';
+    }
+    if (stripos($ua, 'iPad') !== false || stripos($ua, 'Tablet') !== false) {
+        return 'Tablet';
+    }
+    return 'Desktop';
+}
+
 /**
  * Update session activity timestamp
  */
@@ -176,11 +341,14 @@ function updateSessionActivity() {
         $_SESSION['last_activity'] = time();
     }
 }
+
 /**
  * Destroy user session
  */
 function destroySession() {
     $userId = getCurrentUserId();
+    // Record logout time in login history
+    recordLogoutTime();
     // Log activity before destroying session
     if ($userId) {
         logActivity('logout', $userId);
@@ -194,6 +362,7 @@ function destroySession() {
     // Destroy session
     session_destroy();
 }
+
 /**
  * Check session timeout and update activity
  */
@@ -208,6 +377,7 @@ function checkSession() {
     }
     return false;
 }
+
 /**
  * Require active session
  */
@@ -221,6 +391,7 @@ function requireActiveSession() {
         }
     }
 }
+
 /**
  * Get session data for API
  * @return array
@@ -236,13 +407,13 @@ function getSessionData() {
         'user_currency' => $_SESSION['user_currency'] ?? 'INR',
         'is_logged_in' => isLoggedIn(),
         'is_admin' => isAdmin(),
-        'is_manager' => isManager(),
-        'is_auditor' => isAuditor(),
         'is_staff' => isStaff(),
         'is_receptionist' => isReceptionist(),
+        'is_customer' => isCustomer(),
         'dashboard_url' => getRoleDashboardUrl()
     ];
 }
+
 /**
  * Get the dashboard URL for the current user's role
  * @return string
@@ -252,14 +423,16 @@ function getRoleDashboardUrl() {
     switch ($role) {
         case 'admin':
             return BASE_URL . 'frontend/html/admin/dashboard.html';
-        case 'manager':
-            return BASE_URL . 'frontend/html/manager/dashboard.html';
-        case 'auditor':
-            return BASE_URL . 'frontend/html/auditor/dashboard.html';
+        case 'staff':
+            return BASE_URL . 'frontend/html/staff/dashboard.html';
+        case 'receptionist':
+            return BASE_URL . 'frontend/html/receptionist/dashboard.html';
+        case 'customer':
         default:
-            return BASE_URL . 'frontend/html/user/dashboard.html';
+            return BASE_URL . 'frontend/html/customer/dashboard.html';
     }
 }
+
 /**
  * Change user theme preference
  * @param string $theme
@@ -279,6 +452,7 @@ function changeThemePreference($theme) {
         }
     }
 }
+
 /**
  * Check brute force protection
  * @param string $email
@@ -314,45 +488,53 @@ function checkBruteForce($email) {
     }
     return true;
 }
+
 /**
  * Record failed login attempt
  * @param string $email
+ * @param string|null $reason
  */
-function recordFailedLogin($email) {
+function recordFailedLogin($email, $reason = 'invalid_credentials') {
     $collection = getCollection('users');
-    if (!$collection) {
-        return;
+    if ($collection) {
+        $user = $collection->findOne(['email' => $email]);
+        if ($user) {
+            $attempts = ($user['login_attempts'] ?? 0) + 1;
+            if ($attempts >= MAX_LOGIN_ATTEMPTS) {
+                // Lock account
+                $lockedUntil = new DateTime();
+                $lockedUntil->modify('+' . LOCKOUT_TIME . ' seconds');
+                $collection->updateOne(
+                    ['_id' => $user['_id']],
+                    [
+                        '$set' => [
+                            'login_attempts' => $attempts,
+                            'locked_until' => phpDateToMongo($lockedUntil)
+                        ]
+                    ]
+                );
+                // Record login history for locked account
+                recordLoginHistory($user, false, $reason . '_account_locked');
+                // Log security event
+                logActivity('account_locked_brute_force', $user['_id'], [
+                    'email' => $email,
+                    'attempts' => $attempts
+                ]);
+            } else {
+                $collection->updateOne(
+                    ['_id' => $user['_id']],
+                    ['$set' => ['login_attempts' => $attempts]]
+                );
+                // Record failed login history
+                recordLoginHistory($user, false, $reason);
+            }
+            return;
+        }
     }
-    $user = $collection->findOne(['email' => $email]);
-    if (!$user) {
-        return;
-    }
-    $attempts = ($user['login_attempts'] ?? 0) + 1;
-    if ($attempts >= MAX_LOGIN_ATTEMPTS) {
-        // Lock account
-        $lockedUntil = new DateTime();
-        $lockedUntil->modify('+' . LOCKOUT_TIME . ' seconds');
-        $collection->updateOne(
-            ['_id' => $user['_id']],
-            [
-                '$set' => [
-                    'login_attempts' => $attempts,
-                    'locked_until' => phpDateToMongo($lockedUntil)
-                ]
-            ]
-        );
-        // Log security event
-        logActivity('account_locked_brute_force', $user['_id'], [
-            'email' => $email,
-            'attempts' => $attempts
-        ]);
-    } else {
-        $collection->updateOne(
-            ['_id' => $user['_id']],
-            ['$set' => ['login_attempts' => $attempts]]
-        );
-    }
+    // Record failed login for unknown user
+    recordLoginHistory(['email' => $email, 'role' => 'customer'], false, 'user_not_found');
 }
+
 /**
  * Reset failed login attempts
  * @param string $email
@@ -371,6 +553,7 @@ function resetFailedLoginAttempts($email) {
         );
     }
 }
+
 /**
  * Verify user has permission for action
  * @param string $action
@@ -392,6 +575,7 @@ function verifyPermission($action, $resourceType, $resourceId) {
     // Default: deny
     return false;
 }
+
 /**
  * Check if session is about to expire
  * @param int $warningThreshold

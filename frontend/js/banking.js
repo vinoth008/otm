@@ -132,27 +132,56 @@ async function loadTransfers() {
 }
 
 async function saveTransferRequest() {
-    const body = {
-        recipient_email: document.getElementById('trRecipientEmail').value,
-        amount: document.getElementById('trAmount').value,
-        type: document.getElementById('trType').value,
-        description: document.getElementById('trDescription').value
-    };
-    if (body.type === 'scheduled') {
-        body.schedule_date = document.getElementById('trScheduleDate').value;
-    }
-    if (!body.recipient_email || !body.amount) {
+    const method = document.getElementById('trMethod').value;
+    const recipientEmail = document.getElementById('trRecipientEmail').value.trim();
+    const amount = document.getElementById('trAmount').value;
+    const type = document.getElementById('trType').value;
+    const description = document.getElementById('trDescription').value.trim();
+    if (!recipientEmail || !amount) {
         showError('Recipient email and amount are required');
         return;
     }
-    try {
+    let body;
+    // NEFT/IMPS require Admin/Staff approval; internal transfers are instant.
+    if (method === 'neft' || method === 'imps') {
+        const recipientName = document.getElementById('trRecipientName').value.trim();
+        const accountNumber = document.getElementById('trAccountNumber').value.trim();
+        const ifsc = document.getElementById('trIfsc').value.trim().toUpperCase();
+        if (!recipientName || !accountNumber || !ifsc) {
+            showError('Beneficiary name, account number, and IFSC are required for NEFT/IMPS');
+            return;
+        }
+        if (!/^\d{9,18}$/.test(accountNumber)) {
+            showError('Enter a valid bank account number (9-18 digits)');
+            return;
+        }
+        if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)) {
+            showError('Enter a valid IFSC code (e.g. SBIN0001234)');
+            return;
+        }
+        body = {
+            recipient_email: recipientEmail,
+            amount,
+            type: 'neft_imps',
+            payment_method: method, // 'neft' or 'imps'
+            recipient_name: recipientName,
+            account_number: accountNumber,
+            ifsc_code: ifsc,
+            description: description || 'NEFT/IMPS bank transfer'
+        };
+        if (type === 'scheduled') body.schedule_date = document.getElementById('trScheduleDate').value;
+        await STC.post('approval_crud.php', 'create_request', body);
+        closeModal('createTransferModal');
+        showSuccess('NEFT/IMPS transfer submitted for approval. Your balance will update once approved.');
+    } else {
+        // Internal (instant) or scheduled internal transfer
+        body = { recipient_email: recipientEmail, amount, type, description };
+        if (type === 'scheduled') body.schedule_date = document.getElementById('trScheduleDate').value;
         await STC.post('transfer_crud.php', 'create', body);
         closeModal('createTransferModal');
-        showSuccess('Transfer request submitted for approval');
-        loadTransfers();
-    } catch (e) {
-        showError(e.message);
+        showSuccess('Transfer completed successfully');
     }
+    loadTransfers();
 }
 
 // ============================================

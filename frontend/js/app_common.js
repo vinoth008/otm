@@ -60,134 +60,137 @@ const STC = (function () {
     // NAV paths are relative to frontend/html/ so they resolve from any page
     // depth (top-level pages use no prefix, role subfolders get '../').
     const NAV = {
-        // Employee / User role
-        user: [
-            {
-                section: 'Main',
-                items: [
-                    { href: 'user/dashboard.html', icon: 'fa-th-large', label: 'Dashboard' },
-                    { href: 'user/add-expense.html', icon: 'fa-plus-circle', label: 'Add Expense' },
-                    { href: 'user/expenses.html', icon: 'fa-file-invoice-dollar', label: 'My Expenses' },
-                    { href: 'transactions.html', icon: 'fa-exchange-alt', label: 'Transactions' },
-                    { href: 'analytics.html', icon: 'fa-chart-pie', label: 'Analytics' }
-                ]
-            },
-            {
-                section: 'Personal',
-                items: [
-                    { href: 'categories.html', icon: 'fa-tags', label: 'Categories' },
-                    { href: 'reports.html', icon: 'fa-chart-bar', label: 'Reports' },
-                    { href: 'profile.html', icon: 'fa-user', label: 'Profile' },
-                    { href: 'settings.html', icon: 'fa-cog', label: 'Settings' }
-                ]
-            }
-        ],
-        // Manager role (approves expenses, views department reports)
-        manager: [
-            {
-                section: 'Main',
-                items: [
-                    { href: 'manager/dashboard.html', icon: 'fa-th-large', label: 'Dashboard' }
-                ]
-            },
-            {
-                section: 'Approvals',
-                items: [
-                    { href: 'manager/expenses.html', icon: 'fa-file-invoice-dollar', label: 'Approve Expenses' },
-                    { href: 'transactions.html', icon: 'fa-exchange-alt', label: 'Transactions' }
-                ]
-            },
-            {
-                section: 'Reports',
-                items: [
-                    { href: 'reports.html', icon: 'fa-chart-bar', label: 'Department Reports' }
-                ]
-            },
-            {
-                section: 'Account',
-                items: [
-                    { href: 'profile.html', icon: 'fa-user', label: 'Profile' },
-                    { href: 'settings.html', icon: 'fa-cog', label: 'Settings' }
-                ]
-            }
-        ],
-        // Auditor role (read-only)
-        auditor: [
-            {
-                section: 'Main',
-                items: [
-                    { href: 'auditor/dashboard.html', icon: 'fa-th-large', label: 'Dashboard' },
-                    { href: 'transactions.html', icon: 'fa-exchange-alt', label: 'All Transactions' }
-                ]
-            },
-            {
-                section: 'Audit',
-                items: [
-                    { href: 'reports.html', icon: 'fa-chart-bar', label: 'Reports' },
-                    { href: 'analytics.html', icon: 'fa-chart-pie', label: 'Analytics' },
-                    { href: 'audit-logs.html', icon: 'fa-scroll', label: 'Audit Logs' }
-                ]
-            },
-            {
-                section: 'Account',
-                items: [
-                    { href: 'profile.html', icon: 'fa-user', label: 'Profile' }
-                ]
-            }
-        ],
-        // Admin role - full control
+        // Admin role - full system access
         admin: [
             {
                 section: 'Main',
                 items: [
                     { href: 'admin/dashboard.html', icon: 'fa-th-large', label: 'Dashboard' },
-                    { href: 'admin/transactions.html', icon: 'fa-exchange-alt', label: 'Transactions' }
+                    { href: 'admin/transactions.html', icon: 'fa-exchange-alt', label: 'Transactions' },
+                    { href: 'admin/users.html', icon: 'fa-users', label: 'Users' }
+                ]
+            },
+            {
+                section: 'Approvals',
+                items: [
+                    { href: 'admin/transactions.html', icon: 'fa-check-double', label: 'Pending Approvals' },
+                    { href: 'admin/notifications.html', icon: 'fa-bell', label: 'Notifications' }
                 ]
             },
             {
                 section: 'Management',
                 items: [
-                    { href: 'admin/users.html', icon: 'fa-users', label: 'Users' },
-                    { href: 'admin/expenses.html', icon: 'fa-file-invoice-dollar', label: 'Expenses' },
                     { href: 'categories.html', icon: 'fa-tags', label: 'Categories' },
-                    { href: 'admin/roles.html', icon: 'fa-user-shield', label: 'Roles' }
+                    { href: 'admin/roles.html', icon: 'fa-user-shield', label: 'Roles & Permissions' },
+                    { href: 'admin/settings.html', icon: 'fa-cog', label: 'System Settings' }
                 ]
             },
             {
-                section: 'Oversight',
+                section: 'Audit & Reports',
                 items: [
-                    { href: 'admin/expenses.html', icon: 'fa-check-double', label: 'Approvals' },
-                    { href: 'admin/notifications.html', icon: 'fa-bell', label: 'Notifications' },
                     { href: 'admin/audit.html', icon: 'fa-scroll', label: 'Audit Logs' },
-                    { href: 'admin/reports.html', icon: 'fa-chart-bar', label: 'Reports' }
+                    { href: 'admin/reports.html', icon: 'fa-chart-bar', label: 'Reports' },
+                    { href: 'analytics.html', icon: 'fa-chart-pie', label: 'Analytics' }
                 ]
             },
             {
-                section: 'System',
+                section: 'Account',
                 items: [
-                    { href: 'admin/settings.html', icon: 'fa-cog', label: 'Settings' },
-                    { href: 'admin/roles.html', icon: 'fa-database', label: 'Backup & Restore' },
+                    { href: 'profile.html', icon: 'fa-user', label: 'Profile' },
+                    { href: 'settings.html', icon: 'fa-cog', label: 'My Settings' }
+                ]
+            }
+        ],
+        // Staff role - approve/reject NEFT/IMPS, manage customers, reports
+        staff: [
+            {
+                section: 'Main',
+                items: [
+                    { href: 'staff/dashboard.html', icon: 'fa-th-large', label: 'Dashboard' },
+                    { href: 'staff/customers.html', icon: 'fa-users', label: 'Customers' },
+                    { href: 'staff/transfers.html', icon: 'fa-exchange-alt', label: 'Transaction Requests' }
+                ]
+            },
+            {
+                section: 'Approvals',
+                items: [
+                    { href: 'staff/transfers.html', icon: 'fa-check-double', label: 'Pending Approvals' }
+                ]
+            },
+            {
+                section: 'Services',
+                items: [
+                    { href: 'staff/appointments.html', icon: 'fa-calendar-check', label: 'Appointments' },
+                    { href: 'staff/complaints.html', icon: 'fa-headset', label: 'Complaints' },
+                    { href: 'staff/beneficiaries.html', icon: 'fa-user-friends', label: 'Beneficiaries' },
+                    { href: 'staff/receipts.html', icon: 'fa-receipt', label: 'Receipts' }
+                ]
+            },
+            {
+                section: 'Account',
+                items: [
                     { href: 'profile.html', icon: 'fa-user', label: 'Profile' }
+                ]
+            }
+        ],
+        // Receptionist role - register customers, create requests, upload docs
+        receptionist: [
+            {
+                section: 'Main',
+                items: [
+                    { href: 'receptionist/dashboard.html', icon: 'fa-th-large', label: 'Dashboard' },
+                    { href: 'receptionist/customers.html', icon: 'fa-users', label: 'Customers' }
+                ]
+            },
+            {
+                section: 'Services',
+                items: [
+                    { href: 'receptionist/appointments.html', icon: 'fa-calendar-check', label: 'Appointments' },
+                    { href: 'receptionist/receipts.html', icon: 'fa-receipt', label: 'Receipts' }
+                ]
+            },
+            {
+                section: 'Account',
+                items: [
+                    { href: 'profile.html', icon: 'fa-user', label: 'Profile' }
+                ]
+            }
+        ],
+        // Customer role - banking operations
+        customer: [
+            {
+                section: 'Main',
+                items: [
+                    { href: 'customer/dashboard.html', icon: 'fa-th-large', label: 'Dashboard' },
+                    { href: 'transactions.html', icon: 'fa-exchange-alt', label: 'Transactions' },
+                    { href: 'transfers.html', icon: 'fa-paper-plane', label: 'Transfer / Pay' }
+                ]
+            },
+            {
+                section: 'Banking',
+                items: [
+                    { href: 'wallet.html', icon: 'fa-wallet', label: 'My Wallet' },
+                    { href: 'beneficiaries.html', icon: 'fa-user-friends', label: 'Beneficiaries' },
+                    { href: 'budget.html', icon: 'fa-piggy-bank', label: 'Budget' },
+                    { href: 'goals.html', icon: 'fa-bullseye', label: 'Goals' }
+                ]
+            },
+            {
+                section: 'Account',
+                items: [
+                    { href: 'profile.html', icon: 'fa-user', label: 'Profile' },
+                    { href: 'settings.html', icon: 'fa-cog', label: 'Settings' },
+                    { href: 'reports.html', icon: 'fa-chart-bar', label: 'Reports' }
                 ]
             }
         ]
     };
 
-    // Legacy role aliases so existing sessions still render correctly
-    NAV.customer = NAV.user;
-    NAV.staff = NAV.manager;
-    NAV.receptionist = NAV.user;
-    NAV.employee = NAV.user;
-
     const ROLE_LABEL = {
         admin: 'Administrator',
-        manager: 'Manager',
-        user: 'Employee',
-        employee: 'Employee',
-        customer: 'Employee',
-        staff: 'Manager',
-        receptionist: 'Employee',
-        auditor: 'Auditor'
+        staff: 'Staff',
+        receptionist: 'Receptionist',
+        customer: 'Customer'
     };
 
     // ============================================

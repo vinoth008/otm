@@ -9,6 +9,8 @@ switch ($action) {
     case 'forgot_password': $method === 'POST' && forgotPassword(); break;
     case 'reset_password': $method === 'POST' && resetPassword(); break;
     case 'verify_email': $method === 'POST' && verifyEmail(); break;
+    case 'send_otp': $method === 'POST' && sendOtp(); break;
+    case 'verify_otp': $method === 'POST' && verifyOtp(); break;
     case 'get_session': $method === 'GET' && getSession(); break;
     default: errorResponse('Invalid action', 404);
 }
@@ -137,7 +139,18 @@ function register() {
     // Welcome notification
     createNotification($userId, 'account', 'Welcome to SecureSOT', 'Your account has been created successfully. Welcome aboard!');
     logActivity('register', $userId, ['email' => $email]);
-    // Auto-login
+    // Send OTP to verify email before the user can sign in
+    require_once __DIR__ . '/../helpers/OtpHelper.php';
+    $otp = generate_otp_code();
+    if (store_otp($userId, 'verify_email', $otp)) {
+        send_otp_email($email, trim($firstName . ' ' . $lastName), $otp, 'verify_email');
+        successResponse([
+            'user_id' => $userId,
+            'email' => $email,
+            'needs_otp' => true
+        ], 'Registration successful! Enter the OTP sent to your email to verify your account.');
+    }
+    // Auto-login fallback
     session_regenerate_id(true);
     $_SESSION['user_id'] = $userId;
     $_SESSION['user_role'] = 'customer';
@@ -277,4 +290,67 @@ function verifyEmail() {
     $tokensCollection->updateOne(['_id' => $verification['_id']], ['$set' => ['used' => true]]);
     logActivity('email_verified', $userId);
     successResponse(null, 'Email verified successfully');
+}
+
+function sendOtp() {
+    require_once __DIR__ . '/../helpers/OtpHelper.php';
+    $data = getJSONRequest();
+    if (!$data) errorResponse('Invalid request format');
+    $email = sanitizeInput($data['email'] ?? '');
+    $purpose = sanitizeInput($data['purpose'] ?? 'verify_email');
+    if (empty($email) || !validateEmail($email)) errorResponse('Enter a valid email address');
+    $usersCollection = getCollection('users');
+    if (!$usersCollection) errorResponse('Database connection error');
+    $user = $usersCollection->findOne(['email' => $email, 'deleted_at' => null]);
+    if (!$user) errorResponse('No account found with that email', 404);
+    $userId = (string)$user['_id'];
+    $otp = generate_otp_code();
+    if (!store_otp($userId, $purpose, $otp)) errorResponse('Could not store OTP', 500);
+    $name = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
+    $emailSent = send_otp_email($email, $name ?: 'User', $otp, $purpose);
+    logActivity('otp_sent', $userId, ['purpose' => $purpose, 'email_delivered' => $emailSent]);
+    successResponse(['email_delivered' => $emailSent, 'user_id' => $userId], 'OTP sent to your email');
+}
+
+function verifyOtp() {
+    require_once __DIR__ . '/../helpers/OtpHelper.php';
+    $data = getJSONRequest();
+    if (!$data) errorResponse('Invalid request format');
+    $userId = sanitizeInput($data['user_id'] ?? '');
+    $purpose = sanitizeInput($data['purpose'] ?? 'verify_email');
+    $otpInput = preg_replace('/\D/', '', (string)($data['otp'] ?? ''));
+    if (empty($userId) || !isValidObjectId($userId)) errorResponse('Invalid user id');
+    if (strlen($otpInput) < 6) errorResponse('Enter the 6-digit OTP');
+    $result = verify_otp_code($userId, $purpose, $otpInput);
+    if (!$result['ok']) errorResponse($result['message'], 400);
+    if ($purpose === 'verify_email') {
+        $usersCollection = getCollection('users');
+        if ($usersCollection) {
+            $usersCollection->updateOne(
+                ['_id' => new MongoDB\BSON\ObjectId($userId)],
+                ['$set' => ['email_verified' => true, 'email_verified_at' => phpDateToMongo()]]
+            );
+        }
+    }
+    logActivity('otp_verified', $userId, ['purpose' => $purpose]);
+    if ($purpose === 'forgot_password') {
+        $usersCollection = getCollection('users');
+        $user = $usersCollection ? $usersCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($userId)]) : null;
+        $tokensCollection = getCollection('password_resets');
+        if ($user && $tokensCollection) {
+            $tokensCollection->deleteMany(['user_id' => new MongoDB\BSON\ObjectId($userId), 'used' => false]);
+            $resetToken = bin2hex(random_bytes(32));
+            $tokensCollection->insertOne([
+                'email' => $user['email'] ?? '',
+                'user_id' => new MongoDB\BSON\ObjectId($userId),
+                'token_hash' => hash('sha256', $resetToken),
+                'expires_at' => phpDateToMongo(date('Y-m-d H:i:s', time() + 1800)),
+                'used' => false,
+                'created_at' => phpDateToMongo()
+            ]);
+            successResponse(['reset_token' => $resetToken], $result['message']);
+            return;
+        }
+    }
+    successResponse(null, $result['message']);
 }

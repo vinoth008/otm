@@ -1,0 +1,259 @@
+/* ============================================================
+   SECURE ONLINE TRANSACTION SYSTEM — Global Animations
+   Smooth, modern micro-interactions applied site-wide.
+   Auto-imported via style.css so every page inherits them.
+   ============================================================ */
+
+/* ── Entrance animations ─────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  50%      { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+@keyframes spin360 {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.8); }
+  70%  { transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes numberCount {
+  from { opacity: 0.4; }
+  to   { opacity: 1; }
+}
+
+/* ── Page-level entrance (auto-applies to every page) ────── */
+.auth-card,
+.card,
+.dashboard-card,
+.stat-card,
+.table-container,
+.content-panel,
+section.view {
+  animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.auth-card          { animation-delay: 0.05s; }
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.12s; }
+.stat-card:nth-child(3) { animation-delay: 0.19s; }
+.stat-card:nth-child(4) { animation-delay: 0.26s; }
+.table-container    { animation-delay: 0.30s; }
+.content-panel      { animation-delay: 0.35s; }
+section.view        { animation-delay: 0.20s; }
+
+/* ── Generic animation utility classes ───────────────────── */
+.anim-fade-up    { animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-fade-down  { animation: fadeInDown 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-fade-left  { animation: fadeInLeft 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-fade-right { animation: fadeInRight 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-zoom-in    { animation: zoomIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-pop-in     { animation: popIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.anim-float      { animation: floatY 3.5s ease-in-out infinite; }
+.anim-spin       { animation: spin360 1s linear infinite; }
+.anim-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+
+/* Delay helpers */
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn, .btn-auth, button.btn-primary, .btn-outline {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.btn:hover, .btn-auth:hover, button.btn-primary:hover, .btn-outline:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
+}
+.btn:active, .btn-auth:active {
+  transform: translateY(0) scale(0.97);
+}
+/* Ripple effect via pseudo-element */
+.btn::after, .btn-auth::after, .btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.35) 0%, transparent 65%);
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.btn:active::after, .btn-auth:active::after, .btn-primary:active::after {
+  transform: scale(2.5);
+  opacity: 1;
+  transition: 0s;
+}
+
+/* ── Cards / Stat cards ──────────────────────────────────── */
+.stat-card, .dashboard-card, .card, .panel {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.stat-card:hover, .dashboard-card:hover, .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+/* ── Table rows ──────────────────────────────────────────── */
+.table-hover tbody tr,
+tbody tr, .data-table tbody tr {
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.table-hover tbody tr:hover,
+tbody tr:hover, .data-table tbody tr:hover {
+  transform: scale(1.003);
+}
+tbody tr:nth-child(2n) {
+  animation: numberCount 0.6s ease both;
+}
+
+/* ── Navbar / sidebar ────────────────────────────────────── */
+.navbar, .sidebar, .topbar {
+  animation: fadeInDown 0.5s ease both;
+}
+.sidebar .nav-link, .navbar .nav-link, .sidebar-item {
+  transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+.sidebar .nav-link:hover, .sidebar-item:hover {
+  transform: translateX(4px);
+}
+
+/* ── Auth page ───────────────────────────────────────────── */
+.auth-card {
+  animation: zoomIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.auth-logo-icon {
+  animation: floatY 3s ease-in-out infinite;
+}
+.otp-input {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  animation: zoomIn 0.4s ease both;
+}
+.otp-input:nth-child(2) { animation-delay: 0.05s; }
+.otp-input:nth-child(3) { animation-delay: 0.10s; }
+.otp-input:nth-child(4) { animation-delay: 0.15s; }
+.otp-input:nth-child(5) { animation-delay: 0.20s; }
+.otp-input:nth-child(6) { animation-delay: 0.25s; }
+.otp-input:focus {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+}
+
+/* ── Modals ──────────────────────────────────────────────── */
+.modal-content, .modal {
+  animation: slideDown 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Toasts ──────────────────────────────────────────────── */
+.toast-message, .toast, #toast {
+  animation: fadeInRight 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Loading skeletons ───────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, rgba(99,102,241,0.08) 25%, rgba(99,102,241,0.16) 50%, rgba(99,102,241,0.08) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+}
+
+/* ── Spinners and loaders ────────────────────────────────── */
+#btn-spinner, .spinner {
+  animation: spin360 0.8s linear infinite;
+  display: inline-block;
+}
+
+/* ── Gradient text / hero accents ────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 6s ease infinite;
+}
+
+/* ── Notification badge pulse ────────────────────────────── */
+.badge-pulse, .notification-badge {
+  animation: pulseGlow 1.8s ease-in-out infinite;
+}
+.badge::after, .notification-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  animation: pulseGlow 1.8s ease-in-out infinite;
+}
+
+/* ── Chart / canvas subtle entry ─────────────────────────── */
+canvas, .chart-container {
+  animation: fadeInUp 0.8s ease both;
+}
+
+/* ── Forms ───────────────────────────────────────────────── */
+.auth-input-wrap input, .form-control, input.form-control, select.form-control {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.auth-input-wrap input:focus, .form-control:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+/* ── Progress bars ───────────────────────────────────────── */
+.progress-bar, .progress .bar {
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Reduced motion support ──────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

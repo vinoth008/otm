@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Portal - Smart Transaction Control</title>
+<link rel="stylesheet" href="../../css/main.css">
+<link rel="stylesheet" href="../../css/dashboard.css">
+<link rel="stylesheet" href="../../css/components.css">
+<link rel="stylesheet" href="../../css/animations.css">
+<link rel="stylesheet" href="../../css/responsive.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>.view{display:none}.view.active{display:block}</style>
+</head>
+<body>
+<div class="dashboard-layout"><main class="main-content"><div class="content-area" style="padding:20px;max-width:1200px;margin:0 auto">
+<nav style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px" class="portal-tabs">
+<button class="btn btn-sm btn-primary" onclick="switchView('dashboard')"><i class="fas fa-home"></i> Dashboard</button>
+<button class="btn btn-sm btn-outline" onclick="switchView('transfer')"><i class="fas fa-paper-plane"></i> Transfer</button>
+<button class="btn btn-sm btn-outline" onclick="switchView('transactions')"><i class="fas fa-list"></i> Transactions</button>
+<button class="btn btn-sm btn-outline" onclick="switchView('profile')"><i class="fas fa-user"></i> Profile</button>
+</nav>
+
+<!-- DASHBOARD -->
+<section class="view active" id="view-dashboard">
+<div class="dashboard-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px">
+<div class="stat-card balance"><div class="stat-card-header"><div><div class="stat-card-title">Available Balance</div><div class="stat-card-value" id="pbBalance">₹0.00</div></div><div class="stat-card-icon"><i class="fas fa-wallet"></i></div></div><div class="stat-card-footer" id="pbAccount">Account #------</div></div>
+<div class="stat-card income"><div class="stat-card-header"><div><div class="stat-card-title">Total Income</div><div class="stat-card-value" id="pbIncome">₹0.00</div></div><div class="stat-card-icon"><i class="fas fa-arrow-down"></i></div></div><div class="stat-card-footer" id="pbIncomeCount">0 transactions</div></div>
+<div class="stat-card expense"><div class="stat-card-header"><div><div class="stat-card-title">Total Expenses</div><div class="stat-card-value" id="pbExpense">₹0.00</div></div><div class="stat-card-icon"><i class="fas fa-arrow-up"></i></div></div><div class="stat-card-footer" id="pbExpenseCount">0 transactions</div></div>
+<div class="stat-card savings"><div class="stat-card-header"><div><div class="stat-card-title">Pending Approvals</div><div class="stat-card-value" id="pbPending">0</div></div><div class="stat-card-icon"><i class="fas fa-clock"></i></div></div><div class="stat-card-footer">NEFT / IMPS awaiting review</div></div>
+</div>
+<div class="dashboard-grid" style="grid-template-columns:2fr 1fr;gap:14px;margin-bottom:18px">
+<div class="card" style="padding:18px"><h3 style="font-size:1rem;font-weight:600;margin-bottom:12px"><i class="fas fa-chart-line" style="color:var(--primary);margin-right:8px"></i>Cash Flow</h3><div style="height:240px;position:relative"><canvas id="pbCashflowChart"></canvas></div></div>
+<div class="card" style="padding:18px"><h3 style="font-size:1rem;font-weight:600;margin-bottom:12px"><i class="fas fa-bell" style="color:var(--warning);margin-right:8px"></i>Notifications</h3><div id="pbNotifications" style="max-height:240px;overflow-y:auto;font-size:0.82rem"></div></div>
+</div>
+<div class="card" style="padding:18px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h3 style="font-size:1rem;font-weight:600"><i class="fas fa-list" style="color:var(--primary);margin-right:8px"></i>Recent Transactions</h3><button class="btn btn-sm btn-outline" onclick="switchView('transactions')">View All</button></div>
+<div class="table-container"><table class="table"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Method</th><th>Status</th><th style="text-align:right">Amount</th></tr></thead><tbody id="pbRecentTx"></tbody></table></div>
+</div>
+</section>
+
+<!-- TRANSFER -->
+<section class="view" id="view-transfer">
+<div class="card" style="padding:20px;margin-bottom:16px">
+<h3 style="font-size:1.05rem;font-weight:600;margin-bottom:4px"><i class="fas fa-paper-plane" style="color:var(--primary);margin-right:8px"></i>New Transfer / Request</h3>
+<p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:14px">Internal transfers are <strong>instant</strong>. NEFT & IMPS require <strong>Admin/Staff approval</strong>.</p>
+<form id="pbTransferForm">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" class="portal-2col">
+<div class="form-group"><label>Recipient Email</label><input type="email" class="form-control" id="pbRecipientEmail" placeholder="recipient@example.com" required></div>
+<div class="form-group"><label>Amount</label><input type="number" class="form-control" id="pbAmount" placeholder="0.00" min="0.01" step="0.01" required></div>
+<div class="form-group"><label>Method</label><select class="form-control" id="pbMethod"><option value="internal">Internal (Instant)</option><option value="neft">NEFT (Approval)</option><option value="imps">IMPS (Approval)</option></select></div>
+<div class="form-group" id="pbFreqWrap"><label>Frequency</label><select class="form-control" id="pbFrequency"><option value="one_time">One-time</option><option value="scheduled">Scheduled</option><option value="recurring">Recurring</option></select></div>
+</div>
+<div id="pbBankFields" style="display:none;padding:14px;border-radius:10px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.25);margin-bottom:12px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" class="portal-2col">
+<div class="form-group"><label>Beneficiary Name</label><input type="text" class="form-control" id="pbBeneficiaryName" placeholder="Full name as per bank"></div>
+<div class="form-group"><label>Account Number</label><input type="text" class="form-control" id="pbAccountNumber" maxlength="18" placeholder="9-18 digit account"></div>
+<div class="form-group"><label>IFSC Code</label><input type="text" class="form-control" id="pbIfsc" maxlength="11" placeholder="e.g. SBIN0001234" style="text-transform:uppercase"></div>
+<div class="form-group"><label>Schedule Date</label><input type="date" class="form-control" id="pbScheduleDate" style="display:none"></div>
+</div>
+</div>
+<div class="form-group"><label>Description</label><input type="text" class="form-control" id="pbDescription" placeholder="What is this for?"></div>
+<div id="pbApprovalNote" style="display:none;padding:10px 14px;border-radius:8px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.35);font-size:0.8rem;margin-bottom:12px"><i class="fas fa-info-circle" style="color:#f59e0b;margin-right:6px"></i><strong>NEFT/IMPS need approval.</strong> Balance updates after approval.</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><button type="submit" class="btn btn-primary" id="pbSubmitBtn"><i class="fas fa-paper-plane"></i> Send Transfer</button><button type="button" class="btn btn-outline" onclick="pbResetTransferForm()">Reset</button></div>
+</form>
+</div>
+<div class="card" style="padding:20px">
+<h3 style="font-size:1rem;font-weight:600;margin-bottom:14px"><i class="fas fa-history" style="color:var(--primary);margin-right:8px"></i>Transfer History & Approval Status</h3>
+<div class="table-container"><table class="table"><thead><tr><th>Date</th><th>Method</th><th>Recipient</th><th>Amount</th><th>Status</th><th>Reason</th></tr></thead><tbody id="pbTransferHistory"></tbody></table></div>
+</div>
+</section>
+
+<!-- TRANSACTIONS -->
+<section class="view" id="view-transactions">
+<div class="card" style="padding:20px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+<h3 style="font-size:1rem;font-weight:600"><i class="fas fa-exchange-alt" style="color:var(--primary);margin-right:8px"></i>All Transactions</h3>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><select class="form-control" id="pbTxStatus" style="width:auto;padding:6px 12px;font-size:0.8rem"><option value="all">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select><button class="btn btn-sm btn-outline" onclick="pbLoadAllTransactions()">Apply</button></div>
+</div>
+<div class="table-container"><table class="table"><thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Description</th><th>Method</th><th>Status</th><th style="text-align:right">Amount</th><th style="text-align:center">Actions</th></tr></thead><tbody id="pbAllTx"></tbody></table></div>
+</div>
+</section>
+
+<!-- PROFILE -->
+<section class="view" id="view-profile">
+<div class="card" style="padding:24px;max-width:560px;margin:0 auto">
+<div style="text-align:center;margin-bottom:20px">
+<div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;margin-bottom:10px" id="pbAvatar">U</div>
+<h3 style="font-size:1.1rem;font-weight:600" id="pbFullName">—</h3><p style="font-size:0.85rem;color:var(--text-secondary)" id="pbEmail">—</p>
+</div>
+<div class="form-group"><label>Full Name</label><input type="text" class="form-control" id="pbFirstName" placeholder="First name"></div>
+<div class="form-group"><label>Phone</label><input type="text" class="form-control" id="pbPhone" placeholder="Phone number" maxlength="15"></div>
+<button class="btn btn-primary" style="width:100%" onclick="pbSaveProfile()"><i class="fas fa-save"></i> Save Profile</button>
+<button class="btn btn-outline" style="width:100%;margin-top:10px;color:#ef4444;border-color:rgba(239,68,68,0.4)" onclick="STC.logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+</div>
+</section>
+
+</div></main></div>
+<script src="../../js/utils.js"></script>
+<script src="../../js/app_common.js"></script>
+<script src="../../js/customer_portal.js"></script>
+</body>
+</html>
