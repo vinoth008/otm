@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Login — SecureSOT</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/auth.css" />
+  <link rel="stylesheet" href="../assets/css/theme.css" />
+  <style>
+    .staff-login-title { text-align: center; margin-bottom: 20px; }
+    .staff-role-badges { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .staff-role-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); }
+    .staff-role-badge i.fa-user-tie { color: var(--primary-light); }
+    .staff-role-badge i.fa-headset { color: var(--success); }
+    .staff-back { text-align: center; margin-top: 16px; }
+    .staff-back a { color: var(--text-muted); font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; transition: var(--transition); }
+    .staff-back a:hover { color: var(--primary-light); }
+  </style>
+  <script src="../assets/js/auth-theme.js"></script>
+</head>
+<body>
+<button class="auth-theme-toggle" title="Toggle Theme"><i class="fa-solid fa-moon"></i></button>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><i class="fa-solid fa-user-tie"></i></div>
+      <h2>Staff Portal</h2>
+      <p>Admin & Receptionist Sign In</p>
+    </div>
+
+    <div class="staff-role-badges">
+      <span class="staff-role-badge"><i class="fa-solid fa-user-tie"></i> Admin</span>
+      <span class="staff-role-badge"><i class="fa-solid fa-headset"></i> Receptionist</span>
+    </div>
+
+    <form id="login-form" autocomplete="off">
+      <div class="auth-form-group">
+        <label for="email">Email Address</label>
+        <div class="auth-input-wrap">
+          <i class="fa-solid fa-envelope icon-left"></i>
+          <input type="email" id="email" placeholder="Enter your email" required />
+        </div>
+      </div>
+      <div class="auth-form-group">
+        <label for="password">Password</label>
+        <div class="auth-input-wrap">
+          <i class="fa-solid fa-lock icon-left"></i>
+          <input type="password" id="password" placeholder="Enter your password" required />
+          <button type="button" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text-secondary);cursor:pointer;">
+          <input type="checkbox" checked style="accent-color:var(--primary)" /> Remember me
+        </label>
+        <a href="forgot-password.html" style="font-size:0.82rem;color:var(--primary-light);font-weight:600;">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn-auth" id="btn-login">
+        <span class="spinner hidden" id="btn-spinner"></span>
+        <span id="btn-login-text">Sign In</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </form>
+
+    <div class="staff-back"><a href="role-select.html"><i class="fa-solid fa-arrow-left"></i> Back to portal selection</a></div>
+    <div class="auth-footer">
+      Don't have an account? <a href="register.html">Create Account</a>
+    </div>
+  </div>
+</div>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/auth.js"></script>
+</body>
+</html>

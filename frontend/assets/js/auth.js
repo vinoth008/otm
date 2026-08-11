@@ -4,9 +4,21 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ── Role selector ───────────────────────────────────────────
+  // ── Determine login page type ─────────────────────────────
+  // login-staff.html    → admin + receptionist only
+  // login-customer.html → customer only
+  // login.html          → full role selector (default)
+  const pageName = location.pathname.split('/').pop() || 'login.html';
+  let allowedRoles = null; // null = any role allowed (login.html with selector)
+  if (pageName === 'login-staff.html') {
+    allowedRoles = ['admin', 'staff', 'receptionist'];
+  } else if (pageName === 'login-customer.html') {
+    allowedRoles = ['customer'];
+  }
+
+  // ── Role selector (only present on login.html) ─────────────
   const roleCards = document.querySelectorAll('.role-card');
-  let selectedRole = 'admin';
+  let selectedRole = null;
   roleCards.forEach(card => {
     card.addEventListener('click', () => {
       roleCards.forEach(c => c.classList.remove('selected'));
@@ -14,9 +26,21 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedRole = card.dataset.role;
     });
   });
-  // Set first card active
-  if (roleCards.length) {
-    roleCards[0].classList.add('selected');
+
+  // ── Role enforcement for dedicated portal pages ────────────
+  // Returns the role to send to the backend, or null if the page
+  // doesn't restrict roles (login.html uses the in-page selector).
+  function resolveLoginRole() {
+    if (allowedRoles && allowedRoles.length === 1) {
+      return allowedRoles[0];
+    }
+    if (pageName === 'login-staff.html' && allowedRoles && allowedRoles.length > 1) {
+      // On the staff portal page, the backend will match the user's actual role.
+      // Send the user's email; backend returns the real role. We just validate it
+      // against allowedRoles after the response.
+      return null;
+    }
+    return selectedRole;
   }
 
   // ── Password toggle ────────────────────────────────────────
@@ -44,15 +68,31 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnText)  btnText.textContent = 'Signing in...';
       if (spinner)  spinner.classList.remove('hidden');
 
+      const loginPayload = { email, password };
+      const roleToSend = resolveLoginRole();
+      if (roleToSend) {
+        loginPayload.role = roleToSend;
+      }
+
       try {
-        const res = await apiPost('?module=auth&action=login', { email, password });
+        const res = await apiPost('?module=auth&action=login', loginPayload);
         const user = res.data;
-        if (selectedRole && user.role !== selectedRole) {
+
+        // Validate role against page restrictions
+        if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+          showToast(`This account does not have access to the ${pageName === 'login-staff.html' ? 'Staff' : 'Customer'} portal`, 'warning');
+          if (btnText) btnText.textContent = 'Sign In';
+          if (spinner) spinner.classList.add('hidden');
+          return;
+        }
+        // On login.html, validate against the selected role
+        if (!allowedRoles && selectedRole && user.role !== selectedRole) {
           showToast(`You selected "${capitalise(selectedRole)}" but this account is "${capitalise(user.role)}"`, 'warning');
           if (btnText) btnText.textContent = 'Sign In';
           if (spinner) spinner.classList.add('hidden');
           return;
         }
+
         Auth.login({ id: user.user_id, name: user.name, email: user.email, role: user.role, avatar: user.name.slice(0,2).toUpperCase() });
         showToast(`Welcome back, ${user.name}!`, 'success');
         setTimeout(() => {

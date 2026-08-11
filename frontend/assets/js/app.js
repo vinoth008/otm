@@ -9,10 +9,10 @@ const STORAGE_KEY = 'sot_user';
 
 // ── Role → dashboard URL map ────────────────────────────────────
 const ROLE_DASHBOARD = {
-  admin:        '../admin/dashboard.html',
-  staff:        '../staff/dashboard.html',
-  receptionist: '../receptionist/dashboard.html',
-  customer:     '../customer/dashboard.html',
+  admin:        '../html/admin/dashboard.html',
+  staff:        '../html/staff/dashboard.html',
+  receptionist: '../html/receptionist/dashboard.html',
+  customer:     '../html/customer/dashboard.html',
 };
 
 // ── Auth helpers (backed by real backend session) ───────────────
@@ -25,7 +25,7 @@ const Auth = {
     fetch(`${API_BASE}?module=auth&action=logout`, { method: 'POST', credentials: 'same-origin' })
       .catch(() => {});
     localStorage.removeItem(STORAGE_KEY);
-    window.location.href = getAuthPath('login.html');
+    window.location.href = getAuthPath('role-select.html');
   },
   getUser() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }

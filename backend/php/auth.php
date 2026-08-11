@@ -193,9 +193,9 @@ function loginUser() {
     if (empty($email) || empty($password)) {
         errorResponse('Email and password are required');
     }
-    // Validate selected role
+    // Validate selected role — empty means "any portal" (frontend validates allowed roles)
     $validRoles = ['admin', 'staff', 'receptionist', 'customer'];
-    if (!in_array($selectedRole, $validRoles, true)) {
+    if (!empty($selectedRole) && !in_array($selectedRole, $validRoles, true)) {
         $selectedRole = 'customer';
     }
     // Check brute force protection
@@ -219,9 +219,10 @@ function loginUser() {
         recordFailedLogin($email, 'invalid_password');
         errorResponse('Invalid email or password');
     }
-    // Role enforcement: ensure user's actual role matches the selected portal
+    // Role enforcement: only enforce when the client explicitly selected a portal.
+    // When no role is provided, the front-end validates against its allowed roles.
     $actualRole = normalizeRole($user['role'] ?? 'customer');
-    if ($actualRole !== $selectedRole) {
+    if (!empty($selectedRole) && $actualRole !== $selectedRole) {
         recordFailedLogin($email, 'role_mismatch');
         $roleLabels = ['admin' => 'Admin', 'staff' => 'Staff', 'receptionist' => 'Receptionist', 'customer' => 'Customer'];
         errorResponse('This account does not have ' . ($roleLabels[$selectedRole] ?? $selectedRole) . ' access. Please select the correct portal.');
