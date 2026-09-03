@@ -56,7 +56,19 @@ define('SMTP_PASSWORD', getenv('SMTP_PASSWORD') ?: '');
 define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: 'Secure Online Transaction System');
 define('SMTP_SECURE', getenv('SMTP_SECURE') ?: 'tls');
 
+// --- HTTPS email API fallback (Brevo) ---
+// Used when Gmail SMTP is unreachable (e.g. Render free tier blocks
+// outbound SMTP). Port 443 HTTPS is never blocked on any host.
+// Get a free key: https://www.brevo.com  ->  SMTP & API  ->  API Keys
+define('BREVO_API_KEY', getenv('BREVO_API_KEY') ?: '');
+define('BREVO_FROM_EMAIL', getenv('BREVO_FROM_EMAIL') ?: '');
+
 function is_email_configured(): bool
 {
     return SMTP_USERNAME !== '' && SMTP_PASSWORD !== '';
+}
+
+function is_brevo_configured(): bool
+{
+    return BREVO_API_KEY !== '' && BREVO_FROM_EMAIL !== '';
 }

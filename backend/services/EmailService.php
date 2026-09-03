@@ -29,11 +29,6 @@ class EmailService
 
     public function send(string $toEmail, string $toName, string $subject, string $htmlBody): bool
     {
-        if (!$this->enabled) {
-            error_log('[EmailService] SMTP not configured - mail skipped');
-            return false;
-        }
-
         $from = $this->fromName !== '' ? "{$this->fromName} <{$this->username}>" : $this->username;
         $headers = [
             'MIME-Version: 1.0',
@@ -45,7 +40,15 @@ class EmailService
         ];
         $message = implode("\r\n", $headers) . "\r\n\r\n" . chunk_split(base64_encode($htmlBody));
 
-        return $this->smtpSend($toEmail, $message);
+        // 1) Try Gmail SMTP first (fast and free on permissive hosts).
+        if ($this->enabled && $this->smtpSend($toEmail, $message)) {
+            return true;
+        }
+
+        // 2) Fall back to HTTPS email API (Brevo) — works on hosts that
+        //    block outbound SMTP (e.g. Render free tier). Port 443 is open.
+        error_log("[EmailService] SMTP failed, trying Brevo HTTPS API fallback for {$toEmail}");
+        return $this->sendViaBrevo($toEmail, $toName, $subject, $htmlBody);
     }
 
     public function sendOTPEmail(string $toEmail, string $toName, string $otp, string $purpose = 'verify_email'): bool
@@ -162,5 +165,42 @@ class EmailService
             return '=?UTF-8?B?' . base64_encode($value) . '?=';
         }
         return $value;
+    }
+
+    private function sendViaBrevo(string $toEmail, string $toName, string $subject, string $htmlBody): bool
+    {
+        if (!is_brevo_configured()) {
+            error_log('[EmailService] Brevo API not configured - cannot fallback');
+            return false;
+        }
+
+        $payload = [
+            'sender' => ['name' => $this->fromName !== '' ? $this->fromName : 'SecureSOT', 'email' => BREVO_FROM_EMAIL],
+            'to' => [['email' => $toEmail, 'name' => $toName !== '' ? $toName : '']],
+            'subject' => $subject,
+            'htmlContent' => $htmlBody,
+        ];
+
+        $ctx = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/json\r\napi-key: " . BREVO_API_KEY . "\r\n",
+                'content' => json_encode($payload),
+                'timeout' => 15,
+                'ignore_errors' => true,
+            ],
+        ]);
+
+        $start = microtime(true);
+        $body = @file_get_contents('https://api.brevo.com/v3/smtp/email', false, $ctx);
+        $elapsed = round(microtime(true) - $start, 2);
+
+        $status = $http_response_header[0] ?? '';
+        if ($body !== false && strpos($status, '201') !== false) {
+            error_log("[EmailService] Brevo email sent to {$toEmail} in {$elapsed}s");
+            return true;
+        }
+        error_log("[EmailService] Brevo send failed: {$status} body=" . substr((string)$body, 0, 300));
+        return false;
     }
 }
