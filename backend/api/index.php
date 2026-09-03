@@ -263,6 +263,9 @@ switch ($module) {
     case 'analytics':
         require_once __DIR__ . '/analytics.php';
         break;
+    case 'achievements':
+        require_once __DIR__ . '/achievements.php';
+        break;
     default:
         errorResponse('Invalid module', 404);
 }

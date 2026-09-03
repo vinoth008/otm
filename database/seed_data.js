@@ -6,7 +6,7 @@
 // Switch to database
 use smart_transaction_control;
 // ============================================
-// 0. Delete old demo users
+// 0. Delete old demo users (non-canonical only)
 // ============================================
 const oldEmails = [
     'admin@sot.com', 'manager@sot.com', 'staff@sot.com', 'recept@sot.com',
@@ -14,9 +14,17 @@ const oldEmails = [
     'admin@smarttransaction.com', 'manager@smarttransaction.com',
     'employee@smarttransaction.com', 'auditor@smarttransaction.com',
     'test@smarttransaction.com', 'admin@expensetracker.com',
-    'user@expensetracker.com', 'user1@example.com', 'user2@example.com',
-    'admin1@gmail.com', 'staff1@gmail.com', 'recept1@gmail.com', 'customer1@gmail.com'
+    'user@expensetracker.com', 'user1@example.com', 'user2@example.com'
 ];
+
+// The CANONICAL demo users (kept by seed_database.php) are:
+//   admin1@gmail.com     (admin)
+//   staff1@gmail.com     (staff)
+//   recept1@gmail.com    (receptionist)
+//   customer1@gmail.com  (customer)
+//   -> password for all four: Password@123
+// Note: seed_database.php (PHP) is the authoritative seeder for these.
+// This .js mimics its behavior for reference.
 print('Cleaning up old demo users...');
 oldEmails.forEach(email => {
     const oldUser = db.users.findOne({ email });

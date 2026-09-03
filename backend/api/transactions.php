@@ -51,6 +51,15 @@ function createTransaction() {
     $txId = (string)$result->getInsertedId();
     if ($type === 'expense') updateBudgetSpent($category, (float)$amount);
     logActivity('transaction_created', getCurrentUserId(), ['transaction_id' => $txId, 'type' => $type, 'amount' => $amount]);
+    // Evaluate + unlock achievements (first/5 transactions, first income, savings).
+    require_once __DIR__ . '/../services/AchievementService.php';
+    AchievementService::checkAndUnlock(getCurrentUserId(), [
+        'transaction_count' => (int)$collection->countDocuments([
+            'user_id' => new MongoDB\BSON\ObjectId(getCurrentUserId()),
+            'deleted_at' => null
+        ]),
+        'has_income' => $type === 'income',
+    ]);
     successResponse(['transaction_id' => $txId], 'Transaction created successfully');
 }
 

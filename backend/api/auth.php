@@ -65,6 +65,12 @@ function login() {
         '$set' => ['last_login' => phpDateToMongo(), 'last_login_ip' => $_SERVER['REMOTE_ADDR'] ?? '']
     ]);
     logActivity('login', (string)$user['_id'], ['email' => $email]);
+    // Evaluate + unlock any newly-earned achievements on login.
+    require_once __DIR__ . '/../services/AchievementService.php';
+    AchievementService::checkAndUnlock((string)$user['_id'], [
+        'email_verified' => (bool)($user['is_verified'] ?? ($user['email_verified'] ?? false)),
+        'has_wallet' => true,
+    ]);
     successResponse([
         'user_id' => (string)$user['_id'],
         'name' => $_SESSION['user_name'],
