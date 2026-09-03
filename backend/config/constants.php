@@ -1,44 +1,85 @@
 <?php
 declare(strict_types=1);
 
-// MongoDB Atlas Connection (unified with MPWT)
-define('MONGODB_URI', 'mongodb+srv://vinothyokesh008009_db_user:T6AEVJBfBWlhYx8q@expense-tracker.hqmyhrg.mongodb.net/?retryWrites=true&w=majority');
-define('DB_NAME', 'smart_transaction_control');
+// ── Load .env from project root (XAMPP / shared hosting) ─────────
+function _envLoad(string $file): void
+{
+    if (!is_file($file) || !is_readable($file)) {
+        return;
+    }
+    $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($lines === false) {
+        return;
+    }
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#' || strpos($line, '=') === false) {
+            continue;
+        }
+        [$key, $value] = explode('=', $line, 2);
+        $key   = trim($key);
+        $value = trim($value);
+        // Strip surrounding quotes
+        if (strlen($value) >= 2
+            && (($value[0] === '"' && substr($value, -1) === '"')
+                || ($value[0] === "'" && substr($value, -1) === "'"))
+        ) {
+            $value = substr($value, 1, -1);
+        }
+        if ($key !== '' && getenv($key) === false) {
+            putenv("{$key}={$value}");
+            $_ENV[$key] = $value;
+        }
+    }
+}
 
-// Security Configuration
-define('HASH_COST', 12);
-define('OTP_LENGTH', 6);
-define('MAX_LOGIN_ATTEMPTS', 5);
+_envLoad(dirname(__DIR__, 2) . '/.env');
+
+// ── Helper: read env with fallback ──────────────────────────────
+function _env(string $key, string $default = ''): string
+{
+    $v = getenv($key);
+    return ($v !== false && $v !== '') ? $v : $default;
+}
+
+// ── MongoDB Atlas Connection ─────────────────────────────────────
+define('MONGODB_URI', _env('MONGO_URI', 'mongodb+srv://vinothyokesh008009_db_user:T6AEVJBfBWlhYx8q@expense-tracker.hqmyhrg.mongodb.net/?retryWrites=true&w=majority'));
+define('DB_NAME',     _env('DB_NAME', 'smart_transaction_control'));
+
+// ── Security Configuration ───────────────────────────────────────
+define('HASH_COST',         (int)_env('HASH_COST', '12'));
+define('OTP_LENGTH',        6);
+define('MAX_LOGIN_ATTEMPTS', (int)_env('MAX_LOGIN_ATTEMPTS', '5'));
 define('SESSION_TIMEOUT_MINUTES', 60);
-define('SESSION_TIMEOUT', 3600); // 1 hour
-define('LOCKOUT_TIME', 900); // 15 minutes
-define('PASSWORD_MIN_LENGTH', 8);
+define('SESSION_TIMEOUT',   (int)_env('SESSION_LIFETIME', '3600'));
+define('LOCKOUT_TIME',      900);
+define('PASSWORD_MIN_LENGTH', (int)_env('PASSWORD_MIN_LENGTH', '8'));
 
-// File Upload Configuration
+// ── File Upload Configuration ────────────────────────────────────
 define('UPLOAD_DIR', __DIR__ . '/../../uploads/');
-define('MAX_FILE_SIZE', 5242880); // 5MB
+define('MAX_FILE_SIZE', 5242880);
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'pdf']);
 
-// Application
-define('APP_NAME', 'Secure Online Transaction System');
+// ── Application ──────────────────────────────────────────────────
+define('APP_NAME',    _env('APP_NAME', 'Smart Transaction Control'));
 define('APP_VERSION', '1.0.0');
-define('TIMEZONE', 'Asia/Kolkata');
+define('TIMEZONE',    'Asia/Kolkata');
 
-// Base URL
+// ── Base URL (auto-detect from current request) ──────────────────
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
 define('BASE_URL', $scheme . '://' . $host . '/');
 
-// Error Reporting
+// ── Error Reporting ──────────────────────────────────────────────
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/../../logs/error.log');
 
-// Timezone
+// ── Timezone ─────────────────────────────────────────────────────
 date_default_timezone_set(TIMEZONE);
 
-// Start Session
+// ── Start Session ────────────────────────────────────────────────
 if (session_status() === PHP_SESSION_NONE) {
     session_name('SOT_SESSION');
     $cookieDomain = isset($_SERVER['HTTP_HOST'])
@@ -46,11 +87,11 @@ if (session_status() === PHP_SESSION_NONE) {
         : '';
     session_set_cookie_params([
         'lifetime' => SESSION_TIMEOUT,
-        'path' => '/',
-        'domain' => $cookieDomain,
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Strict'
+        'path'     => '/',
+        'domain'   => $cookieDomain,
+        'secure'   => false,
+        'httponly'  => true,
+        'samesite' => 'Strict',
     ]);
     session_start();
 }

@@ -1,0 +1,16 @@
+# SecureSOT — Backend .htaccess
+# Protects sensitive files and routes API requests.
+
+RewriteEngine On
+
+# Block direct access to sensitive config files
+RewriteRule ^config/ - [F,L]
+RewriteRule ^\.env$ - [F,L]
+
+# Block access to hidden files (except .htaccess itself)
+RewriteRule (^\.|/\.) - [F,L]
+
+# Allow access to the API endpoint
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]

@@ -1,0 +1,13 @@
+# SecureSOT — Root .htaccess
+# Enables mod_rewrite and routes all requests through the PHP application.
+
+RewriteEngine On
+
+# If the request is for an existing file or directory, serve it directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# If the request is NOT for an existing static asset, and there is an index.php
+# in the requested directory, let Apache serve it (handles clean URLs).
+RewriteRule ^ index.php [QSA,L]
