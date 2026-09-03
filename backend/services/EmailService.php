@@ -74,12 +74,24 @@ class EmailService
 
     private function smtpSend(string $toEmail, string $message): bool
     {
-        $socket = @fsockopen($this->host, $this->port, $errno, $errstr, 30);
+        $start = microtime(true);
+
+        // Force IPv4 — PHP's fsockopen can hang trying IPv6 first, causing
+        // multi-second (sometimes 30s) stalls on hosts like Render/shared hosting.
+        $ctx = stream_context_create(['socket' => ['bindto' => '0.0.0.0:0']]);
+        $socket = @stream_socket_client(
+            "tcp://{$this->host}:{$this->port}",
+            $errno,
+            $errstr,
+            10,
+            STREAM_CLIENT_CONNECT,
+            $ctx
+        );
         if (!$socket) {
             error_log("[EmailService] Cannot connect to SMTP: {$errstr} ({$errno})");
             return false;
         }
-        stream_set_timeout($socket, 30);
+        stream_set_timeout($socket, 10);
 
         try {
             $this->expect($socket, 220);
@@ -117,9 +129,12 @@ class EmailService
 
             fwrite($socket, "QUIT\r\n");
             fclose($socket);
+            $elapsed = round(microtime(true) - $start, 2);
+            error_log("[EmailService] Email sent to {$toEmail} in {$elapsed}s");
             return true;
         } catch (Throwable $e) {
-            error_log('[EmailService] SMTP failure: ' . $e->getMessage());
+            $elapsed = round(microtime(true) - $start, 2);
+            error_log("[EmailService] SMTP failure after {$elapsed}s: " . $e->getMessage());
             @fclose($socket);
             return false;
         }

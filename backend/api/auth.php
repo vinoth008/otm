@@ -148,16 +148,15 @@ function register() {
     // Send OTP to verify email before the user can sign in
     require_once __DIR__ . '/../helpers/OtpHelper.php';
     $otp = generate_otp_code();
-    if (store_otp($userId, 'verify_email', $otp)) {
-        send_otp_email($email, trim($firstName . ' ' . $lastName), $otp, 'verify_email');
-        successResponse([
-            'user_id' => $userId,
-            'email' => $email,
-            'needs_otp' => true,
-            'dev_otp' => is_email_configured() ? '' : $otp
-        ], 'Registration successful! Enter the OTP sent to your email to verify your account.');
+    $otpStored = store_otp($userId, 'verify_email', $otp);
+    $emailSent = false;
+    if ($otpStored) {
+        $emailSent = send_otp_email($email, trim($firstName . ' ' . $lastName), $otp, 'verify_email');
     }
-    // Auto-login fallback
+    if (!$emailSent) {
+        error_log("[Auth] OTP email failed for {$email} — returning OTP in response as fallback");
+    }
+    // Auto-login the user (they can verify OTP from the OTP screen)
     session_regenerate_id(true);
     $_SESSION['user_id'] = $userId;
     $_SESSION['user_role'] = 'customer';
@@ -169,8 +168,13 @@ function register() {
         'user_id' => $userId,
         'name' => $_SESSION['user_name'],
         'email' => $email,
-        'role' => 'customer'
-    ], 'Registration successful');
+        'role' => 'customer',
+        'needs_otp' => true,
+        'email_sent' => $emailSent,
+        'dev_otp' => $emailSent ? '' : $otp
+    ], $emailSent
+        ? 'Registration successful! Enter the OTP sent to your email.'
+        : 'Registration successful! Email delivery failed — use the OTP shown below to verify.');
 }
 
 function logout() {
@@ -316,11 +320,16 @@ function sendOtp() {
     $name = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
     $emailSent = send_otp_email($email, $name ?: 'User', $otp, $purpose);
     logActivity('otp_sent', $userId, ['purpose' => $purpose, 'email_delivered' => $emailSent]);
+    if (!$emailSent) {
+        error_log("[Auth] OTP email failed for {$email} (purpose={$purpose}) — returning OTP as fallback");
+    }
     successResponse([
         'email_delivered' => $emailSent,
         'user_id' => $userId,
-        'dev_otp' => is_email_configured() ? '' : $otp
-    ], 'OTP sent to your email');
+        'dev_otp' => $emailSent ? '' : $otp
+    ], $emailSent
+        ? 'OTP sent to your email'
+        : 'Email delivery failed. Use the OTP shown to verify.');
 }
 
 function verifyOtp() {
