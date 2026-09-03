@@ -2,10 +2,44 @@
 declare(strict_types=1);
 
 // Unified API Router - Bridges MINI_PROJECT frontend to MPWT backend
+// Force clean JSON output regardless of the server's error-reporting config.
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+ob_start();
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
+
+// Convert any PHP error/warning into a JSON response instead of raw text/HTML.
+set_error_handler(function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) {
+        return false;
+    }
+    error_log(sprintf('%s at %s:%d', $message, $file, $line));
+    if (ob_get_level()) {
+        ob_clean();
+    }
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Server error: ' . $message]);
+    exit;
+});
+
+register_shutdown_function(function () {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        if (!headers_sent()) {
+            http_response_code(500);
+            header('Content-Type: application/json');
+        }
+        echo json_encode(['success' => false, 'message' => 'Server error: ' . $error['message']]);
+    }
+});
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -17,12 +51,24 @@ require_once __DIR__ . '/../config/database.php';
 
 // ── Response helpers ─────────────────────────────────────────────
 function successResponse($data = null, $message = 'Success') {
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    if (!headers_sent()) {
+        header('Content-Type: application/json');
+    }
     echo json_encode(['success' => true, 'message' => $message, 'data' => $data]);
     exit;
 }
 
 function errorResponse($message = 'Error', $code = 400) {
-    http_response_code($code);
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    if (!headers_sent()) {
+        http_response_code($code);
+        header('Content-Type: application/json');
+    }
     echo json_encode(['success' => false, 'message' => $message]);
     exit;
 }

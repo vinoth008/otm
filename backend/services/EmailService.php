@@ -80,42 +80,49 @@ class EmailService
             return false;
         }
         stream_set_timeout($socket, 30);
-        $this->expect($socket, 220);
 
-        fwrite($socket, "EHLO localhost\r\n");
-        $this->expect($socket, 250);
+        try {
+            $this->expect($socket, 220);
 
-        fwrite($socket, "STARTTLS\r\n");
-        $this->expect($socket, 220);
-        if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
-            error_log('[EmailService] STARTTLS handshake failed');
+            fwrite($socket, "EHLO localhost\r\n");
+            $this->expect($socket, 250);
+
+            fwrite($socket, "STARTTLS\r\n");
+            $this->expect($socket, 220);
+            if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                error_log('[EmailService] STARTTLS handshake failed');
+                fclose($socket);
+                return false;
+            }
+
+            fwrite($socket, "EHLO localhost\r\n");
+            $this->expect($socket, 250);
+
+            fwrite($socket, "AUTH LOGIN\r\n");
+            $this->expect($socket, 334);
+            fwrite($socket, base64_encode($this->username) . "\r\n");
+            $this->expect($socket, 334);
+            fwrite($socket, base64_encode($this->password) . "\r\n");
+            $this->expect($socket, 235);
+
+            fwrite($socket, "MAIL FROM:<{$this->username}>\r\n");
+            $this->expect($socket, 250);
+            fwrite($socket, "RCPT TO:<{$toEmail}>\r\n");
+            $this->expect($socket, 250);
+            fwrite($socket, "DATA\r\n");
+            $this->expect($socket, 354);
+
+            fwrite($socket, $message . "\r\n.\r\n");
+            $this->expect($socket, 250);
+
+            fwrite($socket, "QUIT\r\n");
             fclose($socket);
+            return true;
+        } catch (Throwable $e) {
+            error_log('[EmailService] SMTP failure: ' . $e->getMessage());
+            @fclose($socket);
             return false;
         }
-
-        fwrite($socket, "EHLO localhost\r\n");
-        $this->expect($socket, 250);
-
-        fwrite($socket, "AUTH LOGIN\r\n");
-        $this->expect($socket, 334);
-        fwrite($socket, base64_encode($this->username) . "\r\n");
-        $this->expect($socket, 334);
-        fwrite($socket, base64_encode($this->password) . "\r\n");
-        $this->expect($socket, 235);
-
-        fwrite($socket, "MAIL FROM:<{$this->username}>\r\n");
-        $this->expect($socket, 250);
-        fwrite($socket, "RCPT TO:<{$toEmail}>\r\n");
-        $this->expect($socket, 250);
-        fwrite($socket, "DATA\r\n");
-        $this->expect($socket, 354);
-
-        fwrite($socket, $message . "\r\n.\r\n");
-        $this->expect($socket, 250);
-
-        fwrite($socket, "QUIT\r\n");
-        fclose($socket);
-        return true;
     }
 
     private function expect($socket, int $code): void
@@ -130,7 +137,6 @@ class EmailService
         $actual = (int)substr($response, 0, 3);
         if ($actual !== $code) {
             error_log("[EmailService] SMTP expected {$code}, got: {$response}");
-            fclose($socket);
             throw new RuntimeException("SMTP error: expected {$code}, got {$actual}");
         }
     }
