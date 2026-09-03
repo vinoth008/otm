@@ -1,34 +1,57 @@
 <?php
-declare(strict_types=1);
-
-require_once __DIR__ . '/../../helpers/response.php';
-require_once __DIR__ . '/../../services/email_verification_service.php';
+/**
+ * Resend / generate OTP endpoint (legacy alias).
+ */
+require_once __DIR__ . '/../../../config.php';
+require_once __DIR__ . '/../../php/security.php';
+require_once __DIR__ . '/../../php/session_manager.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    json_response(false, 'Method not allowed', [], 405);
+    errorResponse('Method not allowed', 405);
 }
 
-$input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
-$userId = (int)($input['user_id'] ?? 0);
+$data = getRequestData();
+$userIdInput = sanitizeInput($data['user_id'] ?? '');
+$email = strtolower(trim(sanitizeInput($data['email'] ?? '')));
 
-if ($userId <= 0) {
-    json_response(false, 'Invalid request', [], 400);
+$collection = getCollection('users');
+if (!$collection) {
+    errorResponse('Database connection error', 500);
 }
 
-$user = ev_find_user_by_id($userId);
+$filter = [];
+if (isValidObjectId($userIdInput)) {
+    $filter['_id'] = new MongoDB\BSON\ObjectId($userIdInput);
+} elseif (!empty($email) && validateEmail($email)) {
+    $filter['email'] = $email;
+} else {
+    errorResponse('Invalid request');
+}
+$filter['deleted_at'] = null;
+
+$user = $collection->findOne($filter);
 if (!$user) {
-    json_response(false, 'User not found', [], 404);
+    errorResponse('User not found', 404);
 }
 
-if ((int)$user['email_verified'] === 1) {
-    json_response(true, 'Email already verified');
+if (($user['email_verified'] ?? false)) {
+    successResponse(null, 'Email already verified');
 }
 
-$token = ev_create_email_token($userId);
-$verifyLink = 'http://localhost/secure-online-transaction-system/frontend/auth/verify-email.html?uid=' . $userId . '&token=' . urlencode($token);
+$otp = (string)random_int(100000, 999999);
+$expires = new DateTime();
+$expires->modify('+10 minutes');
+$otpCollection = getCollection('otp_verifications');
+if ($otpCollection) {
+    $otpCollection->insertOne([
+        'user_id' => $user['_id'],
+        'otp_code' => $otp,
+        'otp_purpose' => 'verify_email',
+        'is_used' => false,
+        'expires_at' => phpDateToMongo($expires),
+        'created_at' => phpDateToMongo()
+    ]);
+}
 
-log_event('auth.log', "Email verification requested for user ID {$userId}");
-
-json_response(true, 'Verification email generated', [
-    'verify_link' => $verifyLink
-]);
+logActivity('email_verification_sent', (string)$user['_id']);
+successResponse(['otp' => $otp], 'Verification OTP generated');

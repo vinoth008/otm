@@ -409,10 +409,16 @@ function resetPassword() {
  * Get current session info
  */
 function getSessionInfo() {
+    $token = generateCSRFToken();
     if (!isLoggedIn()) {
-        successResponse(['is_logged_in' => false]);
+        successResponse([
+            'is_logged_in' => false,
+            'csrf_token' => $token
+        ]);
     }
-    successResponse(getSessionData());
+    $sessionData = getSessionData();
+    $sessionData['csrf_token'] = $token;
+    successResponse($sessionData);
 }
 
 /**

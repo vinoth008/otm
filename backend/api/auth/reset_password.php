@@ -1,41 +1,61 @@
 <?php
-declare(strict_types=1);
-
-require_once __DIR__ . '/../../helpers/response.php';
-require_once __DIR__ . '/../../services/password_reset_service.php';
+/**
+ * Reset password using reset token endpoint (legacy alias).
+ */
+require_once __DIR__ . '/../../../config.php';
+require_once __DIR__ . '/../../php/security.php';
+require_once __DIR__ . '/../../php/session_manager.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    json_response(false, 'Method not allowed', [], 405);
+    errorResponse('Method not allowed', 405);
 }
 
-$input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
-$userId = (int)($input['user_id'] ?? 0);
-$token = clean_string($input['token'] ?? '');
-$newPassword = (string)($input['new_password'] ?? '');
-$confirmPassword = (string)($input['confirm_password'] ?? '');
+$data = getRequestData();
+$token = sanitizeInput($data['token'] ?? $data['reset_token'] ?? '');
+$newPassword = $data['new_password'] ?? '';
+$confirmPassword = $data['confirm_password'] ?? '';
 
-if ($userId <= 0 || $token === '' || $newPassword === '' || $confirmPassword === '') {
-    json_response(false, 'All fields are required', [], 400);
+if (empty($token) || empty($newPassword)) {
+    errorResponse('Reset token and new password are required');
 }
-
 if ($newPassword !== $confirmPassword) {
-    json_response(false, 'Passwords do not match', [], 400);
+    errorResponse('Passwords do not match');
+}
+$passwordValidation = validatePasswordStrength($newPassword);
+if (!$passwordValidation['valid']) {
+    errorResponse(implode(', ', $passwordValidation['errors']));
 }
 
-if (!valid_password($newPassword)) {
-    json_response(false, 'Password must be strong', [], 400);
+$collection = getCollection('users');
+if (!$collection) {
+    errorResponse('Database connection error', 500);
 }
 
-$valid = pr_validate_reset_token($userId, $token);
-if (!$valid['ok']) {
-    json_response(false, $valid['message'], [], 400);
+$user = $collection->findOne(['reset_token' => $token, 'deleted_at' => null]);
+if (!$user) {
+    errorResponse('Invalid or expired reset token');
 }
 
-if (!pr_update_password($userId, $newPassword)) {
-    json_response(false, 'Unable to update password', [], 500);
+if (isset($user['reset_token_expires'])) {
+    $expires = mongoDateToPHP($user['reset_token_expires']);
+    if (new DateTime() > $expires) {
+        errorResponse('Reset token has expired');
+    }
 }
 
-pr_mark_token_used((int)$valid['row']['id']);
-log_event('auth.log', "Password reset completed for user ID {$userId}");
+$collection->updateOne(
+    ['_id' => $user['_id']],
+    [
+        '$set' => [
+            'password_hash' => hashPassword($newPassword),
+            'reset_token' => null,
+            'reset_token_expires' => null,
+            'login_attempts' => 0,
+            'locked_until' => null,
+            'updated_at' => phpDateToMongo()
+        ]
+    ]
+);
 
-json_response(true, 'Password reset successfully');
+logActivity('password_reset_completed', (string)$user['_id']);
+successResponse(null, 'Password reset successfully');

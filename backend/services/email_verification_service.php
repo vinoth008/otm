@@ -2,15 +2,15 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../helpers/validation.php';
-require_once __DIR__ . '/../helpers/logger.php';
+require_once __DIR__ . '/../helpers/Validator.php';
+require_once __DIR__ . '/../helpers/Logger.php';
+require_once __DIR__ . '/../helpers/Token.php';
 
 function ev_find_user_by_id(int $userId): ?array
 {
-    $pdo = db();
-    $stmt = $pdo->prepare("SELECT id, full_name, email, email_verified, account_status FROM users WHERE id = :id LIMIT 1");
-    $stmt->execute(['id' => $userId]);
-    $user = $stmt->fetch();
+    $col = getCollection('users');
+    if (!$col) return null;
+    $user = $col->findOne(['user_id' => $userId]);
     return $user ?: null;
 }
 
@@ -20,31 +20,33 @@ function ev_create_email_token(int $userId): string
     $hash = hash('sha256', $token);
     $expiresAt = date('Y-m-d H:i:s', time() + 15 * 60);
 
-    $pdo = db();
-    $stmt = $pdo->prepare("
-        INSERT INTO otp_verifications (user_id, otp_code_hash, otp_purpose, expires_at)
-        VALUES (:user_id, :otp_code_hash, 'EMAIL_VERIFY', :expires_at)
-    ");
-    $stmt->execute([
-        'user_id' => $userId,
-        'otp_code_hash' => $hash,
-        'expires_at' => $expiresAt
-    ]);
+    $col = getCollection('otp_verifications');
+    if ($col) {
+        $col->insertOne([
+            'user_id' => $userId,
+            'otp_code_hash' => $hash,
+            'otp_purpose' => 'EMAIL_VERIFY',
+            'expires_at' => $expiresAt,
+            'is_used' => false,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+    }
 
     return $token;
 }
 
 function ev_verify_email_token(int $userId, string $token): array
 {
-    $pdo = db();
-    $stmt = $pdo->prepare("
-        SELECT * FROM otp_verifications
-        WHERE user_id = :user_id AND otp_purpose = 'EMAIL_VERIFY' AND is_used = 0
-        ORDER BY id DESC
-        LIMIT 1
-    ");
-    $stmt->execute(['user_id' => $userId]);
-    $row = $stmt->fetch();
+    $col = getCollection('otp_verifications');
+    if (!$col) {
+        return ['ok' => false, 'message' => 'Database unavailable'];
+    }
+
+    $row = $col->findOne([
+        'user_id' => $userId,
+        'otp_purpose' => 'EMAIL_VERIFY',
+        'is_used' => false
+    ], ['sort' => ['created_at' => -1]]);
 
     if (!$row) {
         return ['ok' => false, 'message' => 'Verification token not found'];
@@ -58,11 +60,18 @@ function ev_verify_email_token(int $userId, string $token): array
         return ['ok' => false, 'message' => 'Invalid verification token'];
     }
 
-    $stmt = $pdo->prepare("UPDATE otp_verifications SET is_used = 1 WHERE id = :id");
-    $stmt->execute(['id' => $row['id']]);
+    $col->updateOne(
+        ['_id' => $row['_id']],
+        ['$set' => ['is_used' => true, 'used_at' => date('Y-m-d H:i:s')]]
+    );
 
-    $stmt = $pdo->prepare("UPDATE users SET email_verified = 1 WHERE id = :id");
-    $stmt->execute(['id' => $userId]);
+    $users = getCollection('users');
+    if ($users) {
+        $users->updateOne(
+            ['user_id' => $userId],
+            ['$set' => ['email_verified' => true]]
+        );
+    }
 
     log_event('auth.log', "Email verified for user ID {$userId}");
 

@@ -127,3 +127,16 @@ Stack trace:
 [03-Aug-2026 12:15:55 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 417
 [03-Aug-2026 12:15:55 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 418
 [03-Aug-2026 12:15:55 Asia/Kolkata] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\MPWT\database\setup.php:1) in C:\xampp\htdocs\MPWT\backend\php\security.php on line 419
+[06-Aug-2026 16:24:49 Asia/Kolkata] PHP Fatal error:  Uncaught MongoDB\Driver\Exception\BulkWriteException: E11000 duplicate key error collection: smart_transaction_control.users index: email_1 dup key: { email: "vinothyokesh008009@gmail.com" } in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\InsertOne.php:114
+Stack trace:
+#0 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\InsertOne.php(114): MongoDB\Driver\Server->executeBulkWrite('smart_transacti...', Object(MongoDB\Driver\BulkWrite), Array)
+#1 C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Collection.php(877): MongoDB\Operation\InsertOne->execute(Object(MongoDB\Driver\Server))
+#2 C:\xampp\htdocs\MPWT\backend\api\auth.php(110): MongoDB\Collection->insertOne(Array)
+#3 C:\xampp\htdocs\MPWT\backend\api\auth.php(7): register()
+#4 C:\xampp\htdocs\MPWT\backend\api\index.php(161): require_once('C:\\xampp\\htdocs...')
+#5 {main}
+  thrown in C:\xampp\htdocs\MPWT\vendor\mongodb\mongodb\src\Operation\InsertOne.php on line 114
+[27-Aug-2026 13:26:08 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Undefined constant "n" in Command line code:1
+Stack trace:
+#0 {main}
+  thrown in Command line code on line 1

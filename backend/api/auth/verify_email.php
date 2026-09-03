@@ -1,25 +1,57 @@
 <?php
-declare(strict_types=1);
-
-require_once __DIR__ . '/../../helpers/response.php';
-require_once __DIR__ . '/../../services/email_verification_service.php';
+/**
+ * Verify email endpoint (legacy alias).
+ */
+require_once __DIR__ . '/../../../config.php';
+require_once __DIR__ . '/../../php/security.php';
+require_once __DIR__ . '/../../php/session_manager.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    json_response(false, 'Method not allowed', [], 405);
+    errorResponse('Method not allowed', 405);
 }
 
-$input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
-$userId = (int)($input['user_id'] ?? 0);
-$token = clean_string($input['token'] ?? '');
+$data = getRequestData();
+$userIdInput = sanitizeInput($data['user_id'] ?? '');
+$token = sanitizeInput($data['token'] ?? '');
 
-if ($userId <= 0 || $token === '') {
-    json_response(false, 'Invalid request', [], 400);
+if (!isValidObjectId($userIdInput) || empty($token)) {
+    errorResponse('Invalid request');
 }
 
-$result = ev_verify_email_token($userId, $token);
-
-if (!$result['ok']) {
-    json_response(false, $result['message'], [], 400);
+$collection = getCollection('users');
+if (!$collection) {
+    errorResponse('Database connection error', 500);
 }
 
-json_response(true, $result['message']);
+$user = $collection->findOne([
+    '_id' => new MongoDB\BSON\ObjectId($userIdInput),
+    'deleted_at' => null
+]);
+if (!$user) {
+    errorResponse('User not found', 404);
+}
+
+if (($user['reset_token'] ?? null) !== $token) {
+    errorResponse('Invalid verification token');
+}
+if (isset($user['reset_token_expires'])) {
+    $expires = mongoDateToPHP($user['reset_token_expires']);
+    if (new DateTime() > $expires) {
+        errorResponse('Verification token has expired');
+    }
+}
+
+$collection->updateOne(
+    ['_id' => $user['_id']],
+    [
+        '$set' => [
+            'email_verified' => true,
+            'reset_token' => null,
+            'reset_token_expires' => null,
+            'updated_at' => phpDateToMongo()
+        ]
+    ]
+);
+
+logActivity('email_verified', (string)$user['_id']);
+successResponse(null, 'Email verified successfully');

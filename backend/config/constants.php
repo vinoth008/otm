@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 // MongoDB Atlas Connection (unified with MPWT)
-define('MONGODB_URI', 'mongodb+srv://vinothyokesh008009_db_user:T6AEVJBfBWlhYx8q@expense-tracker.hqmyhrg.mongodb.net/');
+define('MONGODB_URI', 'mongodb+srv://vinothyokesh008009_db_user:T6AEVJBfBWlhYx8q@expense-tracker.hqmyhrg.mongodb.net/?retryWrites=true&w=majority');
 define('DB_NAME', 'smart_transaction_control');
 
 // Security Configuration

@@ -1,8 +1,16 @@
 <?php
-declare(strict_types=1);
+/**
+ * User logout endpoint.
+ */
+require_once __DIR__ . '/../../../config.php';
+require_once __DIR__ . '/../../php/security.php';
+require_once __DIR__ . '/../../php/session_manager.php';
 
-require_once __DIR__ . '/../../helpers/response.php';
-require_once __DIR__ . '/../../services/auth_service.php';
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    errorResponse('Method not allowed', 405);
+}
 
-auth_destroy_session();
-json_response(true, 'Logged out successfully');
+requireActiveSession();
+logActivity('logout', getCurrentUserId());
+destroySession();
+successResponse(null, 'Logged out successfully');

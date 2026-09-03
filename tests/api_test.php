@@ -62,12 +62,21 @@ function check($name, $ok, $detail = '') {
 
 echo "=== SMART TRANSACTION CONTROL API TESTS ===\n\n";
 
-// 1. Load index to establish session + CSRF
+// 1. Establish session + CSRF via session_info
 echo "[1] Authentication Flow\n";
-$r = req($BASE . 'index.php');
+$r = req($BASE . 'backend/php/auth.php?action=session_info');
 preg_match('/Set-Cookie: csrf_token=([^;]+);/', $r['headers'] ?? '', $m);
 $csrf = $m[1] ?? '';
 check('Session + CSRF cookie established', !empty($csrf), $r['headers'] ?? '');
+
+// Login to establish session
+$r = req($BASE . 'backend/php/auth.php?action=login', [
+    'csrf_token' => $csrf,
+    'email' => 'customer1@gmail.com',
+    'password' => 'Password@123',
+    'role' => 'customer'
+]);
+check('Login customer', $r['code'] === 200 && ($r['body']['success'] ?? false), json_encode($r['body']));
 
 $r = req($BASE . 'backend/php/auth.php?action=session_info');
 check('Session info', $r['code'] === 200 && ($r['body']['data']['is_logged_in'] ?? false), json_encode($r['body']));

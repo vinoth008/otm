@@ -1,0 +1,45 @@
+<!-- Shared confirmation modal (STC) -->
+<div class="modal-overlay" id="sharedConfirmModal" style="display: none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="confirmTitle">Are you sure?</h3>
+            <button class="modal-close" onclick="STC.closeConfirm()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmMessage">Do you want to continue?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="STC.closeConfirm()">Cancel</button>
+            <button class="btn btn-danger" id="confirmOkBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+<script>
+window.STC = window.STC || {};
+STC.confirmCallback = null;
+STC.confirm = function (options, callback) {
+    options = options || {};
+    var modal = document.getElementById('sharedConfirmModal');
+    if (!modal) return;
+    document.getElementById('confirmTitle').textContent = options.title || 'Are you sure?';
+    document.getElementById('confirmMessage').textContent = options.message || 'Do you want to continue?';
+    var okBtn = document.getElementById('confirmOkBtn');
+    okBtn.textContent = options.okText || 'Confirm';
+    okBtn.className = 'btn ' + (options.danger === false ? 'btn-primary' : 'btn-danger');
+    STC.confirmCallback = callback || null;
+    modal.style.display = 'flex';
+};
+STC.closeConfirm = function () {
+    var modal = document.getElementById('sharedConfirmModal');
+    if (modal) modal.style.display = 'none';
+    STC.confirmCallback = null;
+};
+document.addEventListener('DOMContentLoaded', function () {
+    var okBtn = document.getElementById('confirmOkBtn');
+    if (okBtn) okBtn.addEventListener('click', function () {
+        var cb = STC.confirmCallback;
+        STC.closeConfirm();
+        if (typeof cb === 'function') cb();
+    });
+});
+</script>

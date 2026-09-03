@@ -1,39 +1,103 @@
 <?php
-require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../../../config.php';
+require_once __DIR__ . '/../../php/security.php';
+require_once __DIR__ . '/../../php/session_manager.php';
 
-$method = $_SERVER['REQUEST_METHOD'];
-
-if ($method === 'GET') {
-    $stmt = $pdo->query("SELECT id, branch_name, branch_code, city, phone, status FROM branches ORDER BY id DESC");
-    jsonResponse(['success' => true, 'data' => $stmt->fetchAll()]);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'GET') {
+    errorResponse('Method not allowed', 405);
 }
 
-$input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
-$action = $input['action'] ?? '';
+requireRole(['admin']);
 
-if ($method === 'POST' && $action === 'create') {
-    $stmt = $pdo->prepare("INSERT INTO branches (branch_name, branch_code, city, phone, status) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([
-        $input['branch_name'] ?? '',
-        $input['branch_code'] ?? '',
-        $input['city'] ?? '',
-        $input['phone'] ?? '',
-        $input['status'] ?? 'Active'
-    ]);
-    jsonResponse(['success' => true, 'message' => 'Branch created']);
+$data = getRequestData();
+$action = $data['action'] ?? ($_GET['action'] ?? '');
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $action = $_GET['action'] ?? 'get_all';
 }
 
-if ($method === 'POST' && $action === 'update') {
-    $stmt = $pdo->prepare("UPDATE branches SET branch_name=?, branch_code=?, city=?, phone=?, status=? WHERE id=?");
-    $stmt->execute([
-        $input['branch_name'] ?? '',
-        $input['branch_code'] ?? '',
-        $input['city'] ?? '',
-        $input['phone'] ?? '',
-        $input['status'] ?? 'Active',
-        (int)($input['id'] ?? 0)
-    ]);
-    jsonResponse(['success' => true, 'message' => 'Branch updated']);
+$collection = getCollection('branches');
+if (!$collection) {
+    errorResponse('Database connection error');
 }
 
-jsonResponse(['success' => false, 'message' => 'Invalid request'], 400);
+switch ($action) {
+    case 'get_all':
+        $cursor = $collection->find([], ['sort' => ['created_at' => -1]]);
+        $branches = [];
+        foreach ($cursor as $b) {
+            $branches[] = [
+                'id' => (string)$b['_id'],
+                'name' => $b['name'] ?? '',
+                'address' => $b['address'] ?? '',
+                'phone' => $b['phone'] ?? '',
+                'status' => $b['status'] ?? 'active',
+                'created_at' => isset($b['created_at']) ? mongoDateToPHP($b['created_at'])->format('Y-m-d H:i:s') : ''
+            ];
+        }
+        successResponse(['branches' => $branches], 'Branches retrieved');
+        break;
+
+    case 'create':
+        $name = sanitizeInput($data['name'] ?? '');
+        $address = sanitizeInput($data['address'] ?? '');
+        $phone = sanitizeInput($data['phone'] ?? '');
+        $status = sanitizeInput($data['status'] ?? 'active');
+        if (empty($name)) {
+            errorResponse('Branch name is required');
+        }
+        if (!in_array($status, ['active', 'inactive'], true)) {
+            $status = 'active';
+        }
+        $result = $collection->insertOne([
+            'name' => $name,
+            'address' => $address,
+            'phone' => $phone,
+            'status' => $status,
+            'created_at' => phpDateToMongo(),
+            'updated_at' => phpDateToMongo()
+        ]);
+        logActivity('admin_branch_created', getCurrentUserId(), ['target' => (string)$result->getInsertedId()]);
+        successResponse(['id' => (string)$result->getInsertedId()], 'Branch created successfully');
+        break;
+
+    case 'update':
+        $id = $data['id'] ?? '';
+        if (!isValidObjectId($id)) {
+            errorResponse('Invalid branch ID');
+        }
+        $branch = $collection->findOne(['_id' => new MongoDB\BSON\ObjectId($id)]);
+        if (!$branch) {
+            errorResponse('Branch not found');
+        }
+        $update = ['updated_at' => phpDateToMongo()];
+        if (isset($data['name'])) {
+            $update['name'] = sanitizeInput($data['name']);
+        }
+        if (isset($data['address'])) {
+            $update['address'] = sanitizeInput($data['address']);
+        }
+        if (isset($data['phone'])) {
+            $update['phone'] = sanitizeInput($data['phone']);
+        }
+        if (isset($data['status'])) {
+            $update['status'] = sanitizeInput($data['status']);
+        }
+        $collection->updateOne(['_id' => new MongoDB\BSON\ObjectId($id)], ['$set' => $update]);
+        logActivity('admin_branch_updated', getCurrentUserId(), ['target' => $id]);
+        successResponse(null, 'Branch updated successfully');
+        break;
+
+    case 'delete':
+        $id = $data['id'] ?? '';
+        if (!isValidObjectId($id)) {
+            errorResponse('Invalid branch ID');
+        }
+        $collection->deleteOne(['_id' => new MongoDB\BSON\ObjectId($id)]);
+        logActivity('admin_branch_deleted', getCurrentUserId(), ['target' => $id]);
+        successResponse(null, 'Branch deleted successfully');
+        break;
+
+    default:
+        errorResponse('Invalid action', 400);
+}

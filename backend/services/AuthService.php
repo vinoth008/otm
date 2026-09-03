@@ -4,36 +4,30 @@ declare(strict_types=1);
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/security.php';
 require_once __DIR__ . '/../config/constants.php';
-require_once __DIR__ . '/../helpers/validation.php';
-require_once __DIR__ . '/../helpers/logger.php';
+require_once __DIR__ . '/../helpers/Validator.php';
+require_once __DIR__ . '/../helpers/Logger.php';
+require_once __DIR__ . '/../helpers/Token.php';
 
 function auth_find_user_by_login(string $login): ?array
 {
-    $pdo = db();
-    $stmt = $pdo->prepare("
-        SELECT u.*, r.role_code, r.role_name
-        FROM users u
-        INNER JOIN roles r ON u.role_id = r.id
-        WHERE u.username = :login OR u.email = :login OR u.mobile = :login
-        LIMIT 1
-    ");
-    $stmt->execute(['login' => $login]);
-    $user = $stmt->fetch();
+    $col = getCollection('users');
+    if (!$col) return null;
+
+    if (filter_var($login, FILTER_VALIDATE_EMAIL)) {
+        $user = $col->findOne(['email' => $login]);
+    } elseif (preg_match('/^[0-9+\- ]{7,15}$/', $login)) {
+        $user = $col->findOne(['mobile' => $login]);
+    } else {
+        $user = $col->findOne(['username' => $login]);
+    }
     return $user ?: null;
 }
 
 function auth_find_user_by_id(int $id): ?array
 {
-    $pdo = db();
-    $stmt = $pdo->prepare("
-        SELECT u.*, r.role_code, r.role_name
-        FROM users u
-        INNER JOIN roles r ON u.role_id = r.id
-        WHERE u.id = :id
-        LIMIT 1
-    ");
-    $stmt->execute(['id' => $id]);
-    $user = $stmt->fetch();
+    $col = getCollection('users');
+    if (!$col) return null;
+    $user = $col->findOne(['user_id' => $id]);
     return $user ?: null;
 }
 
@@ -41,19 +35,19 @@ function auth_create_otp(int $userId, string $purpose): string
 {
     $otp = (string)random_int(100000, 999999);
     $hash = password_hash($otp, PASSWORD_DEFAULT);
-    $expires = date('Y-m-d H:i:s', time() + (OTP_LENGTH * 60));
+    $expiresAt = new DateTime('+' . OTP_LENGTH . ' minutes');
 
-    $pdo = db();
-    $stmt = $pdo->prepare("
-        INSERT INTO otp_verifications (user_id, otp_code_hash, otp_purpose, expires_at)
-        VALUES (:user_id, :otp_code_hash, :otp_purpose, :expires_at)
-    ");
-    $stmt->execute([
-        'user_id' => $userId,
-        'otp_code_hash' => $hash,
-        'otp_purpose' => $purpose,
-        'expires_at' => $expires
-    ]);
+    $col = getCollection('otp_verifications');
+    if ($col) {
+        $col->insertOne([
+            'user_id' => $userId,
+            'otp_code_hash' => $hash,
+            'otp_purpose' => $purpose,
+            'expires_at' => $expiresAt->format('Y-m-d H:i:s'),
+            'is_used' => false,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+    }
 
     return $otp;
 }
@@ -64,24 +58,25 @@ function auth_create_session(array $user): string
     session_regenerate_id(true);
 
     $token = bin2hex(random_bytes(32));
-    $_SESSION['user_id'] = (int)$user['id'];
-    $_SESSION['role_code'] = $user['role_code'];
-    $_SESSION['full_name'] = $user['full_name'];
+    $_SESSION['user_id'] = (int)$user['user_id'];
+    $_SESSION['role_code'] = $user['role_code'] ?? 'customer';
+    $_SESSION['full_name'] = $user['full_name'] ?? '';
     $_SESSION['session_token'] = $token;
 
-    $pdo = db();
-    $stmt = $pdo->prepare("
-        INSERT INTO sessions (user_id, session_token_hash, ip_address, user_agent, device_info, location_info)
-        VALUES (:user_id, :session_token_hash, :ip_address, :user_agent, :device_info, :location_info)
-    ");
-    $stmt->execute([
-        'user_id' => $user['id'],
-        'session_token_hash' => password_hash($token, PASSWORD_DEFAULT),
-        'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
-        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
-        'device_info' => 'Web Browser',
-        'location_info' => null
-    ]);
+    $col = getCollection('sessions');
+    if ($col) {
+        $col->insertOne([
+            'user_id' => (int)$user['user_id'],
+            'session_token_hash' => password_hash($token, PASSWORD_DEFAULT),
+            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+            'device_info' => 'Web Browser',
+            'location_info' => null,
+            'is_active' => true,
+            'created_at' => date('Y-m-d H:i:s'),
+            'last_activity' => date('Y-m-d H:i:s')
+        ]);
+    }
 
     return $token;
 }
@@ -90,9 +85,13 @@ function auth_destroy_session(): void
 {
     start_secure_session();
     if (!empty($_SESSION['user_id'])) {
-        $pdo = db();
-        $stmt = $pdo->prepare("UPDATE sessions SET is_active = 0 WHERE user_id = :user_id AND is_active = 1");
-        $stmt->execute(['user_id' => (int)$_SESSION['user_id']]);
+        $col = getCollection('sessions');
+        if ($col) {
+            $col->updateMany(
+                ['user_id' => (int)$_SESSION['user_id'], 'is_active' => true],
+                ['$set' => ['is_active' => false, 'ended_at' => date('Y-m-d H:i:s')]]
+            );
+        }
     }
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
@@ -104,45 +103,55 @@ function auth_destroy_session(): void
 
 function auth_register_user(array $input): array
 {
-    $pdo = db();
-
-    $roleId = (int)$input['role_id'];
-    $branchId = !empty($input['branch_id']) ? (int)$input['branch_id'] : null;
+    $roleCode = clean_string($input['role_code'] ?? 'customer');
     $fullName = clean_string($input['full_name'] ?? '');
     $username = clean_string($input['username'] ?? '');
     $email = clean_string($input['email'] ?? '');
     $mobile = clean_string($input['mobile'] ?? '');
     $password = (string)($input['password'] ?? '');
-    $securityQuestion = clean_string($input['security_question'] ?? '');
-    $securityAnswer = clean_string($input['security_answer'] ?? '');
 
-    if ($fullName === '' || !valid_username($username) || !valid_email($email) || !valid_mobile($mobile) || !valid_password($password)) {
+    if ($fullName === '' || $email === '' || $mobile === '' || !valid_password($password)) {
         return ['ok' => false, 'message' => 'Invalid registration data'];
     }
+    if ($username !== '' && !valid_username($username)) {
+        return ['ok' => false, 'message' => 'Invalid username'];
+    }
+    if (!valid_email($email)) {
+        return ['ok' => false, 'message' => 'Invalid email'];
+    }
 
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE username = :username OR email = :email OR mobile = :mobile LIMIT 1");
-    $stmt->execute(['username' => $username, 'email' => $email, 'mobile' => $mobile]);
-    if ($stmt->fetch()) {
+    $col = getCollection('users');
+    if (!$col) {
+        return ['ok' => false, 'message' => 'Database unavailable'];
+    }
+
+    $exists = $col->findOne([
+        '$or' => [
+            ['username' => $username],
+            ['email' => $email],
+            ['mobile' => $mobile]
+        ]
+    ]);
+    if ($exists) {
         return ['ok' => false, 'message' => 'User already exists'];
     }
 
-    $stmt = $pdo->prepare("
-        INSERT INTO users (role_id, branch_id, full_name, username, email, mobile, password_hash, security_question, security_answer_hash, account_status, email_verified, mobile_verified, two_factor_enabled)
-        VALUES (:role_id, :branch_id, :full_name, :username, :email, :mobile, :password_hash, :security_question, :security_answer_hash, 'PENDING', 0, 0, 0)
-    ");
-    $stmt->execute([
-        'role_id' => $roleId,
-        'branch_id' => $branchId,
+    $result = $col->insertOne([
+        'role_code' => $roleCode,
         'full_name' => $fullName,
         'username' => $username,
         'email' => $email,
         'mobile' => $mobile,
         'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-        'security_question' => $securityQuestion,
-        'security_answer_hash' => password_hash($securityAnswer, PASSWORD_DEFAULT)
+        'account_status' => 'ACTIVE',
+        'email_verified' => false,
+        'mobile_verified' => false,
+        'two_factor_enabled' => false,
+        'failed_login_attempts' => 0,
+        'created_at' => date('Y-m-d H:i:s')
     ]);
 
-    $userId = (int)$pdo->lastInsertId();
+    $userId = (int)$result->getInsertedId();
     $otp = auth_create_otp($userId, 'REGISTER');
 
     return ['ok' => true, 'user_id' => $userId, 'otp' => $otp, 'message' => 'Registered successfully'];
@@ -162,65 +171,76 @@ function auth_login_user(array $input): array
         return ['ok' => false, 'message' => 'Invalid credentials'];
     }
 
-    if ($user['account_status'] !== 'ACTIVE') {
+    if (($user['account_status'] ?? '') !== 'ACTIVE') {
         return ['ok' => false, 'message' => 'Account is not active'];
     }
 
     if (!password_verify($password, $user['password_hash'])) {
-        $pdo = db();
-        $stmt = $pdo->prepare("UPDATE users SET failed_login_attempts = failed_login_attempts + 1 WHERE id = :id");
-        $stmt->execute(['id' => $user['id']]);
-        log_event('auth.log', "Failed login for user ID {$user['id']}");
+        $col = getCollection('users');
+        if ($col) {
+            $col->updateOne(
+                ['user_id' => $user['user_id']],
+                ['$inc' => ['failed_login_attempts' => 1]]
+            );
+        }
+        log_event('auth.log', "Failed login for user {$login}");
         return ['ok' => false, 'message' => 'Invalid credentials'];
     }
 
-    if ((int)$user['failed_login_attempts'] >= MAX_LOGIN_ATTEMPTS) {
+    if ((int)($user['failed_login_attempts'] ?? 0) >= MAX_LOGIN_ATTEMPTS) {
         return ['ok' => false, 'message' => 'Account locked due to too many attempts'];
     }
 
-    $pdo = db();
-    $stmt = $pdo->prepare("UPDATE users SET failed_login_attempts = 0, last_login_at = NOW() WHERE id = :id");
-    $stmt->execute(['id' => $user['id']]);
+    $col = getCollection('users');
+    if ($col) {
+        $col->updateOne(
+            ['user_id' => $user['user_id']],
+            ['$set' => ['failed_login_attempts' => 0, 'last_login_at' => date('Y-m-d H:i:s')]]
+        );
+    }
 
     $otp = null;
-    if ((int)$user['two_factor_enabled'] === 1) {
-        $otp = auth_create_otp((int)$user['id'], 'LOGIN');
+    if (!empty($user['two_factor_enabled'])) {
+        $otp = auth_create_otp((int)$user['user_id'], 'LOGIN');
     }
 
     auth_create_session($user);
 
     return [
         'ok' => true,
-        'otp_required' => (int)$user['two_factor_enabled'] === 1,
+        'otp_required' => !empty($user['two_factor_enabled']),
         'otp' => $otp,
-        'role_code' => $user['role_code'],
-        'user_id' => (int)$user['id'],
+        'role_code' => $user['role_code'] ?? 'customer',
+        'user_id' => (int)$user['user_id'],
         'message' => 'Login successful'
     ];
 }
 
 function auth_verify_otp(int $userId, string $purpose, string $otpInput): array
 {
-    $pdo = db();
-    $stmt = $pdo->prepare("
-        SELECT * FROM otp_verifications
-        WHERE user_id = :user_id AND otp_purpose = :otp_purpose AND is_used = 0
-        ORDER BY id DESC
-        LIMIT 1
-    ");
-    $stmt->execute(['user_id' => $userId, 'otp_purpose' => $purpose]);
-    $otpRow = $stmt->fetch();
+    $col = getCollection('otp_verifications');
+    if (!$col) {
+        return ['ok' => false, 'message' => 'Database unavailable'];
+    }
 
-    if (!$otpRow || strtotime($otpRow['expires_at']) < time()) {
+    $row = $col->findOne([
+        'user_id' => $userId,
+        'otp_purpose' => $purpose,
+        'is_used' => false
+    ], ['sort' => ['created_at' => -1]]);
+
+    if (!$row || strtotime($row['expires_at']) < time()) {
         return ['ok' => false, 'message' => 'OTP expired or invalid'];
     }
 
-    if (!password_verify($otpInput, $otpRow['otp_code_hash'])) {
+    if (!password_verify($otpInput, $row['otp_code_hash'])) {
         return ['ok' => false, 'message' => 'Incorrect OTP'];
     }
 
-    $stmt = $pdo->prepare("UPDATE otp_verifications SET is_used = 1 WHERE id = :id");
-    $stmt->execute(['id' => $otpRow['id']]);
+    $col->updateOne(
+        ['_id' => $row['_id']],
+        ['$set' => ['is_used' => true, 'used_at' => date('Y-m-d H:i:s')]]
+    );
 
     return ['ok' => true, 'message' => 'OTP verified'];
 }

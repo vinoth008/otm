@@ -1,0 +1,24 @@
+<!-- Shared loading loader (STC) -->
+<div class="loading-overlay" id="sharedLoader">
+    <div class="loader-box">
+        <div class="spinner spinner-lg"></div>
+        <p class="loader-text">Loading...</p>
+    </div>
+</div>
+<style>
+.loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity .2s; }
+.loading-overlay.hidden { opacity: 0; pointer-events: none; }
+.loader-box { text-align: center; }
+.loader-text { margin-top: 16px; color: var(--text-secondary, #64748b); font-size: .875rem; }
+</style>
+<script>
+window.STC = window.STC || {};
+STC.showLoader = function () {
+    var el = document.getElementById('sharedLoader');
+    if (el) el.classList.remove('hidden');
+};
+STC.hideLoader = function () {
+    var el = document.getElementById('sharedLoader');
+    if (el) el.classList.add('hidden');
+};
+</script>

@@ -1,0 +1,58 @@
+/* ============================================================
+   SMART TRANSACTION CONTROL — tailwind.css (utility classes)
+   Minimal Tailwind-style utilities (grid, spacing, display,
+   text, colors) provided locally so pages can use Tailwind-like
+   classes without a build step. (loaded via ../css/tailwind.css)
+   ============================================================ */
+
+/* Grid */
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.gap-1 { gap: .25rem; } .gap-2 { gap: .5rem; } .gap-3 { gap: 1rem; }
+.gap-4 { gap: 1.5rem; } .gap-6 { gap: 2rem; }
+
+/* Flex */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.flex-1 { flex: 1; }
+
+/* Spacing */
+.p-0{padding:0}.p-2{padding:.5rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}
+.m-0{margin:0}.m-2{margin:.5rem}.m-4{margin:1rem}.m-6{margin:1.5rem}
+.mx-auto { margin-left: auto; margin-right: auto; }
+.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-4{margin-top:1rem}.mt-6{margin-top:1.5rem}
+.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}
+
+/* Typography */
+.text-xs{font-size:.75rem}.text-sm{font-size:.875rem}.text-base{font-size:1rem}
+.text-lg{font-size:1.125rem}.text-xl{font-size:1.25rem}.text-2xl{font-size:1.5rem}
+.font-normal{font-weight:400}.font-medium{font-weight:500}.font-semibold{font-weight:600}
+.font-bold{font-weight:700}.font-extrabold{font-weight:800}
+.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}
+.text-white{color:#fff}.text-gray{color:#94a3b8}.text-primary{color:#6366f1}
+.text-danger{color:#ef4444}.text-success{color:#10b981}
+
+/* Colors / backgrounds */
+.bg-primary{background:#6366f1}.bg-primary-dark{background:#4f46e5}
+.bg-success{background:#10b981}.bg-danger{background:#ef4444}
+.bg-card{background:var(--bg-card,#1e1e35)}.bg-surface{background:var(--bg-surface,#16162a)}
+.rounded{border-radius:8px}.rounded-lg{border-radius:16px}.rounded-full{border-radius:9999px}
+.shadow-sm{box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.shadow-md{box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.shadow-lg{box-shadow:0 10px 40px rgba(0,0,0,.5)}
+
+/* Display */
+.hidden{display:none}.block{display:block}.inline-block{display:inline-block}
+.w-full{width:100%}.h-full{height:100%}
+.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}
+
+/* Responsive */
+@media (min-width: 640px){ .sm\:grid-cols-2{grid-template-columns:repeat(2,1fr)} }
+@media (min-width: 768px){ .md\:grid-cols-3{grid-template-columns:repeat(3,1fr)} .md\:flex{display:flex} }
+@media (min-width: 1024px){ .lg\:grid-cols-4{grid-template-columns:repeat(4,1fr)} }

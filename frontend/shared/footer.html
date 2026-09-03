@@ -1,0 +1,22 @@
+<!-- Shared site footer (STC) -->
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <i class="fas fa-wallet"></i>
+            <span>Smart Transaction Control</span>
+        </div>
+        <div class="footer-links">
+            <a href="help.html"><i class="fas fa-question-circle"></i> Help</a>
+            <a href="settings.html"><i class="fas fa-cog"></i> Settings</a>
+        </div>
+        <div class="footer-copyright">
+            &copy; <span id="footerYear">2025</span> Smart Transaction Control. All rights reserved.
+        </div>
+    </div>
+</footer>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var year = document.getElementById('footerYear');
+    if (year) year.textContent = new Date().getFullYear();
+});
+</script>

@@ -1,0 +1,64 @@
+/* ============================================================
+   SMART TRANSACTION CONTROL — dark-mode.css
+   The app is dark by default. This file provides a LIGHT theme
+   override when the <html> element has data-theme="light" or the
+   body has class "light" (mirrors mini_theme.css + app_theme.css).
+   (loaded via ../css/dark-mode.css wrapper)
+   ============================================================ */
+
+html[data-theme="light"], body.light {
+  --bg-base:        #f1f5f9;
+  --bg-surface:     #ffffff;
+  --bg-card:        #ffffff;
+  --bg-hover:       #eef2ff;
+  --bg-input:       #ffffff;
+  --sidebar-bg:     #ffffff;
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-muted:     #64748b;
+  --border:         #e2e8f0;
+  --border-light:   #cbd5e1;
+}
+
+html[data-theme="light"] body, body.light {
+  background: var(--bg-base);
+  color: var(--text-primary);
+}
+
+html[data-theme="light"] .card,
+html[data-theme="light"] .stat-card,
+html[data-theme="light"] .chart-card,
+html[data-theme="light"] .modal-content,
+html[data-theme="light"] .sidebar {
+  background: #fff;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+html[data-theme="light"] .form-group input,
+html[data-theme="light"] .form-group select,
+html[data-theme="light"] .form-group textarea,
+html[data-theme="light"] .search-bar {
+  background: #fff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+html[data-theme="light"] .top-nav {
+  background: #fff;
+  border-color: #e2e8f0;
+}
+
+html[data-theme="light"] .table tbody td,
+html[data-theme="light"] .table thead th {
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+
+html[data-theme="light"] .table tbody tr:hover { background: #f1f5f9; }
+html[data-theme="light"] .sidebar-menu-item:hover { background: #eef2ff; color: #0f172a; }
+html[data-theme="light"] .sidebar-section-title { color: #64748b; }
+html[data-theme="light"] h1, html[data-theme="light"] h2,
+html[data-theme="light"] h3, html[data-theme="light"] h4 { color: #0f172a; }
+html[data-theme="light"] p, html[data-theme="light"] .text-muted { color: #475569; }
+html[data-theme="light"] .user-role { color: #64748b; }

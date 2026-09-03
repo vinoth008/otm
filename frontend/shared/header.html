@@ -1,0 +1,43 @@
+<!-- Shared site header (STC) -->
+<link rel="stylesheet" href="../css/main.css">
+<link rel="stylesheet" href="../css/components.css">
+<header class="site-header">
+    <div class="header-left">
+        <button class="sidebar-toggle" id="headerSidebarToggle" title="Toggle Sidebar">
+            <i class="fas fa-bars"></i>
+        </button>
+        <a href="dashboard.html" class="header-brand">
+            <i class="fas fa-wallet"></i>
+            <span>STC</span>
+        </a>
+    </div>
+    <div class="header-right">
+        <div class="search-bar header-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search..." id="headerGlobalSearch">
+        </div>
+        <button class="nav-icon-btn" id="headerThemeToggle" title="Toggle Theme">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun" style="display: none;"></i>
+        </button>
+        <button class="nav-icon-btn" id="headerNotificationsBtn" title="Notifications">
+            <i class="fas fa-bell"></i>
+            <span class="badge badge-danger header-badge" id="headerNotifBadge" style="display: none;">0</span>
+        </button>
+        <div class="user-menu" id="headerUserMenu">
+            <img src="https://ui-avatars.com/api/svg?name=User&color=4f46e5&background=e0e7ff&size=40" id="headerUserAvatar" alt="User">
+            <div class="user-info">
+                <span class="user-name" id="headerUserName">User</span>
+                <span class="user-role" id="headerUserRole">-</span>
+            </div>
+        </div>
+    </div>
+</header>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var toggle = document.getElementById('headerSidebarToggle');
+    if (toggle && window.STC && STC.toggleSidebar) {
+        toggle.addEventListener('click', function () { STC.toggleSidebar(); });
+    }
+});
+</script>
