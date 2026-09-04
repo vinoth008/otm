@@ -4,6 +4,19 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ── Role → dashboard map (self-contained, does not depend on app.js) ──
+  // Dashboards live at frontend/<role>/dashboard.html. From the auth pages
+  // (frontend/auth/*) the relative path is "../<role>/dashboard.html".
+  const ROLE_DASHBOARD_MAP = {
+    admin:        '../admin/dashboard.html',
+    staff:        '../staff/dashboard.html',
+    receptionist: '../receptionist/dashboard.html',
+    customer:     '../customer/dashboard.html',
+  };
+  function dashboardFor(role) {
+    return ROLE_DASHBOARD_MAP[role] || (typeof ROLE_DASHBOARD !== 'undefined' ? ROLE_DASHBOARD[role] : null) || '../admin/dashboard.html';
+  }
+
   // ── Determine login page type ─────────────────────────────
   // login-staff.html    → admin + receptionist only
   // login-customer.html → customer only
@@ -95,8 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Auth.login({ id: user.user_id, name: user.name, email: user.email, role: user.role, avatar: user.name.slice(0,2).toUpperCase() });
         showToast(`Welcome back, ${user.name}!`, 'success');
+        if (btnText) btnText.textContent = 'Sign In';
+        if (spinner) spinner.classList.add('hidden');
         setTimeout(() => {
-          window.location.href = ROLE_DASHBOARD[user.role] || '../admin/dashboard.html';
+          window.location.href = dashboardFor(user.role);
         }, 800);
       } catch (err) {
         showToast(err.message || 'Login failed', 'error');
@@ -137,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         Auth.login({ id: user.user_id, name: user.name, email: user.email, role: user.role, avatar: user.name.slice(0,2).toUpperCase() });
         showToast('Account created successfully!', 'success');
-        setTimeout(() => window.location.href = ROLE_DASHBOARD[user.role] || '../customer/dashboard.html', 1200);
+        setTimeout(() => window.location.href = dashboardFor(user.role), 1200);
       } catch (err) {
         showToast(err.message || 'Registration failed', 'error');
       }
