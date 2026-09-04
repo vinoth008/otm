@@ -8,14 +8,15 @@ services:
         value: mongodb+srv://vinothyokesh008009_db_user:T6AEVJBfBWlhYx8q@expense-tracker.hqmyhrg.mongodb.net/
       - key: DB_NAME
         value: smart_transaction_control
-      # Non-secret SMTP settings (credentials are set in Render dashboard:
-      # Environment -> SMTP_PASSWORD, BREVO_API_KEY, BREVO_FROM_EMAIL)
+      # SMTP for OTP email delivery (Gmail SMTP)
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT
         value: "587"
       - key: SMTP_USERNAME
         value: vinothyokesh008009@gmail.com
+      - key: SMTP_PASSWORD
+        value: hxpdlesdpctsvdmg
       - key: SMTP_FROM_NAME
         value: Secure Online Transaction System
       - key: SMTP_SECURE
