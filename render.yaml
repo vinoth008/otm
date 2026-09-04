@@ -21,3 +21,10 @@ services:
         value: Secure Online Transaction System
       - key: SMTP_SECURE
         value: tls
+      # Brevo HTTPS email fallback (for hosts that block outbound SMTP like
+      # Render free tier). Set BREVO_API_KEY and BREVO_FROM_EMAIL in the
+      # Render dashboard -> Environment (as secret values, NOT committed here).
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_FROM_EMAIL
+        sync: false

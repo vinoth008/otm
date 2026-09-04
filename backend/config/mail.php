@@ -56,7 +56,20 @@ define('SMTP_PASSWORD', getenv('SMTP_PASSWORD') ?: '');
 define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: 'Secure Online Transaction System');
 define('SMTP_SECURE', getenv('SMTP_SECURE') ?: 'tls');
 
+// --- HTTPS email API fallback (Brevo) ---
+// Render free tier blocks outbound SMTP (587/465) but NOT port 443 HTTPS.
+// When Gmail SMTP is unreachable, email is sent via Brevo's HTTP API.
+// Get a free key: https://www.brevo.com  ->  SMTP & API  ->  API Keys
+// Set BREVO_API_KEY and BREVO_FROM_EMAIL in the Render dashboard (secrets).
+define('BREVO_API_KEY', getenv('BREVO_API_KEY') ?: '');
+define('BREVO_FROM_EMAIL', getenv('BREVO_FROM_EMAIL') ?: '');
+
 function is_email_configured(): bool
 {
     return SMTP_USERNAME !== '' && SMTP_PASSWORD !== '';
+}
+
+function is_brevo_configured(): bool
+{
+    return BREVO_API_KEY !== '' && BREVO_FROM_EMAIL !== '';
 }
