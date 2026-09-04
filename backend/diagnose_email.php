@@ -22,9 +22,23 @@ foreach ([SMTP_PORT, 465, 587] as $port) {
     $t = microtime(true);
     $sock = @fsockopen(SMTP_HOST, $port, $errno, $errstr, $timeout);
     $elapsed = round(microtime(true) - $t, 2);
-    echo "port {$port}: " . ($sock ? "CONNECTED in {$elapsed}s" : "FAILED({$errno}) {$errstr} in {$elapsed}s") . "\n";
+    echo "smtp.gmail.com:{$port}: " . ($sock ? "CONNECTED in {$elapsed}s" : "FAILED({$errno}) {$errstr} in {$elapsed}s") . "\n";
     if ($sock) { fclose($sock); }
 }
+
+// Test HTTPS outbound (port 443) — used by email API fallbacks
+echo "\n=== HTTPS / PORT 443 TEST ===\n";
+$t = microtime(true);
+$sock = @fsockopen("api.brevo.com", 443, $errno, $errstr, $timeout);
+$elapsed = round(microtime(true) - $t, 2);
+echo "api.brevo.com:443: " . ($sock ? "CONNECTED in {$elapsed}s" : "FAILED({$errno}) {$errstr} in {$elapsed}s") . "\n";
+if ($sock) { fclose($sock); }
+
+$t = microtime(true);
+$sock = @fsockopen("resend.com", 443, $errno, $errstr, $timeout);
+$elapsed = round(microtime(true) - $t, 2);
+echo "resend.com:443: " . ($sock ? "CONNECTED in {$elapsed}s" : "FAILED({$errno}) {$errstr} in {$elapsed}s") . "\n";
+if ($sock) { fclose($sock); }
 
 echo "\n=== DNS ===\n";
 echo 'gethostbyname: ' . gethostbyname(SMTP_HOST) . "\n";
