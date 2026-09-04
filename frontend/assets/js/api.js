@@ -21,7 +21,22 @@ async function apiRequest(path, { method = 'GET', data = null, headers = {}, cre
     options.body = JSON.stringify(data);
   }
 
-  const response = await fetch(`${API_BASE}${path}`, options);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  options.signal = controller.signal;
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, options);
+  } catch (e) {
+    clearTimeout(timeout);
+    if (e.name === 'AbortError') {
+      throw new Error('Request timed out. Please check that the backend is running (Apache + PHP).');
+    }
+    throw new Error('Network error - could not reach the server. Is Apache running?');
+  }
+  clearTimeout(timeout);
+
   let result = null;
 
   try {
