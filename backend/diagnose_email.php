@@ -4,7 +4,7 @@ declare(strict_types=1);
 // WARNING: Remove this file before production launch.
 header('Content-Type: text/plain');
 
-require_once __DIR__ . '/../config/mail.php';
+require_once __DIR__ . '/config/mail.php';
 
 echo "=== EMAIL DIAGNOSTIC ===\n";
 echo 'PHP version: ' . PHP_VERSION . "\n";
